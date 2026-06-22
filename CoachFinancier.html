@@ -851,7 +851,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 // ══ SERVICE WORKER OFFLINE ══
 (function(){
   if(!('serviceWorker' in navigator)) return;
-  var SW_VERSION = '3.0';
+  var SW_VERSION = '3.1';
   var CACHE = 'rb-cache-v'+SW_VERSION;
   var swCode = [
     'var CACHE="rb-cache-v'+SW_VERSION+'";',
@@ -1302,7 +1302,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
       </button>
       <input type="file" id="chatInputCamera"  accept="image/*,video/*" capture="environment" style="display:none" onchange="handleFileUpload(event)"/>
       <input type="file" id="chatInputGallery" accept="image/*,video/*" style="display:none" onchange="handleFileUpload(event)"/>
-      <input type="file" id="fileInput" accept="*/*" style="display:none" onchange="handleFileUpload(event)"/>
+      <input type="file" id="fileInput" accept=".pdf,.xlsx,.xls,.xlsm,.csv,.docx,.doc,.pptx,.ppt,.txt,.json,.xml,.zip,.jpg,.jpeg,.png,.gif,.webp,.heic" style="display:none" onchange="handleFileUpload(event)"/>
       <button id="micBtn" onclick="toggleMic()" title="Parler &#224; L&#233;o">
         <svg id="micIco" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="9" y="2" width="6" height="11" rx="3"/>
