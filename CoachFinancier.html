@@ -18,8 +18,16 @@
   --red:#ef4444;--red2:rgba(239,68,68,.15);
   --text:#f8fafc;--text2:#94a3b8;--text3:#475569;--border:#1e1e38;
   --r:16px;--sb:env(safe-area-inset-bottom,0px);
-
   --bg2:var(--card2);--sub:var(--text2);
+}
+body.light{
+  --bg:#f0f4f8;--surface:#ffffff;--card:#ffffff;--card2:#e8edf2;
+  --accent:#0d9488;--accent2:#0f766e;--accent3:#0d9488;
+  --green:#059669;--green2:rgba(5,150,105,.12);
+  --orange:#d97706;--orange2:rgba(217,119,6,.12);
+  --red:#dc2626;--red2:rgba(220,38,38,.12);
+  --text:#0f172a;--text2:#475569;--text3:#94a3b8;--border:#cbd5e1;
+  --bg2:#e8edf2;--sub:#475569;
 }
 
 /* Login & Setup conservent le rouge */
@@ -38,7 +46,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
   background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
 .hdr-left{display:flex;align-items:center;gap:10px}
 .hdr-ico{width:36px;height:36px;border-radius:10px;
-  background:#0f0f1e;border:1px solid #1e1e38;
+  background:var(--card);border:1px solid var(--border);
   display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .hdr-title{font-size:17px;font-weight:700;letter-spacing:-.3px;display:flex;align-items:center;gap:5px}
 
@@ -188,6 +196,11 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 .acc-hdr:active{background:var(--card2)}
 .acc-arr{font-size:11px;color:var(--text3);transition:transform .25s;display:inline-block;flex-shrink:0}
 .acc-hdr.open .acc-arr{transform:rotate(180deg)}
+.info-btn{background:none;border:1.5px solid var(--text3);color:var(--text3);border-radius:50%;width:18px;height:18px;font-size:11px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:0;line-height:1;transition:border-color .2s,color .2s}
+.info-btn:active{border-color:var(--accent);color:var(--accent)}
+#infoTip{position:fixed;z-index:9000;background:var(--card2);border:1.5px solid var(--accent);border-radius:14px;padding:12px 14px;max-width:260px;box-shadow:0 8px 32px rgba(0,0,0,.4);font-size:13px;color:var(--text);line-height:1.5;display:none;animation:fadeIn .15s ease}
+#infoTip .info-tip-title{font-size:12px;font-weight:800;color:var(--accent2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+#infoTip .info-tip-close{position:absolute;top:8px;right:10px;background:none;border:none;font-size:16px;color:var(--text2);cursor:pointer;padding:0;line-height:1}
 .acc-body{display:block;max-height:0;overflow:hidden;border-top:1px solid var(--border);transition:max-height .35s cubic-bezier(.4,0,.2,1),opacity .3s ease;opacity:0;will-change:max-height}
 .acc-body.open{max-height:2400px;opacity:1}
 .acc-inner{padding:14px 16px}
@@ -317,12 +330,13 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 /* Barre d'envoi */
 .chat-bar{padding:10px 14px;padding-bottom:calc(10px + var(--sb));
   background:var(--surface);border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end;flex-shrink:0}
-#chatIn{flex:1;background:var(--card);border:1.5px solid var(--border);
+#chatIn{flex:1;background:var(--card);border:1.5px solid rgba(255,255,255,.25);
   border-radius:22px;padding:11px 16px;color:var(--text);font-size:14px;
   resize:none;outline:none;max-height:100px;min-height:42px;
-  font-family:inherit;line-height:1.4;transition:border-color .2s}
-#chatIn:focus{border-color:var(--accent)}
-#chatIn::placeholder{color:var(--text3)}
+  font-family:inherit;line-height:1.4;transition:border-color .2s,box-shadow .2s;
+  box-shadow:0 0 0 1px rgba(255,255,255,.08),0 0 14px rgba(255,255,255,.12),0 0 28px rgba(255,255,255,.06)}
+#chatIn:focus{border-color:rgba(255,255,255,.55);box-shadow:0 0 0 1.5px rgba(255,255,255,.2),0 0 18px rgba(255,255,255,.22),0 0 36px rgba(255,255,255,.1)}
+#chatIn::placeholder{color:rgba(248,250,252,.5)}
 #sendBtn{width:42px;height:42px;border-radius:50%;
   background:linear-gradient(135deg,var(--accent),var(--accent3));
   border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
@@ -516,7 +530,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 
 /* Input focus glow */
 .s-input:focus,.m-in:focus{box-shadow:0 0 0 3px rgba(13,148,136,.18)}
-#chatIn:focus{box-shadow:0 0 0 3px rgba(13,148,136,.15)}
+/* #chatIn:focus — handled above */
 
 /* Bot message bubble */
 .msg.bot .bbl{
@@ -782,6 +796,10 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 
 /* ════ MODALS NOUVEAU ════ */
 .sub-presets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.preset-cat-tabs{display:flex;gap:6px;margin:4px 0 8px;overflow-x:auto;scrollbar-width:none}
+.preset-cat-tabs::-webkit-scrollbar{display:none}
+.pct-btn{flex-shrink:0;padding:6px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg2);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;transition:.2s;white-space:nowrap}
+.pct-btn.sel{border-color:var(--accent2);background:rgba(13,148,136,.15);color:var(--accent2)}
 .sub-preset-btn{padding:6px 11px;background:var(--surface);border:1px solid var(--border);
   border-radius:8px;font-size:12px;cursor:pointer;color:var(--text2);transition:all .2s;font-family:inherit}
 .sub-preset-btn:active{background:rgba(13,148,136,.2);border-color:var(--accent)}
@@ -812,6 +830,9 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 .login-btn:active{opacity:.85}
 .login-switch{text-align:center;font-size:14px;color:var(--text2);margin-top:10px}
 .login-switch a{color:var(--accent2);font-weight:600;cursor:pointer;text-decoration:none}
+.login-tabs{display:flex;gap:0;margin-bottom:16px;background:var(--card);border-radius:14px;padding:4px;border:1px solid var(--border)}
+.ltab{flex:1;padding:9px 4px;border:none;background:none;color:var(--text2);font-size:11px;font-weight:700;border-radius:10px;cursor:pointer;transition:.2s;text-align:center;white-space:nowrap}
+.ltab.sel{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(13,148,136,.4)}
 .login-safe{text-align:center;margin-top:14px;font-size:12px;color:var(--text3)}
 
 .rep-detail-btn{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:700;
@@ -851,7 +872,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 // ══ SERVICE WORKER OFFLINE ══
 (function(){
   if(!('serviceWorker' in navigator)) return;
-  var SW_VERSION = '3.1';
+  var SW_VERSION = '4.9';
   var CACHE = 'rb-cache-v'+SW_VERSION;
   var swCode = [
     'var CACHE="rb-cache-v'+SW_VERSION+'";',
@@ -913,6 +934,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
     </div>
     <div class="hdr-right">
       <div class="level-badge d" id="levelBadge" style="display:none">Debutant</div>
+      <div class="hdr-btn" id="themeBtnHdr" onclick="toggleTheme()" title="Changer le thème" style="font-size:18px;display:none">🌙</div>
       <div class="hdr-btn" id="keyBtn" style="display:none" onclick="openKeyModal()">&#9881;</div>
     </div>
   </header>
@@ -931,8 +953,23 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
         <div class="login-sub" style="margin-top:10px">Quand ton pouvoir d'achat disparaît, RescueBudget intervient.</div>
       </div>
 
+      <!-- Tabs navigation -->
+      <div class="login-tabs">
+        <button class="ltab sel" id="ltab-login"    onclick="showLoginForm()">Connexion</button>
+        <button class="ltab"     id="ltab-register" onclick="showRegister()">Créer un compte</button>
+        <button class="ltab"     id="ltab-forgot"   onclick="showForgotForm()">Mot de passe oublié</button>
+      </div>
+
       <!-- Formulaire connexion -->
       <div id="form-login">
+        <div id="noAccountWarn" style="display:none;background:rgba(245,158,11,.15);border:1.5px solid rgba(245,158,11,.4);border-radius:14px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--orange);line-height:1.5">
+          ⚠️ <strong>Aucun compte trouvé.</strong><br>
+          Tu as peut-être effacé ton historique. Clique sur <strong>«&nbsp;Créer un compte&nbsp;»</strong> ci-dessous, ou restaure une sauvegarde pour récupérer tes données.
+          <label style="display:flex;align-items:center;gap:8px;margin-top:10px;background:rgba(0,0,0,.2);border-radius:10px;padding:8px 10px;cursor:pointer">
+            <span>📂</span><span style="font-weight:700">Restaurer une sauvegarde (.json)</span>
+            <input type="file" accept=".json" style="display:none" onchange="importBackup(event)"/>
+          </label>
+        </div>
         <div class="login-card">
           <div class="login-lbl">Identifiant</div>
           <input class="login-in" id="loginUser" type="text" placeholder="Ton pr&#233;nom ou pseudo" autocomplete="username"/>
@@ -940,8 +977,6 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
           <input class="login-in" id="loginPass" type="password" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;" autocomplete="current-password"/>
           <button class="login-btn" onclick="doLogin()" style="background:linear-gradient(135deg,#10b981,#059669)">Se connecter &#8594;</button>
         </div>
-        <div class="login-switch">Pas encore de compte ? <a onclick="showRegister()">Cr&#233;er un compte</a></div>
-        <div style="text-align:center;margin-top:8px"><a onclick="showForgotForm()" style="font-size:12px;color:var(--text3);cursor:pointer;text-decoration:underline">Mot de passe oublié ?</a></div>
       </div>
 
       <!-- Formulaire inscription -->
@@ -955,7 +990,6 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
           <input class="login-in" id="regPass2" type="password" placeholder="M&#234;me mot de passe" autocomplete="new-password"/>
           <button class="login-btn" onclick="doRegister()" style="background:linear-gradient(135deg,#10b981,#059669)">Cr&#233;er mon compte &#8594;</button>
         </div>
-        <div class="login-switch">D&#233;j&#224; un compte ? <a onclick="showLoginForm()">Se connecter</a></div>
       </div>
 
       <!-- Formulaire mot de passe oublié -->
@@ -968,7 +1002,6 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
           <div style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center">⚠️ Cette action supprimera tes données locales et réinitialisera ton mot de passe.</div>
           <button class="login-btn" onclick="doForgotPassword()" style="background:var(--red)">Réinitialiser mon compte →</button>
         </div>
-        <div class="login-switch"><a onclick="showLoginForm()">← Retour à la connexion</a></div>
       </div>
 
       <div class="login-safe">&#128274; Tout reste sur ton appareil &#8212; aucune donn&#233;e envoy&#233;e</div>
@@ -1012,10 +1045,13 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
       <!-- ► Toujours visible : RAV + Poche -->
       <div class="bud-top-wrap">
         <div class="rav-card g" id="ravCard">
-          <div class="rav-lbl">Reste à vivre</div>
-          <div class="rav-val" id="ravVal">-- &#8364;</div>
-          <div class="rav-status" id="ravStatus">-- &#9679;</div>
-          <div class="rav-msg" id="ravMsg"></div>
+           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+             <div class="rav-lbl" style="margin:0">Reste à vivre</div>
+             <select id="ravPeriodSel" onchange="renderBudget()" style="background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.15);border-radius:8px;color:inherit;font-size:11px;font-weight:600;padding:3px 6px;cursor:pointer;max-width:160px;outline:none"></select>
+           </div>
+           <div class="rav-val" id="ravVal">-- &#8364;</div>
+           <div class="rav-status" id="ravStatus">-- &#9679;</div>
+           <div class="rav-msg" id="ravMsg"></div>
         </div>
         <div class="poche-card" id="pocheCard">
           <div class="poche-ico">&#128176;</div>
@@ -1028,6 +1064,22 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
         </div>
       </div>
 
+      <!-- ► Mini stats rev/dep/ep ───────────────────────────────── -->
+      <div style="display:flex;gap:8px;margin:10px 0 2px">
+        <div style="flex:1;background:var(--card);border-radius:12px;padding:10px 8px;text-align:center;border:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">Revenus</div>
+          <div id="miniRev" style="font-size:13px;font-weight:800;color:var(--green)">-- €</div>
+        </div>
+        <div style="flex:1;background:var(--card);border-radius:12px;padding:10px 8px;text-align:center;border:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">Dépenses</div>
+          <div id="miniDep" style="font-size:13px;font-weight:800;color:var(--red)">-- €</div>
+        </div>
+        <div style="flex:1;background:var(--card);border-radius:12px;padding:10px 8px;text-align:center;border:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">Épargne</div>
+          <div id="miniEp" style="font-size:13px;font-weight:800;color:var(--accent2)">-- €</div>
+        </div>
+      </div>
+
       <!-- ► Accordéons ─────────────────────────────────────────── -->
       <div class="acc-list">
 
@@ -1035,7 +1087,10 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
         <div class="acc">
           <div class="acc-hdr open" onclick="toggleAcc(this)">
             <span>&#128202; Synth&#232;se budget</span>
-            <span class="acc-arr">&#9660;</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <button class="info-btn" onclick="event.stopPropagation();showInfoTip(this,'synth')" title="En savoir plus">i</button>
+              <span class="acc-arr">&#9660;</span>
+            </div>
           </div>
           <div class="acc-body open">
             <div class="acc-inner">
@@ -1057,6 +1112,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
           <div class="acc-hdr open" onclick="toggleAcc(this)">
             <span>&#128203; D&#233;penses du jour</span>
             <div style="display:flex;align-items:center;gap:8px">
+              <button class="info-btn" onclick="event.stopPropagation();showInfoTip(this,'depenses')" title="En savoir plus">i</button>
               <span class="acc-badge" id="txnTotal">0 &#8364;</span>
               <button class="acc-add-btn" onclick="event.stopPropagation();openTxnModal()">+</button>
               <span class="acc-arr">&#9660;</span>
@@ -1071,7 +1127,10 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
         <div class="acc">
           <div class="acc-hdr" onclick="toggleAcc(this)">
             <span>&#128200; R&#233;partition 50/30/20</span>
-            <span class="acc-arr">&#9660;</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <button class="info-btn" onclick="event.stopPropagation();showInfoTip(this,'repartit')" title="En savoir plus">i</button>
+              <span class="acc-arr">&#9660;</span>
+            </div>
           </div>
           <div class="acc-body">
             <div class="acc-inner" id="repSection">
@@ -1138,6 +1197,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
           <div class="acc-hdr" onclick="toggleAcc(this)">
             <span>&#127973; Sant&#233; financi&#232;re</span>
             <div style="display:flex;align-items:center;gap:8px">
+              <button class="info-btn" onclick="event.stopPropagation();showInfoTip(this,'sante')" title="En savoir plus">i</button>
               <span class="acc-badge" id="scoreTag" onclick="event.stopPropagation();openAmeliorerModal()" style="cursor:pointer"></span>
               <span class="acc-arr">&#9660;</span>
             </div>
@@ -1162,6 +1222,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
           <div class="acc-hdr" onclick="toggleAcc(this)">
             <span>&#128260; Abonnements</span>
             <div style="display:flex;align-items:center;gap:8px">
+              <button class="info-btn" onclick="event.stopPropagation();showInfoTip(this,'abos')" title="En savoir plus">i</button>
               <span class="acc-badge" id="subsTotal">0 &#8364;/mois</span>
               <button class="acc-add-btn" onclick="event.stopPropagation();openSubModal()">+</button>
               <span class="acc-arr">&#9660;</span>
@@ -1177,6 +1238,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
           <div class="acc-hdr" onclick="toggleAcc(this)">
             <span>&#128176; Mes actifs</span>
             <div style="display:flex;align-items:center;gap:8px">
+              <button class="info-btn" onclick="event.stopPropagation();showInfoTip(this,'actifs')" title="En savoir plus">i</button>
               <button class="acc-add-btn" onclick="event.stopPropagation();openActifModal()">&#9998;</button>
               <span class="acc-arr">&#9660;</span>
             </div>
@@ -1190,7 +1252,10 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
         <div class="acc">
           <div class="acc-hdr" onclick="toggleAcc(this)">
             <span>&#128161; L&#233;o recommande</span>
-            <span class="acc-arr">&#9660;</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <button class="info-btn" onclick="event.stopPropagation();showInfoTip(this,'leo')" title="En savoir plus">i</button>
+              <span class="acc-arr">&#9660;</span>
+            </div>
           </div>
           <div class="acc-body">
             <div class="acc-inner">
@@ -1277,22 +1342,29 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
       <button class="file-preview-rm" onclick="clearFileAttachment()" title="Retirer">✕</button>
     </div>
     <!-- Bottom sheet pièce jointe -->
-    <div id="attachOverlay" onclick="closeAttachSheet()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:3000"></div>
-    <div id="attachSheet" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-radius:20px 20px 0 0;z-index:3001;padding:12px 0 calc(16px + var(--sb));max-width:480px;margin:0 auto">
-      <div style="width:36px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 16px"></div>
-      <div style="font-size:12px;color:var(--text3);font-weight:600;padding:0 20px 10px;text-transform:uppercase;letter-spacing:.5px">Joindre à Léo</div>
-      <label class="asheet-row" for="chatInputCamera" onclick="closeAttachSheet()">
-        <span class="asheet-ico" style="background:rgba(239,68,68,.12);color:#ef4444">📷</span>
+    <!-- Tooltip info global -->
+    <div id="infoTip" style="display:none;position:fixed;z-index:9000">
+      <button class="info-tip-close" onclick="closeInfoTip()">✕</button>
+      <div class="info-tip-title" id="infoTipTitle"></div>
+      <div id="infoTipBody"></div>
+    </div>
+    <div id="attachOverlay" onclick="closeAttachSheet()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:3000"></div>
+    <div id="attachSheet" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#111120;border-radius:20px 20px 0 0;z-index:3001;padding:12px 0 calc(16px + env(safe-area-inset-bottom,0px));box-shadow:0 -4px 32px rgba(0,0,0,.6)">
+      <div style="width:36px;height:4px;background:#1e1e38;border-radius:4px;margin:0 auto 16px"></div>
+      <div style="font-size:12px;color:#94a3b8;font-weight:600;padding:0 20px 10px;text-transform:uppercase;letter-spacing:.5px">📎 Joindre à Léo</div>
+      <div class="asheet-row" onclick="pickCamera()">
+        <span class="asheet-ico" style="background:rgba(239,68,68,.15);color:#ef4444">📷</span>
         <div><div class="asheet-lbl">Appareil photo</div><div class="asheet-sub">Prendre une photo ou vidéo</div></div>
-      </label>
-      <label class="asheet-row" for="chatInputGallery" onclick="closeAttachSheet()">
-        <span class="asheet-ico" style="background:rgba(245,158,11,.12);color:var(--orange)">🖼️</span>
-        <div><div class="asheet-lbl">Photos / Vidéos</div><div class="asheet-sub">Depuis la galerie</div></div>
-      </label>
-      <label class="asheet-row" for="fileInput" onclick="closeAttachSheet()">
-        <span class="asheet-ico" style="background:rgba(59,130,246,.12);color:#3b82f6">📁</span>
+      </div>
+      <div class="asheet-row" onclick="pickGallery()">
+        <span class="asheet-ico" style="background:rgba(59,130,246,.15);color:#3b82f6">🗂️</span>
+        <div><div class="asheet-lbl">Galerie &amp; Fichiers</div><div class="asheet-sub">Photos, vidéos, documents</div></div>
+      </div>
+      <div class="asheet-row" style="position:relative;overflow:hidden;">
+        <input type="file" onchange="closeAttachSheet();handleFileUpload(event)" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:100px;"/>
+        <span class="asheet-ico" style="background:rgba(59,130,246,.15);color:#3b82f6">📁</span>
         <div><div class="asheet-lbl">Fichiers du téléphone</div><div class="asheet-sub">PDF, Word, Excel, CSV…</div></div>
-      </label>
+      </div>
     </div>
     <div class="chat-bar">
       <button id="uploadBtn" onclick="openAttachSheet()" title="Joindre un fichier">
@@ -1302,7 +1374,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
       </button>
       <input type="file" id="chatInputCamera"  accept="image/*,video/*" capture="environment" style="display:none" onchange="handleFileUpload(event)"/>
       <input type="file" id="chatInputGallery" accept="image/*,video/*" style="display:none" onchange="handleFileUpload(event)"/>
-      <input type="file" id="fileInput" accept=".pdf,.xlsx,.xls,.xlsm,.csv,.docx,.doc,.pptx,.ppt,.txt,.json,.xml,.zip,.jpg,.jpeg,.png,.gif,.webp,.heic" style="display:none" onchange="handleFileUpload(event)"/>
+      <input type="file" id="fileInput" accept=".pdf,.xlsx,.xls,.xlsm,.csv,.docx,.doc,.pptx,.ppt,.txt,.json,.xml,.zip" style="display:none" onchange="handleFileUpload(event)"/>
       <button id="micBtn" onclick="toggleMic()" title="Parler &#224; L&#233;o">
         <svg id="micIco" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="9" y="2" width="6" height="11" rx="3"/>
@@ -1371,6 +1443,15 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
     </div>
 
     <div class="profil-sect">Param&#232;tres</div>
+    <div class="setting-row" onclick="toggleTheme()" id="themeRow">
+      <div class="s-row-left">
+        <span class="s-row-ico" id="themeIco">🌙</span>
+        <div><div class="s-row-lbl" id="themeLbl">Mode sombre</div><div class="s-row-sub">Appuie pour passer en mode clair</div></div>
+      </div>
+      <div id="themeToggle" style="width:44px;height:24px;border-radius:12px;background:var(--accent);position:relative;transition:.3s;flex-shrink:0">
+        <div id="themeThumb" style="width:20px;height:20px;border-radius:50%;background:#fff;position:absolute;top:2px;right:2px;transition:.3s;box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>
+      </div>
+    </div>
     <div class="setting-row" onclick="openEditProfileModal()">
       <div class="s-row-left">
         <span class="s-row-ico">&#9999;&#65039;</span>
@@ -1392,13 +1473,29 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
       </div>
       <span class="s-row-arr">&#8250;</span>
     </div>
+    <div class="profil-sect">&#128229; Sauvegarde des donn&#233;es</div>
+    <div class="setting-row" onclick="exportBackup()">
+      <div class="s-row-left">
+        <span class="s-row-ico">&#128190;</span>
+        <div><div class="s-row-lbl">Exporter mes donn&#233;es</div><div class="s-row-sub">T&#233;l&#233;charge un fichier .json de sauvegarde</div></div>
+      </div>
+      <span class="s-row-arr">&#8250;</span>
+    </div>
+    <div class="setting-row" style="position:relative;overflow:hidden">
+      <div class="s-row-left">
+        <span class="s-row-ico">&#128228;</span>
+        <div><div class="s-row-lbl">Importer une sauvegarde</div><div class="s-row-sub">Restaure tes donn&#233;es depuis un fichier .json</div></div>
+      </div>
+      <span class="s-row-arr">&#8250;</span>
+      <input type="file" accept=".json" onchange="importBackup(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;font-size:100px"/>
+    </div>
     <div class="profil-sect">&#8505;&#65039; &#192; propos</div>
     <div class="setting-row" onclick="toast('RescueBudget v1.0 — Coach IA L&#233;o &#129302;','#0d9488')">
       <div class="s-row-left">
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" style="font-size:13px;color:var(--accent2);font-weight:700">v3.0</span>
+      <span class="s-row-arr" style="font-size:13px;color:var(--accent2);font-weight:700">v4.9</span>
     </div>
     <div class="setting-row" onclick="openPrivacyModal()">
       <div class="s-row-left">
@@ -1527,25 +1624,71 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
   <div class="modal">
     <div class="modal-drag"></div>
     <div class="modal-title">Ajouter un abonnement</div>
-    <div class="m-lbl" style="margin-bottom:8px">S&#233;lection rapide</div>
-    <div class="sub-presets">
-      <button class="sub-preset-btn" onclick="addSubPreset('Netflix','&#127916;',17.99,'#e50914')">&#127916; Netflix</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Spotify','&#127925;',10.99,'#1db954')">&#127925; Spotify</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Disney+','&#10024;',8.99,'#1434cb')">&#10024; Disney+</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Amazon Prime','&#128230;',6.99,'#ff9900')">&#128230; Prime</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('YouTube Premium','&#9654;',13.99,'#ff0000')">&#9654; YouTube</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Apple Music','&#127963;',10.99,'#fc3c44')">&#127963; Apple</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Canal+','&#128250;',29.99,'#000')">&#128250; Canal+</button>
+        <div class="m-lbl" style="margin-bottom:6px">S&#233;lection rapide</div>
+    <div class="preset-cat-tabs">
+      <button class="pct-btn sel" onclick="switchPresetCat(this,'streaming')">🎬</button>
+      <button class="pct-btn" onclick="switchPresetCat(this,'charges')">🏠</button>
+      <button class="pct-btn" onclick="switchPresetCat(this,'assurances')">🛡️</button>
+      <button class="pct-btn" onclick="switchPresetCat(this,'sante')">💊</button>
+      <button class="pct-btn" onclick="switchPresetCat(this,'telecom')">📱</button>
+    </div>
+    <div class="sub-presets" id="presetGroup-streaming">
+      <button class="sub-preset-btn" onclick="addSubPreset('Netflix','🎬',17.99,'#e50914')">🎬 Netflix</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Spotify','🎵',10.99,'#1db954')">🎵 Spotify</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Disney+','✨',8.99,'#1434cb')">✨ Disney+</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Amazon Prime','📦',6.99,'#ff9900')">📦 Prime</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('YouTube Premium','▶️',13.99,'#ff0000')">▶️ YouTube</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Apple Music','🎧',10.99,'#fc3c44')">🎧 Apple</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Canal+','📺',29.99,'#000')">📺 Canal+</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Deezer','🎶',10.99,'#ef5466')">🎶 Deezer</button>
+    </div>
+    <div class="sub-presets" id="presetGroup-charges" style="display:none">
+      <button class="sub-preset-btn" onclick="addSubPreset('Loyer','🏠',800,'#0d9488')">🏠 Loyer</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Électricité','⚡',80,'#f59e0b')">⚡ EDF</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Gaz','🔥',60,'#f97316')">🔥 Gaz</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Eau','💧',30,'#3b82f6')">💧 Eau</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Internet','🌐',35,'#6366f1')">🌐 Fibre</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Syndic','🏢',150,'#64748b')">🏢 Syndic</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Parking','🅿️',80,'#475569')">🅿️ Parking</button>
+    </div>
+    <div class="sub-presets" id="presetGroup-assurances" style="display:none">
+      <button class="sub-preset-btn" onclick="addSubPreset('Assurance auto','🚗',60,'#0284c7')">🚗 Auto</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Assurance habitation','🏡',20,'#0d9488')">🏡 Habitation</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Assurance vie','📋',50,'#7c3aed')">📋 Vie</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Assurance moto','🏍️',40,'#dc2626')">🏍️ Moto</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Protection juridique','⚖️',15,'#059669')">⚖️ Juridique</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Prévoyance','🛡️',30,'#2563eb')">🛡️ Prévoyance</button>
+    </div>
+    <div class="sub-presets" id="presetGroup-sante" style="display:none">
+      <button class="sub-preset-btn" onclick="addSubPreset('Mutuelle','💊',60,'#16a34a')">💊 Mutuelle</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Complémentaire santé','🏥',45,'#0d9488')">🏥 Complément.</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Salle de sport','💪',30,'#f59e0b')">💪 Sport</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Médecin / kiné','🩺',40,'#06b6d4')">🩺 Médecin</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Pharmacie','💉',25,'#22c55e')">💉 Pharmacie</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Optique','👓',15,'#a855f7')">👓 Optique</button>
+    </div>
+    <div class="sub-presets" id="presetGroup-telecom" style="display:none">
+      <button class="sub-preset-btn" onclick="addSubPreset('Forfait mobile','📱',20,'#0891b2')">📱 Mobile</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Forfait mobile 2','📲',15,'#0284c7')">📲 Mobile 2</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Abonnement TV','📡',20,'#7c3aed')">📡 TV</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('iCloud','☁️',2.99,'#3b82f6')">☁️ iCloud</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Google One','🔷',2.99,'#4285f4')">🔷 Google One</button>
+      <button class="sub-preset-btn" onclick="addSubPreset('Microsoft 365','💼',9.99,'#0078d4')">💼 Office 365</button>
     </div>
     <div class="m-lbl">Nom</div>
     <input class="m-in" id="subName" placeholder="Nom de l'abonnement" maxlength="40"/>
     <input type="hidden" id="subNameIco" value="&#128260;"/>
     <input type="hidden" id="subNameCol" value="#0d9488"/>
+    <div class="m-lbl" style="margin-top:10px">Fréquence</div>
+    <div class="sub-section-toggle" id="subFreqToggle">
+      <button class="sub-sect-btn sel" id="sfbMensuel" onclick="setSubFreq('M')">📅 Mensuel</button>
+      <button class="sub-sect-btn" id="sfbAnnuel" onclick="setSubFreq('A')">📆 Annuel</button>
+    </div>
     <div class="m-row">
-      <div><div class="m-lbl">Montant/mois (&#8364;)</div>
+      <div><div class="m-lbl" id="subAmtLbl">Montant/mois (€)</div>
         <input class="m-in" id="subAmt" type="number" placeholder="9.99" min="0" step="0.01" style="margin:0"/></div>
-      <div><div class="m-lbl">Ic&#244;ne (emoji)</div>
-        <input class="m-in" id="subIco" placeholder="&#128260;" maxlength="4" style="margin:0;font-size:20px;text-align:center"/></div>
+      <div><div class="m-lbl">Icône (emoji)</div>
+        <input class="m-in" id="subIco" placeholder="🔄" maxlength="4" style="margin:0;font-size:20px;text-align:center"/></div>
     </div>
     <div class="m-lbl" style="margin-top:10px">Classer dans</div>
     <div class="sub-section-toggle" id="subSectionToggle">
@@ -1722,6 +1865,11 @@ function getStoredAuth(){
 function isLoggedIn(){
   return sessionStorage.getItem('cf_sess')==='1';
 }
+function checkNoAccountWarning(){
+  var auth = localStorage.getItem('cf_auth');
+  var warn = document.getElementById('noAccountWarn');
+  if(warn) warn.style.display = (!auth ? 'block' : 'none');
+}
 function afterAuth(){
   document.getElementById('pg-login').classList.remove('active');
   if(S.key&&S.key.length>10){ startApp(); }
@@ -1742,16 +1890,22 @@ function showRegister(){
   document.getElementById('form-login').style.display='none';
   document.getElementById('form-register').style.display='block';
   document.getElementById('form-forgot').style.display='none';
+  document.querySelectorAll('.ltab').forEach(function(t){t.classList.remove('sel');});
+  var t=document.getElementById('ltab-register'); if(t) t.classList.add('sel');
 }
 function showLoginForm(){
   document.getElementById('form-login').style.display='block';
   document.getElementById('form-register').style.display='none';
   document.getElementById('form-forgot').style.display='none';
+  document.querySelectorAll('.ltab').forEach(function(t){t.classList.remove('sel');});
+  var t=document.getElementById('ltab-login'); if(t) t.classList.add('sel');
 }
 function showForgotForm(){
   document.getElementById('form-login').style.display='none';
   document.getElementById('form-register').style.display='none';
   document.getElementById('form-forgot').style.display='block';
+  document.querySelectorAll('.ltab').forEach(function(t){t.classList.remove('sel');});
+  var t=document.getElementById('ltab-forgot'); if(t) t.classList.add('sel');
 }
 function doForgotPassword(){
   var user=document.getElementById('forgotUser').value.trim();
@@ -1976,8 +2130,106 @@ function saveProfileEdit(){
   toast('Profil mis à jour ✓','#10b981');
 }
 
+// ═══════════════════════════════════════════════════
+// BULLES INFO ⓘ
+// ═══════════════════════════════════════════════════
+var _infoTips = {
+  'synth':   { title:'📊 Synthèse budget',      body:'Vue d\'ensemble de tes revenus, dépenses et épargne du mois en cours. Change la période (Mensuel / Journalier / Annuel) pour adapter l\'affichage.' },
+  'depenses':{ title:'📋 Dépenses du jour',      body:'Toutes les dépenses saisies aujourd\'hui. Appuie sur + pour en ajouter une. Elles s\'intègrent automatiquement dans ta répartition 50/30/20.' },
+  'repartit':{ title:'📈 Répartition 50/30/20',  body:'Méthode budgétaire recommandée : 50% de tes revenus pour les Besoins (loyer, courses…), 30% pour les Envies (sorties, abos…), 20% pour l\'Épargne.' },
+  'sante':   { title:'🏥 Santé financière',      body:'Score calculé à partir de ton reste à vivre, ton taux d\'épargne et tes habitudes de dépenses. Plus il est vert, mieux tu gères ton budget !' },
+  'abos':    { title:'🔄 Abonnements',           body:'Toutes tes charges récurrentes (Netflix, salle de sport, assurances…). Ils sont déduits automatiquement de tes revenus. Choisis mensuel ou annuel.' },
+  'actifs':  { title:'💰 Mes actifs',            body:'Valeur totale de ton patrimoine : compte épargne, immobilier, investissements, crypto… Permet à Léo de te donner des conseils plus précis.' },
+  'leo':     { title:'💡 Léo recommande',        body:'Conseils personnalisés générés par Léo selon ta situation actuelle. Mis à jour à chaque modification de ton budget. Appuie pour en discuter avec lui.' }
+};
+function showInfoTip(btn, key){
+  var tip = _infoTips[key];
+  if(!tip) return;
+  var el = document.getElementById('infoTip');
+  document.getElementById('infoTipTitle').textContent = tip.title;
+  document.getElementById('infoTipBody').textContent  = tip.body;
+  el.style.display = 'block';
+  var rect = btn.getBoundingClientRect();
+  var tipW = 268;
+  var left = Math.min(rect.left, window.innerWidth - tipW - 12);
+  if(left < 8) left = 8;
+  var top  = rect.bottom + 8;
+  if(top + 140 > window.innerHeight) top = rect.top - 148;
+  el.style.left = left + 'px';
+  el.style.top  = top  + 'px';
+  el.style.width = tipW + 'px';
+  setTimeout(function(){ document.addEventListener('click', _closeTipOutside, {once:true, capture:true}); }, 10);
+}
+function _closeTipOutside(e){
+  var el = document.getElementById('infoTip');
+  if(el && !el.contains(e.target)) closeInfoTip();
+}
+function closeInfoTip(){
+  var el = document.getElementById('infoTip');
+  if(el) el.style.display = 'none';
+  document.removeEventListener('click', _closeTipOutside, true);
+}
+
+function applyTheme(light){
+  document.body.classList.toggle('light', light);
+  var hdrBtn=document.getElementById('themeBtnHdr');
+  if(hdrBtn) hdrBtn.textContent=light?'☀️':'🌙';
+  var ico=document.getElementById('themeIco');
+  var lbl=document.getElementById('themeLbl');
+  var toggle=document.getElementById('themeToggle');
+  var thumb=document.getElementById('themeThumb');
+  var row=document.getElementById('themeRow');
+  if(light){
+    if(ico) ico.textContent='☀️';
+    if(lbl) lbl.textContent='Mode clair';
+    if(toggle) toggle.style.background='#f59e0b';
+    if(thumb){ thumb.style.right='auto'; thumb.style.left='2px'; }
+    if(row) row.querySelector('.s-row-sub').textContent='Appuie pour passer en mode sombre';
+  } else {
+    if(ico) ico.textContent='🌙';
+    if(lbl) lbl.textContent='Mode sombre';
+    if(toggle) toggle.style.background='var(--accent)';
+    if(thumb){ thumb.style.left='auto'; thumb.style.right='2px'; }
+    if(row) row.querySelector('.s-row-sub').textContent='Appuie pour passer en mode clair';
+  }
+}
+function toggleTheme(){
+  var isLight=document.body.classList.contains('light');
+  var next=!isLight;
+  localStorage.setItem('cf_theme', next?'light':'dark');
+  applyTheme(next);
+  toast(next?'☀️ Mode clair activé':'🌙 Mode sombre activé','#0d9488');
+}
+// Appliquer le thème au chargement
+(function(){
+  var t=localStorage.getItem('cf_theme');
+  if(t==='light'){
+    document.body.classList.add('light');
+    // Sync icône header dès que le DOM est prêt
+    window.addEventListener('DOMContentLoaded',function(){
+  checkNoAccountWarning();
+      var btn=document.getElementById('themeBtnHdr');
+      if(btn) btn.textContent='☀️';
+    });
+  }
+})();
 function doLogout(){
   if(!confirm('Te déconnecter de RescueBudget ?')) return;
+  // Sauvegarde automatique avant déconnexion
+  try{
+    var backup = {};
+    ['cf_auth','cf_fin','cf_subs','cf_txns','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile'].forEach(function(k){
+      var v=localStorage.getItem(k); if(v!==null) backup[k]=v;
+    });
+    backup._exported=new Date().toISOString(); backup._version='1';
+    var blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    var d=new Date().toLocaleDateString('fr-FR').replace(/\//g,'-');
+    a.download='RescueBudget_sauvegarde_'+d+'.json';
+    a.click();
+    localStorage.setItem('cf_backup_dl',String(Date.now()));
+  }catch(ex){}
   sessionStorage.removeItem('cf_sess');
   location.reload();
 }
@@ -2013,6 +2265,31 @@ function save(){
     localStorage.setItem('cf_start',  S.startDate);
     localStorage.setItem('cf_greet',  S.lastGreeting);
     localStorage.setItem('cf_anal',   S.lastAnalysis);
+    // Sauvegarde auto dans localStorage (snapshot récupérable)
+    var autoSnap = {
+      cf_auth: localStorage.getItem('cf_auth'),
+      cf_fin:  localStorage.getItem('cf_fin'),
+      cf_subs: localStorage.getItem('cf_subs'),
+      cf_txns: localStorage.getItem('cf_txns'),
+      cf_goals:localStorage.getItem('cf_goals'),
+      cf_actifs:localStorage.getItem('cf_actifs'),
+      cf_snaps:localStorage.getItem('cf_snaps'),
+      cf_key:  localStorage.getItem('cf_key'),
+      cf_theme:localStorage.getItem('cf_theme'),
+      cf_profile:localStorage.getItem('cf_profile'),
+      _exported: new Date().toISOString(), _version:'1'
+    };
+    localStorage.setItem('cf_backup_auto', JSON.stringify(autoSnap));
+    // Rappel téléchargement toutes les 7 jours
+    var lastDl = parseInt(localStorage.getItem('cf_backup_dl')||'0');
+    if(Date.now() - lastDl > 7*86400000 && localStorage.getItem('cf_auth')){
+      if(!save._warnShown){
+        save._warnShown = true;
+        setTimeout(function(){
+          toast('💾 Pense à sauvegarder tes données (Profil → Exporter)','#f59e0b');
+        }, 3000);
+      }
+    }
   }catch(e){}
   // Vérification alertes budget (max 1x/min)
   if(!save._t) save._t=0;
@@ -2299,10 +2576,10 @@ function renderSubs(){
     return '<div class="sub-row">'
       +'<div class="sub-left">'
         +'<div class="sub-ico" style="background:'+(sub.col||'#0d9488')+'22">'+sub.ico+'</div>'
-        +'<div><div class="sub-name">'+esc(sub.name)+'</div><div class="sub-freq">Mensuel</div></div>'
+        +'<div><div class="sub-name">'+esc(sub.name)+'</div><div class="sub-freq">'+(sub.freq==='A'?'Annuel · '+euro(sub.amtAnnuel||sub.amt*12)+'/an':'Mensuel')+'</div></div>'
       +'</div>'
       +'<div style="display:flex;align-items:center">'
-        +'<div class="sub-amt">'+euro(sub.amt)+'</div>'
+        +'<div class="sub-amt">'+euro(sub.amt)+'/m</div>'
         +'<button class="sub-del" onclick="delSub('+i+')">&#215;</button>'
       +'</div></div>';
   }).join('') : '<div class="subs-empty">Appuie sur + pour ajouter tes abonnements.</div>';
@@ -2322,6 +2599,7 @@ function closeSubModal(){
   document.getElementById('subNameIco').value='💳';
   document.getElementById('subNameCol').value='#0d9488';
   setSubSection('envies');
+  setSubFreq('M');
 }
 function addSubPreset(name,ico,amt,col){
   document.getElementById('subName').value=name;
@@ -2333,14 +2611,30 @@ function addSubPreset(name,ico,amt,col){
 }
 // Presets toujours classés en "envies"
 var SUB_PRESETS_SECTION = {
-  'Netflix':'envies','Spotify':'envies','Disney+':'envies',
-  'Amazon Prime':'envies','YouTube Premium':'envies','Apple Music':'envies','Canal+':'envies'
+  'Netflix':'envies','Spotify':'envies','Disney+':'envies','Deezer':'envies',
+  'Amazon Prime':'envies','YouTube Premium':'envies','Apple Music':'envies','Canal+':'envies',
+  'Loyer':'besoins','Électricité':'besoins','Gaz':'besoins','Eau':'besoins',
+  'Internet':'besoins','Syndic':'besoins','Parking':'besoins',
+  'Assurance auto':'besoins','Assurance habitation':'besoins','Assurance vie':'besoins',
+  'Assurance moto':'besoins','Protection juridique':'besoins','Prévoyance':'besoins',
+  'Mutuelle':'besoins','Complémentaire santé':'besoins','Salle de sport':'envies',
+  'Médecin / kiné':'besoins','Pharmacie':'besoins','Optique':'besoins',
+  'Forfait mobile':'besoins','Forfait mobile 2':'besoins','Abonnement TV':'envies',
+  'iCloud':'besoins','Google One':'besoins','Microsoft 365':'besoins'
 };
 var _selSubSection = 'envies';
 function setSubSection(s){
   _selSubSection=s;
   document.getElementById('ssbEnvies').classList.toggle('sel',s==='envies');
   document.getElementById('ssbBesoins').classList.toggle('sel',s==='besoins');
+}
+function switchPresetCat(btn, cat){
+  document.querySelectorAll('.pct-btn').forEach(function(b){ b.classList.remove('sel'); });
+  btn.classList.add('sel');
+  ['streaming','charges','assurances','sante','telecom'].forEach(function(c){
+    var el = document.getElementById('presetGroup-'+c);
+    if(el) el.style.display = c===cat ? 'flex' : 'none';
+  });
 }
 function addSubPresetSection(name){ _selSubSection=SUB_PRESETS_SECTION[name]||'envies'; setSubSection(_selSubSection); }
 function injectSubToItems(name,amt,section){
@@ -2360,15 +2654,25 @@ function removeSubFromItems(name,amt){
     S.fin[key]=JSON.stringify(items);
   });
 }
+var _subFreq='M';
+function setSubFreq(f){
+  _subFreq=f;
+  document.getElementById('sfbMensuel').classList.toggle('sel',f==='M');
+  document.getElementById('sfbAnnuel').classList.toggle('sel',f==='A');
+  document.getElementById('subAmtLbl').textContent=f==='A'?'Montant/an (€)':'Montant/mois (€)';
+}
 function saveSub(){
   var name=document.getElementById('subName').value.trim();
-  var amt=parseFloat(document.getElementById('subAmt').value)||0;
+  var rawAmt=parseFloat(document.getElementById('subAmt').value)||0;
+  var freq=_subFreq||'M';
+  var amt=freq==='A'?parseFloat((rawAmt/12).toFixed(2)):rawAmt;
+  var amtAnnuel=freq==='A'?rawAmt:null;
   var ico=document.getElementById('subIco').value.trim()||document.getElementById('subNameIco').value||'🔄';
   var col=document.getElementById('subNameCol').value||'#0d9488';
-  if(!name||!amt){ toast('Remplis le nom et le montant','#ef4444'); return; }
+  if(!name||!rawAmt){ toast('Remplis le nom et le montant','#ef4444'); return; }
   if(!S.subs) S.subs=[];
   var section=SUB_PRESETS_SECTION[name]||_selSubSection||'envies';
-  S.subs.push({name:name,amt:amt,ico:ico,col:col,section:section});
+  S.subs.push({name:name,amt:amt,amtAnnuel:amtAnnuel,freq:freq,ico:ico,col:col,section:section});
   injectSubToItems(name,amt,section);
   save(); closeSubModal(); renderSubs(); renderPoche(); renderTriCards();
   var sLabel=CAT_SECTION_LABEL[section]||section;
@@ -2662,17 +2966,41 @@ function renderSynthTable(){
   +(tauxEp>=20?' 🎯':tauxEp>=10?' 👍':' ⚠️')+'</div>';
 }
 
+function buildRavPeriodOptions(){
+  var sel = document.getElementById('ravPeriodSel');
+  if(!sel) return;
+  var now = new Date();
+  var yr  = now.getFullYear();
+  var mois = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  var curM = now.getMonth();
+  var opts = '';
+  // All months of current year up to and including current
+  for(var m = 0; m <= curM; m++){
+    var val = yr+'-'+(m<9?'0':'')+(m+1);
+    var lbl = mois[m]+' '+yr;
+    opts += '<option value="'+val+'"'+(m===curM?' selected':'')+'>📅 '+lbl+'</option>';
+  }
+  opts += '<option value="year-'+yr+'">📆 Année '+yr+'</option>';
+  sel.innerHTML = opts;
+}
+
 function renderBudget(){
   var f = S.fin;
   var hasData = !!(f.revenus || f.depenses || f.rav);
   document.getElementById('z1-empty').style.display = hasData ? 'none' : 'block';
   document.getElementById('z1-data').style.display  = hasData ? 'block' : 'none';
+  buildRavPeriodOptions();
   if(!hasData) return;
 
-  var rev = f.revenus||0;
-  var dep = f.depenses||0;
-  var rav = f.rav != null ? f.rav : (rev - dep);
-  var ep  = f.epargne || Math.max(0, rav);
+  var sel = document.getElementById('ravPeriodSel');
+  var period = sel ? sel.value : '';
+  var isAnnual = period && period.indexOf('year-') === 0;
+  var factor = isAnnual ? 12 : 1;
+
+  var rev = (f.revenus||0) * factor;
+  var dep = (f.depenses||0) * factor;
+  var rav = (f.rav != null ? f.rav : ((f.revenus||0) - (f.depenses||0))) * factor;
+  var ep  = (f.epargne || Math.max(0, f.rav||0)) * factor;
   var pct = rev > 0 ? Math.round(dep/rev*100) : 50;
 
   // Zone couleur
@@ -2694,9 +3022,10 @@ function renderBudget(){
   animateVal(document.getElementById('ravVal'), rav, euro);
   document.getElementById('ravStatus').innerHTML = statusTexts[cl];
   document.getElementById('ravMsg').textContent  = msgTexts[cl];
-  var _mRev=document.getElementById('miniRev'); if(_mRev) _mRev.innerHTML=euro(rev)+'<small style="font-size:10px;opacity:.6;margin-left:2px">/mois</small>';
-  var _mDep=document.getElementById('miniDep'); if(_mDep) _mDep.innerHTML=euro(dep)+'<small style="font-size:10px;opacity:.6;margin-left:2px">/mois</small>';
-  var _mEp =document.getElementById('miniEp');  if(_mEp)  _mEp.innerHTML =euro(ep)+'<small style="font-size:10px;opacity:.6;margin-left:2px">/mois</small>';
+  var _sfx=isAnnual?'/an':'/mois';
+  var _mRev=document.getElementById('miniRev'); if(_mRev) _mRev.innerHTML=euro(rev)+'<small style="font-size:10px;opacity:.6;margin-left:2px">'+_sfx+'</small>';
+  var _mDep=document.getElementById('miniDep'); if(_mDep) _mDep.innerHTML=euro(dep)+'<small style="font-size:10px;opacity:.6;margin-left:2px">'+_sfx+'</small>';
+  var _mEp =document.getElementById('miniEp');  if(_mEp)  _mEp.innerHTML =euro(ep)+'<small style="font-size:10px;opacity:.6;margin-left:2px">'+_sfx+'</small>';
 
   // Zone 2: Evolution
   trackSnap();
@@ -3042,7 +3371,19 @@ async function sendMsg(txt, hiddenUser, fileData){
     }
     gm.push({role:'user', parts: userParts});
 
-    var data=await callGemini(gm,0);
+    var data;
+    try { data=await callGemini(gm,0); }
+    catch(e1){
+      var msg1=e1.message||'';
+      if(msg1.indexOf('demand')>-1||msg1.indexOf('EXHAUSTED')>-1||msg1.indexOf('429')>-1||msg1.indexOf('503')>-1){
+        // Retry après 4 secondes avec flash-lite
+        appendMsg('leo','⏳ Serveurs Gemini surchargés, nouvelle tentative dans 4s…');
+        await new Promise(function(r){ setTimeout(r,4000); });
+        var lastMsg=document.getElementById('chatMsgs').lastElementChild;
+        if(lastMsg) lastMsg.remove();
+        data=await callGemini(gm,1);
+      } else { throw e1; }
+    }
 
     // Accès sécurisé à la réponse
     var cand=data&&data.candidates&&data.candidates[0];
@@ -3067,7 +3408,15 @@ async function sendMsg(txt, hiddenUser, fileData){
         contMsgs.push({role:'model', parts:[{text: raw}]});
         contMsgs.push({role:'user', parts:[{text: 'Continue.'}]});
         try{
-          var contData = await callGemini(contMsgs, 0);
+          var contData;
+          try{ contData = await callGemini(contMsgs, 0); }
+          catch(ce){
+            var cm=ce.message||'';
+            if(cm.indexOf('demand')>-1||cm.indexOf('EXHAUSTED')>-1||cm.indexOf('429')>-1){
+              await new Promise(function(r){ setTimeout(r,3000); });
+              contData = await callGemini(contMsgs, 1);
+            } else { throw ce; }
+          }
           var contCand = contData && contData.candidates && contData.candidates[0];
           var contTxt = (contCand && contCand.content && contCand.content.parts && contCand.content.parts[0] && contCand.content.parts[0].text) || '';
           if(contTxt){
@@ -3143,6 +3492,51 @@ function openAttachSheet(){
 function closeAttachSheet(){
   document.getElementById('attachOverlay').style.display='none';
   document.getElementById('attachSheet').style.display='none';
+}
+function pickCamera(){
+  closeAttachSheet();
+  document.getElementById('chatInputCamera').click();
+}
+function pickGallery(){
+  closeAttachSheet();
+  document.getElementById('chatInputGallery').click();
+}
+function pickFile(){
+  closeAttachSheet();
+  // Utilise showOpenFilePicker() si disponible (bypass Samsung native dialog)
+  if(window.showOpenFilePicker){
+    window.showOpenFilePicker({
+      multiple: false,
+      types: [
+        { description: 'Documents', accept: {
+          'application/pdf': ['.pdf'],
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+          'application/vnd.ms-excel': ['.xls'],
+          'text/csv': ['.csv'],
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+          'application/msword': ['.doc'],
+          'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx'],
+          'text/plain': ['.txt'],
+          'image/*': ['.jpg','.jpeg','.png','.gif','.webp','.heic']
+        }}
+      ],
+      excludeAcceptAllOption: false
+    }).then(function(handles){
+      if(!handles||!handles.length) return;
+      return handles[0].getFile();
+    }).then(function(file){
+      if(!file) return;
+      var fakeEvent = {target:{files:[file]}};
+      handleFileUpload(fakeEvent);
+    }).catch(function(e){
+      // Annulé par l'utilisateur ou non supporté → fallback
+      if(e && e.name !== 'AbortError'){
+        document.getElementById('fileInput').click();
+      }
+    });
+  } else {
+    document.getElementById('fileInput').click();
+  }
 }
 
 function clearFileAttachment(){
@@ -3357,6 +3751,7 @@ function startApp(){
     document.getElementById('profilSub').textContent='RescueBudget · Coach Léo';
   }
   document.getElementById('keyBtn').style.display='flex';
+  document.getElementById('themeBtnHdr').style.display='flex';
   document.getElementById('bnav').style.display='flex';
   updateStreak();
   updateLevelUI();
@@ -3797,6 +4192,49 @@ function validateReceipt(){
 // ═══════════════════════════════════════════════════
 // EXPORT CSV / PDF
 // ═══════════════════════════════════════════════════
+function exportBackup(){
+  var backup = {};
+  var keys = ['cf_auth','cf_fin','cf_subs','cf_txns','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile'];
+  keys.forEach(function(k){
+    var v = localStorage.getItem(k);
+    if(v !== null) backup[k] = v;
+  });
+  backup['_exported'] = new Date().toISOString();
+  backup['_version'] = '1';
+  var blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  var d = new Date().toLocaleDateString('fr-FR').replace(/\//g,'-');
+  a.download = 'RescueBudget_sauvegarde_' + d + '.json';
+  a.click();
+  localStorage.setItem('cf_backup_dl', String(Date.now()));
+  toast('💾 Sauvegarde téléchargée !','#10b981');
+}
+
+function importBackup(event){
+  var file = event.target.files[0];
+  if(!file){ return; }
+  var reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      var backup = JSON.parse(e.target.result);
+      if(!backup['cf_auth'] && !backup['cf_fin']){
+        toast('Fichier invalide ou vide','#ef4444'); return;
+      }
+      if(!confirm('Restaurer cette sauvegarde ? Tes données actuelles seront remplacées.')) return;
+      var keys = ['cf_auth','cf_fin','cf_subs','cf_txns','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile'];
+      keys.forEach(function(k){
+        if(backup[k] !== undefined) localStorage.setItem(k, backup[k]);
+      });
+      toast('✅ Données restaurées ! Reconnecte-toi.','#10b981');
+      setTimeout(function(){ location.reload(); }, 1800);
+    } catch(err){
+      toast('Erreur lecture fichier : ' + err.message,'#ef4444');
+    }
+  };
+  reader.readAsText(file);
+}
+
 function exportCSV(){
   var rows=[['Date','Description','Catégorie','Section','Montant (€)']];
   var txns=S.txns||[];
