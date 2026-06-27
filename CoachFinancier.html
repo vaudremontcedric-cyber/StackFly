@@ -872,7 +872,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 // ══ SERVICE WORKER OFFLINE ══
 (function(){
   if(!('serviceWorker' in navigator)) return;
-  var SW_VERSION = '4.9';
+  var SW_VERSION = '5.0';
   var CACHE = 'rb-cache-v'+SW_VERSION;
   var swCode = [
     'var CACHE="rb-cache-v'+SW_VERSION+'";',
@@ -2431,7 +2431,7 @@ function renderScore(){
   document.getElementById('scoreTag').style.background=si.col+'22';
   document.getElementById('scoreTag').style.color=si.col;
   document.getElementById('scoreNum').style.color=si.col;
-  document.getElementById('scoreLabel').textContent=si.lbl;
+  var _slbl=document.getElementById('scoreLabel'); if(_slbl) _slbl.textContent=si.lbl;
   // SVG gauge (cercle avec stroke-dasharray)
   var r=36,cx=48,cy=48,circ=2*Math.PI*r;
   var pct=sc/100;
