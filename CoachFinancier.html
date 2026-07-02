@@ -872,7 +872,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 // ══ SERVICE WORKER OFFLINE ══
 (function(){
   if(!('serviceWorker' in navigator)) return;
-  var SW_VERSION = '5.0';
+  var SW_VERSION = '5.1';
   var CACHE = 'rb-cache-v'+SW_VERSION;
   var swCode = [
     'var CACHE="rb-cache-v'+SW_VERSION+'";',
@@ -1490,12 +1490,12 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
       <input type="file" accept=".json" onchange="importBackup(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;font-size:100px"/>
     </div>
     <div class="profil-sect">&#8505;&#65039; &#192; propos</div>
-    <div class="setting-row" onclick="toast('RescueBudget v1.0 — Coach IA L&#233;o &#129302;','#0d9488')">
+    <div class="setting-row" onclick="toast('RescueBudget v5.1 — Coach IA L&#233;o &#129302;','#0d9488')">
       <div class="s-row-left">
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" style="font-size:13px;color:var(--accent2);font-weight:700">v5.0</span>
+      <span class="s-row-arr" style="font-size:13px;color:var(--accent2);font-weight:700">v5.1</span>
     </div>
     <div class="setting-row" onclick="openPrivacyModal()">
       <div class="s-row-left">
@@ -2207,11 +2207,14 @@ function toggleTheme(){
     document.body.classList.add('light');
     // Sync icône header dès que le DOM est prêt
     window.addEventListener('DOMContentLoaded',function(){
-  checkNoAccountWarning();
       var btn=document.getElementById('themeBtnHdr');
       if(btn) btn.textContent='☀️';
     });
   }
+  // Toujours vérifier l'avertissement compte (dark ET light)
+  window.addEventListener('DOMContentLoaded',function(){
+    checkNoAccountWarning();
+  });
 })();
 function doLogout(){
   if(!confirm('Te déconnecter de RescueBudget ?')) return;
@@ -2242,6 +2245,7 @@ try{ S.dailySnaps = JSON.parse(localStorage.getItem('cf_snaps') ||'[]'); }catch(
 try{ S.subs       = JSON.parse(localStorage.getItem('cf_subs')  ||'[]'); }catch(e){}
 try{ S.txns       = JSON.parse(localStorage.getItem('cf_txns')  ||'[]'); }catch(e){}
 try{ S.badges     = JSON.parse(localStorage.getItem('cf_badges')||'[]'); }catch(e){}
+try{ S.actifs     = JSON.parse(localStorage.getItem('cf_actifs')||'{}'); }catch(e){ S.actifs={}; }
 S.actions    = parseInt(localStorage.getItem('cf_actions')||'0')||0;
 S.lastGreeting  = localStorage.getItem('cf_greet') ||'';
 S.lastAnalysis  = localStorage.getItem('cf_anal')  ||'';
@@ -2257,7 +2261,7 @@ function save(){
     localStorage.setItem('cf_goals',  JSON.stringify(S.goals));
     localStorage.setItem('cf_snaps',  JSON.stringify(S.dailySnaps.slice(-40)));
     localStorage.setItem('cf_subs',   JSON.stringify(S.subs||[]));
-    var cutoff=new Date(Date.now()-7*86400000).toISOString().slice(0,10);
+    var cutoff=new Date(Date.now()-30*86400000).toISOString().slice(0,10);
     localStorage.setItem('cf_txns',   JSON.stringify((S.txns||[]).filter(function(t){return t.date>=cutoff;})));
     localStorage.setItem('cf_badges', JSON.stringify(S.badges||[]));
     localStorage.setItem('cf_streak', (S.streak||0)+'|'+(S.streakMax||0)+'|'+(S.lastLogin||''));
@@ -2265,6 +2269,7 @@ function save(){
     localStorage.setItem('cf_start',  S.startDate);
     localStorage.setItem('cf_greet',  S.lastGreeting);
     localStorage.setItem('cf_anal',   S.lastAnalysis);
+    localStorage.setItem('cf_actifs', JSON.stringify(S.actifs||{}));
     // Sauvegarde auto dans localStorage (snapshot récupérable)
     var autoSnap = {
       cf_auth: localStorage.getItem('cf_auth'),
@@ -2875,7 +2880,7 @@ function getSystem(){
   }
   var goals = S.goals || [];
   if(goals.length){
-    ctx += ' OBJECTIFS : '+goals.map(function(g){return g.name+' (cible: '+g.target+'€, actuel: '+(g.saved||0)+'€)';}).join(', ')+'.';
+    ctx += ' OBJECTIFS : '+goals.map(function(g){return g.name+' (cible: '+g.target+'€, actuelg.current||0)+'€)';}).join(', ')+'.';
   }
   return SYSTEM_BASE + (SYSTEM_LEVELS[getLevel()]||'') + ctx;
 }
@@ -3213,11 +3218,11 @@ function getLeoProactiveMsg(){
   if(S.goals && S.goals.length > 0){
     var g = S.goals[0];
     if(g.target > 0){
-      var prog = Math.round(((g.saved||0) / g.target) * 100);
+      var prog = Math.round(((g.current||0) / g.target) * 100);
       if(prog < 100)
-        contextMsgs.push(sal+' \u{1F3AF} Objectif « '+g.label+' » : **'+prog+'% atteint** (il manque '+euro(g.target - (g.saved||0))+'). Quelle étape pour accélérer ?');
+        contextMsgs.push(sal+' \u{1F3AF} Objectif « '+g.name+' » : **'+prog+'% atteint** (il manque '+euro(g.target - (g.current||0))+'). Quelle étape pour accélérer ?');
       else
-        contextMsgs.push(sal+' \u{1F389} Objectif « '+g.label+' » atteint ! Quel est le prochain sur ta liste ?');
+        contextMsgs.push(sal+' \u{1F389} Objectif « '+g.name+' » atteint ! Quel est le prochain sur ta liste ?');
     }
   }
   if((S.streak||0) >= 7)
@@ -3710,7 +3715,11 @@ function renderGoals(){
       +'<div class="goal-amounts"><span>Épargne : '+euro(g.current)+'</span><span>Reste : '+euro(g.target-g.current)+'</span></div>'
       +projHtml
       +(steps?'<div class="goal-steps-wrap"><div class="steps-lbl">Prochaines étapes</div>'+steps+'</div>':'')
-      +'<button class="goal-cta" onclick="askCoachGoal('+gi+')">Voir mon plan complet avec le coach &#8594;</button>'
+      +'<div style="display:flex;gap:8px;margin-top:10px">'
+        +'<button class="goal-cta" style="flex:1" onclick="askCoachGoal('+gi+')">Voir mon plan &#8594;</button>'
+        +'<button class="goal-cta" style="flex:0;padding:10px 14px;background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.3)" onclick="openGoalDeposit('+gi+')">+ Versement</button>'
+        +'<button class="goal-cta" style="flex:0;padding:10px 14px;background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.25)" onclick="delGoal('+gi+')">🗑</button>'
+      +'</div>'
       +'</div>';
   }).join('');
 }
@@ -3735,9 +3744,29 @@ function togStep(gi,si){
   if(S.goals[gi].steps[si].done) toast('Étape accomplie ! ✅','#10b981');
 }
 
-// ══════════════════════════════════════════════
-// DÉMARRAGE APPLICATION
-// ══════════════════════════════════════════════
+function delGoal(gi){
+  var g=S.goals[gi]; if(!g) return;
+  if(!confirm('Supprimer l\'objectif "'+g.name+'" ?')) return;
+  S.goals.splice(gi,1);
+  save(); renderGoals();
+  toast('Objectif supprimé','#64748b');
+}
+
+function openGoalDeposit(gi){
+  var g=S.goals[gi]; if(!g) return;
+  var amt=prompt('Ajouter un versement pour "'+g.name+'" (actuel : '+euro(g.current)+') :\nMontant en € :');
+  if(amt===null) return;
+  var v=parseMontant(amt);
+  if(!v||v<=0){ toast('Montant invalide','#ef4444'); return; }
+  g.current=Math.min(g.target, Math.round((g.current+v)*100)/100);
+  save(); renderGoals();
+  if(g.current>=g.target){
+    toast('🎉 Objectif "'+g.name+'" atteint !','#10b981');
+  } else {
+    toast('+'+euro(v)+' versé sur "'+g.name+'"','#10b981');
+  }
+  S.actions++; save(); checkBadges();
+}
 
 // ══════════════════════════════════════════════
 // DÉMARRAGE APPLICATION
@@ -3851,6 +3880,9 @@ function toggleMic(){
 // ══════════════════════════════════════════════
 function renderProfil(){
   loadAvatar();
+  var auth=getStoredAuth();
+  var pn=document.getElementById('profilName'); if(pn&&auth) pn.textContent=auth.user;
+  var ps=document.getElementById('profilSub'); if(ps) ps.textContent='RescueBudget · Coach Léo';
   var jours=Math.max(1,Math.round((Date.now()-new Date(S.startDate).getTime())/86400000));
   var ej=document.getElementById('statJours'); if(ej) ej.textContent=jours;
   var ea=document.getElementById('statActions'); if(ea) ea.textContent=S.actions||0;
@@ -4291,9 +4323,9 @@ function closeReceiptModal(){
 function checkBudgetAlerts(){
   if(!('Notification' in window)) return;
   var f=S.fin||{};
-  var rev=f.revenus||0, dep=f.depenses||0, ep=f.epargne||0;
+  var rev=f.revenus||0, dep=f.depenses||0;
   if(!rev) return;
-  var rav=rev-dep-ep;
+  var rav=f.rav!=null ? f.rav : rev-dep;
   var enviesPct=f.envies_items ? (function(){
     try{
       var items=JSON.parse(f.envies_items||'[]');
@@ -4395,23 +4427,4 @@ if(isLoggedIn()){
     <div style="background:var(--bg);border-radius:22px 22px 0 0;padding:24px 20px 36px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;animation:slideUp .25s ease">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
         <span id="receiptModalTitle" style="font-size:17px;font-weight:800;color:var(--text)">📎 Fichier analysé</span>
-        <button onclick="closeReceiptModal()" style="background:none;border:none;font-size:22px;color:var(--text2);cursor:pointer">&#10005;</button>
-      </div>
-      <div id="receiptLoading" style="text-align:center;padding:30px 0;display:none">
-        <div id="receiptLoadingIco" style="font-size:40px;margin-bottom:12px">📎</div>
-        <div id="receiptLoadingTxt" style="font-size:14px;color:var(--text2)">Analyse en cours...</div>
-      </div>
-      <div id="receiptContent" style="display:none">
-        <div id="receiptMeta" style="display:flex;align-items:center;margin-bottom:14px;font-size:13px;color:var(--text2);border-bottom:1px solid var(--border);padding-bottom:10px"></div>
-        <div id="receiptItemsLabel" style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Articles détectés</div>
-        <div id="receiptItems"></div>
-        <div id="receiptTotal" style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding:12px 14px;background:var(--card);border-radius:12px;font-size:14px;font-weight:700"></div>
-        <button onclick="validateReceipt()" style="margin-top:16px;width:100%;padding:14px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;letter-spacing:.3px">
-          ✅ Intégrer dans mon budget
-        </button>
-      </div>
-    </div>
-  </div>
-
-</body>
-</html>
+        <b
