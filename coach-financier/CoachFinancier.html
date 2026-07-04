@@ -934,7 +934,7 @@ body.light .analyse-card{
 // ══ SERVICE WORKER OFFLINE ══
 (function(){
   if(!('serviceWorker' in navigator)) return;
-  var SW_VERSION = '5.13';
+  var SW_VERSION = '5.14';
   var CACHE = 'rb-cache-v'+SW_VERSION;
   var swCode = [
     'var CACHE="rb-cache-v'+SW_VERSION+'";',
@@ -1506,12 +1506,6 @@ body.light .analyse-card{
     <div class="badges-wrap">
       <div class="badges-ttl">&#127942; Badges</div>
       <div class="badges-grid" id="badgesGrid"></div>
-    </div>
-
-    <!-- Projection 12 mois -->
-    <div class="proj-card" id="projCard">
-      <div class="proj-ttl">&#128200; Projection &#233;pargne</div>
-      <div id="projRows"></div>
     </div>
 
     <div class="profil-sect">Param&#232;tres</div>
@@ -5425,4 +5419,4 @@ doRegister = function(){
 </div>
 
 </body>
-</html>
+</html>                                                                                                                                                                                          
