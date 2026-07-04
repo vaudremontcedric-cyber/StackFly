@@ -353,6 +353,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 .txn-section-besoins{background:#dbeafe;color:#1d4ed8;}
 .txn-section-envies{background:#fce7f3;color:#be185d;}
 .txn-section-epargne{background:#d1fae5;color:#065f46;}
+.txn-section-invest{background:#ede9fe;color:#5b21b6;}
 .chat-disclaimer{font-size:10.5px;color:var(--text3);text-align:center;padding:5px 16px 2px;flex-shrink:0;opacity:.75}
 .suggestions{display:flex;gap:8px;padding:8px 16px;overflow-x:auto;flex-shrink:0;background:var(--surface)}
 .sugg{padding:7px 14px;background:var(--card);border:1px solid var(--border);
@@ -802,6 +803,7 @@ body.light .analyse-card{
 .rep-card.b{background:linear-gradient(145deg,rgba(59,130,246,.13),rgba(59,130,246,.05));border-color:rgba(59,130,246,.3)}
 .rep-card.e{background:linear-gradient(145deg,rgba(45,212,191,.13),rgba(13,148,136,.05));border-color:rgba(45,212,191,.3)}
 .rep-card.s{background:linear-gradient(145deg,rgba(16,185,129,.13),rgba(16,185,129,.04));border-color:rgba(16,185,129,.3)}
+.rep-card.i{background:linear-gradient(145deg,rgba(139,92,246,.13),rgba(139,92,246,.04));border-color:rgba(139,92,246,.3)}
 .rep-head{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 16px 8px}
 .rep-head-l{display:flex;align-items:center;gap:9px}
 .rep-ico{font-size:22px;line-height:1}
@@ -811,27 +813,32 @@ body.light .analyse-card{
 .rep-card.b .rep-ideal{color:rgba(59,130,246,.8)}
 .rep-card.e .rep-ideal{color:rgba(45,212,191,.8)}
 .rep-card.s .rep-ideal{color:rgba(16,185,129,.8)}
+.rep-card.i .rep-ideal{color:rgba(139,92,246,.8)}
 .rep-right{text-align:right}
 .rep-total{font-size:20px;font-weight:800;line-height:1}
 .rep-card.b .rep-total{color:#3b82f6}
 .rep-card.e .rep-total{color:#2dd4bf}
 .rep-card.s .rep-total{color:#10b981}
+.rep-card.i .rep-total{color:#8b5cf6}
 .rep-pct{font-size:11px;font-weight:600;margin-top:3px;padding:2px 7px;border-radius:20px;display:inline-block}
 .rep-card.b .rep-pct{background:rgba(59,130,246,.15);color:#3b82f6}
 .rep-card.e .rep-pct{background:rgba(45,212,191,.15);color:#2dd4bf}
 .rep-card.s .rep-pct{background:rgba(16,185,129,.15);color:#10b981}
+.rep-card.i .rep-pct{background:rgba(139,92,246,.15);color:#8b5cf6}
 .rep-pct.over{background:rgba(239,68,68,.15);color:#ef4444}
 .rep-bar-wrap{height:4px;margin:0 16px 10px;border-radius:2px;background:rgba(255,255,255,.07);overflow:hidden}
 .rep-bar-fill{height:100%;border-radius:2px;transition:width 1.3s cubic-bezier(.4,0,.2,1)}
 .rep-card.b .rep-bar-fill{background:#3b82f6}
 .rep-card.e .rep-bar-fill{background:#2dd4bf}
 .rep-card.s .rep-bar-fill{background:#10b981}
+.rep-card.i .rep-bar-fill{background:#8b5cf6}
 .rep-divider{height:1px;background:rgba(255,255,255,.05);margin:0 16px}
 .rep-item{display:flex;align-items:center;justify-content:space-between;padding:8px 16px}
 .rep-item-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-right:8px}
 .rep-card.b .rep-item-dot{background:rgba(59,130,246,.6)}
 .rep-card.e .rep-item-dot{background:rgba(45,212,191,.6)}
 .rep-card.s .rep-item-dot{background:rgba(16,185,129,.6)}
+.rep-card.i .rep-item-dot{background:rgba(139,92,246,.6)}
 .rep-item-name{font-size:13px;color:var(--text2);flex:1}
 .rep-item-amt{font-size:13px;font-weight:600;color:var(--text)}
 .rep-item-del{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:0 0 0 10px;line-height:1;opacity:0.45;transition:opacity .15s;flex-shrink:0}
@@ -934,7 +941,7 @@ body.light .analyse-card{
 // ══ SERVICE WORKER OFFLINE ══
 (function(){
   if(!('serviceWorker' in navigator)) return;
-  var SW_VERSION = '5.15';
+  var SW_VERSION = '5.16';
   var CACHE = 'rb-cache-v'+SW_VERSION;
   var swCode = [
     'var CACHE="rb-cache-v'+SW_VERSION+'";',
@@ -1153,7 +1160,7 @@ body.light .analyse-card{
           <div id="miniDep" style="font-size:13px;font-weight:800;color:var(--red)">-- €</div>
         </div>
         <div style="flex:1;background:var(--card);border-radius:12px;padding:10px 8px;text-align:center;border:1px solid var(--border)">
-          <div style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">Épargne</div>
+          <div style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">Épargne & Invest</div>
           <div id="miniEp" style="font-size:13px;font-weight:800;color:var(--accent2)">-- €</div>
         </div>
       </div>
@@ -1254,7 +1261,7 @@ body.light .analyse-card{
                     <div class="rep-ico">&#127807;</div>
                     <div class="rep-meta">
                       <div class="rep-name">&#201;pargne</div>
-                      <div class="rep-ideal">Id&#233;al &#8805; 20%</div>
+                      <div class="rep-ideal">Id&#233;al &#8805; 10%</div>
                     </div>
                   </div>
                   <div class="rep-right">
@@ -1264,7 +1271,25 @@ body.light .analyse-card{
                 </div>
                 <div class="rep-bar-wrap"><div class="rep-bar-fill" id="repSBar" style="width:0%"></div></div>
                 <div class="rep-divider"></div>
-                <button class="rep-detail-btn" id="detBtnS" onclick="toggleDetail('S')">D&#233;tails <span class="arr">&#9662;</span></button><div class="rep-items-wrap" id="repSWrap"><div id="repSItems"><div class="rep-empty">Livret A, remboursement cr&#233;dit…</div></div></div>
+                <button class="rep-detail-btn" id="detBtnS" onclick="toggleDetail('S')">D&#233;tails <span class="arr">&#9662;</span></button><div class="rep-items-wrap" id="repSWrap"><div id="repSItems"><div class="rep-empty">Livret A, fonds urgence, CEL…</div></div></div>
+              </div>
+              <div class="rep-card i" id="repCardI">
+                <div class="rep-head">
+                  <div class="rep-head-l">
+                    <div class="rep-ico">&#128200;</div>
+                    <div class="rep-meta">
+                      <div class="rep-name">Investissements</div>
+                      <div class="rep-ideal">Id&#233;al &#8805; 10%</div>
+                    </div>
+                  </div>
+                  <div class="rep-right">
+                    <div class="rep-total" id="repITotal">-- &#8364;</div>
+                    <div class="rep-pct" id="repIPct">--%</div>
+                  </div>
+                </div>
+                <div class="rep-bar-wrap"><div class="rep-bar-fill" id="repIBar" style="width:0%"></div></div>
+                <div class="rep-divider"></div>
+                <button class="rep-detail-btn" id="detBtnI" onclick="toggleDetail('I')">D&#233;tails <span class="arr">&#9662;</span></button><div class="rep-items-wrap" id="repIWrap"><div id="repIItems"><div class="rep-empty">PEA, ETF, CTO, actions…</div></div></div>
               </div>
             </div>
           </div>
@@ -1987,6 +2012,8 @@ body.light .analyse-card{
       <div class="txn-cat" onclick="selTxnCat(this,'&#127968;','Logement')"><div class="txn-cat-ico">&#127968;</div><div class="txn-cat-lbl">Logement</div></div>
       <div class="txn-cat" onclick="selTxnCat(this,'&#128138;','Sant&#233;')"><div class="txn-cat-ico">&#128138;</div><div class="txn-cat-lbl">Sant&#233;</div></div>
       <div class="txn-cat" onclick="selTxnCat(this,'&#10133;','Autre')"><div class="txn-cat-ico">&#10133;</div><div class="txn-cat-lbl">Autre</div></div>
+      <div class="txn-cat" onclick="selTxnCat(this,'&#127807;','Épargne')"><div class="txn-cat-ico">&#127807;</div><div class="txn-cat-lbl">Épargne</div></div>
+      <div class="txn-cat" onclick="selTxnCat(this,'&#128200;','Investiss.')"><div class="txn-cat-ico">&#128200;</div><div class="txn-cat-lbl">Investiss.</div></div>
     </div>
     <div class="m-lbl">Montant (&#8364;)</div>
     <input class="m-in" id="txnAmt" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" style="font-size:24px;text-align:center;font-weight:700"/>
@@ -2071,8 +2098,8 @@ var SYSTEM_BASE = "Tu es Léo, un coach financier personnel IA. Ta mission : acc
   + "\"action\":null,\"impact\":null,\"_actionDone\":null,"
   + "\"cat1_nom\":null,\"cat1_mt\":null,\"cat2_nom\":null,\"cat2_mt\":null,\"cat3_nom\":null,\"cat3_mt\":null,"
   + "\"analyse_jour\":null,\"priorite_jour\":null,\"defi_semaine\":null,\"coach_message\":null,"
-  + "\"besoins_items\":null,\"envies_items\":null,\"epargne_items\":null}[/FD] "
-  + "Remplis UNIQUEMENT les champs concernes. rav = revenus - depenses - epargne si les trois sont connus (sinon revenus - depenses)."
+  + "\"besoins_items\":null,\"envies_items\":null,\"epargne_items\":null,\"invest_items\":null,\"invest\":null}[/FD] "
+  + "Remplis UNIQUEMENT les champs concernes. rav = revenus - depenses - epargne - invest si connus (sinon revenus - depenses). invest = total des versements mensuels en investissements."
   + "action = une action courte et precise a faire maintenant. impact = son benefice estime (ex: +40EUR/mois). "
   + "_actionDone = true UNIQUEMENT quand l'utilisateur confirme explicitement avoir accompli l'action recommandee (ex: 'c'est fait', 'j'ai fait', 'done', 'accompli'). Ne jamais mettre true sans confirmation explicite. "
   + "analyse_jour = analyse de la situation du jour en 1-2 phrases. priorite_jour = UNE seule priorite du jour. "
@@ -2080,9 +2107,10 @@ var SYSTEM_BASE = "Tu es Léo, un coach financier personnel IA. Ta mission : acc
   + "METHODE 50/30/20 — TRES IMPORTANT : classe TOUTES les depenses dans 3 categories. "
   + "BESOINS (idealement 50% des revenus) : loyer, alimentation, transport, sante, assurances, factures, abonnements essentiels. "
   + "ENVIES (idealement 30%) : restaurants, loisirs, shopping, sorties, voyages, abonnements streaming. "
-  + "EPARGNE (idealement 20%) : livret, investissements, fonds urgence, remboursement dettes anticipees. "
-  + "besoins_items = tableau JSON des depenses BESOINS, format EXACT : [{\"n\":\"Loyer\",\"v\":800},{\"n\":\"Alimentation\",\"v\":300}] "
-  + "envies_items = meme format pour ENVIES. epargne_items = meme format pour EPARGNE. "
+  + "EPARGNE (idealement 10%) : livret A, CEL, PEL, fonds urgence, remboursement dettes anticipees. "
+  + "INVESTISSEMENTS (idealement 10%) : PEA, CTO, ETF, actions, obligations, SCPI, cryptos. "
+  + "besoins_items = tableau JSON des depenses BESOINS, format EXACT : [{\"n\":\"Loyer\",\"v\":800},{\"n\":\"Alimentation\",\"v\":300}]. "
+  + "envies_items = meme format pour ENVIES. epargne_items = meme format pour EPARGNE (livret, fonds urgence). invest_items = meme format pour INVESTISSEMENTS (PEA, CTO, ETF, actions). "
   + "IMPORTANT : des qu un utilisateur mentionne une depense precise, classe-la dans la bonne categorie et CUMULE avec les entrees precedentes. "
   + "EDUCATION FINANCIERE : adapte ton niveau selon le contexte. Pour les debutants, explique les bases. Pour les avances, va plus loin. "+ "INTERDIT ABSOLU : ne termine JAMAIS une reponse par 'Veux-tu que je continue ?', 'Souhaites-tu en savoir plus ?', 'Veux-tu des details ?' ou toute variante. Chaque reponse doit etre COMPLETE et autonome. Si le sujet est long, resumes-le en une reponse courte et concise sans promettre de suite.";
 
@@ -2685,6 +2713,7 @@ function renderTriCards(){
   var b=parseItems(f.besoins_items);
   var e=parseItems(f.envies_items);
   var s=parseItems(f.epargne_items);
+  var iv=parseItems(f.invest_items||'[]');
 
   // Fallback : si pas d'items mais des données globales, on infère
   if(!b.length && !e.length && !s.length && !rev){
@@ -2694,7 +2723,8 @@ function renderTriCards(){
 
   renderOneCard('repBItems','repBTotal','repBPct','repBBar',b,rev,50,'besoins_items');
   renderOneCard('repEItems','repETotal','repEPct','repEBar',e,rev,30,'envies_items');
-  renderOneCard('repSItems','repSTotal','repSPct','repSBar',s,rev,20,'epargne_items');
+  renderOneCard('repSItems','repSTotal','repSPct','repSBar',s,rev,10,'epargne_items');
+  renderOneCard('repIItems','repITotal','repIPct','repIBar',iv,rev,10,'invest_items');
 }
 
 // ══════════════════════════════════════════════
@@ -2703,7 +2733,7 @@ function renderTriCards(){
 function calcScore(){
   var f=S.fin; var s=0;
   var rev=f.revenus||0;
-  var ep=f.epargne||(rev&&f.depenses?Math.max(0,rev-f.depenses):0);
+  var ep=(f.epargne||0)+(f.invest||0)||(rev&&f.depenses?Math.max(0,rev-f.depenses):0);
   if(rev>0) s+=Math.min(35,Math.round(ep/rev*100*0.7));
   if(f.rav>0) s+=20; else if(f.rav!=null&&f.rav>-200) s+=8;
   s+=Math.min(15,(S.goals||[]).length*5);
@@ -2769,7 +2799,7 @@ function renderPoche(){
   var f=S.fin; var el=document.getElementById('pocheCard'); if(!el) return;
   if(!f.revenus){ el.style.display='none'; return; }
   el.style.display='flex';
-  var _pRav = f.rav != null ? f.rav : Math.max(0,(f.revenus||0)-(f.depenses||0)-(f.epargne||0));
+  var _pRav = f.rav != null ? f.rav : Math.max(0,(f.revenus||0)-(f.depenses||0)-(f.epargne||0)-(f.invest||0));
   var daily=Math.max(0,_pRav/30);
   var spent=getTodaySpent();
   var poche=Math.max(0,daily-spent);
@@ -2970,6 +3000,10 @@ function deleteRepItem(sectionKey, idx){
     var totalEp = parseItems(S.fin.epargne_items).reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
     S.fin.epargne = Math.round(totalEp*100)/100;
   }
+  if(sectionKey === 'invest_items'){
+    var totalInv = parseItems(S.fin.invest_items||'[]').reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+    S.fin.invest = Math.round(totalInv*100)/100;
+  }
   save(); renderTriCards(); renderScore(); renderPoche(); renderBudget();
 }
 
@@ -3129,12 +3163,15 @@ var CAT_SECTION = {
   'Loisirs'  : 'envies',
   'Logement' : 'besoins',
   'Santé'    : 'besoins',
+  'Épargne'  : 'epargne',
+  'Investiss.': 'invest',
   'Autre'    : 'envies'
 };
 var CAT_SECTION_LABEL = {
   besoins: '🏠 Besoin',
   envies : '🎉 Envie',
-  epargne: '💰 Épargne'
+  epargne: '💰 Épargne',
+  invest : '📈 Investissement'
 };
 var _selTxnCat={ico:'🍔',name:'Resto'};
 function selTxnCat(el,ico,name){
@@ -3194,6 +3231,10 @@ function saveTxn(){
   var totalDep=(parseItems(S.fin.besoins_items).reduce(function(s,i){return s+(parseFloat(i.v)||0);},0)
                +parseItems(S.fin.envies_items||'[]').reduce(function(s,i){return s+(parseFloat(i.v)||0);},0));
   if(totalDep>0) S.fin.depenses=Math.round(totalDep*100)/100;
+  if(section==='invest'){
+    var tInv=parseItems(S.fin.invest_items||'[]').reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+    S.fin.invest=Math.round(tInv*100)/100;
+  }
   save(); closeTxnModal(); renderTxns(); renderPoche(); renderScore(); renderTriCards();
   var sLabel=CAT_SECTION_LABEL[section]||section;
   toast(_selTxnCat.ico+' '+euro(amt)+' → '+sLabel,'#10b981');
@@ -3381,16 +3422,18 @@ function renderSynthTable(){
   var rev  = (f.revenus  || 0) * factor;
   var dep  = (f.depenses || 0) * factor;
   var ep   = (f.epargne  || 0) * factor;
-  var _ravVal = f.rav != null ? f.rav : Math.max(0,(f.revenus||0)-(f.depenses||0)-(f.epargne||0));
+  var inv  = (f.invest   || 0) * factor;
+  var _ravVal = f.rav != null ? f.rav : Math.max(0,(f.revenus||0)-(f.depenses||0)-(f.epargne||0)-(f.invest||0));
   var rav  = _ravVal * factor;
-  var tauxEp  = f.revenus>0 ? Math.round((f.epargne||0)/f.revenus*100) : 0;
+  var tauxEp  = f.revenus>0 ? Math.round(((f.epargne||0)+(f.invest||0))/f.revenus*100) : 0;
   var tauxDep = f.revenus>0 ? Math.round((f.depenses||0)/f.revenus*100) : 0;
   var tauxRav = f.revenus>0 ? Math.round(_ravVal/f.revenus*100) : 0;
   var rows = [
-    {lbl:'💶 Revenus',       val:rev, col:'var(--green)',   pct:'100%'},
-    {lbl:'💸 Dépenses',      val:dep, col:'var(--orange)',  pct:tauxDep+'%'},
-    {lbl:'🏦 Épargne',       val:ep,  col:'var(--accent2)', pct:tauxEp+'%'},
-    {lbl:'✅ Reste à vivre', val:rav, col:rav>=0?'var(--green)':'var(--red)', pct:tauxRav+'%'}
+    {lbl:'💶 Revenus',          val:rev, col:'var(--green)',   pct:'100%'},
+    {lbl:'💸 Dépenses',         val:dep, col:'var(--orange)',  pct:tauxDep+'%'},
+    {lbl:'🏦 Épargne',          val:ep,  col:'var(--accent2)', pct:(f.revenus>0?Math.round((f.epargne||0)/f.revenus*100):0)+'%'},
+    {lbl:'📈 Investissements',  val:inv, col:'#8b5cf6',        pct:(f.revenus>0?Math.round((f.invest||0)/f.revenus*100):0)+'%'},
+    {lbl:'✅ Reste à vivre',    val:rav, col:rav>=0?'var(--green)':'var(--red)', pct:tauxRav+'%'}
   ];
   el.innerHTML = rows.map(function(r){
     return '<div style="display:flex;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">'
@@ -3401,7 +3444,7 @@ function renderSynthTable(){
       +'</div>';
   }).join('')
   +'<div style="font-size:11px;color:var(--text3);text-align:right;margin-top:8px;padding-top:4px">'
-  +'Taux d\'épargne : <strong style="color:var(--accent2)">'+tauxEp+'%</strong>'
+  +'Taux épargne+invest : <strong style="color:var(--accent2)">'+tauxEp+'%</strong>'
   +(tauxEp>=20?' 🎯':tauxEp>=10?' 👍':' ⚠️')+'</div>';
 }
 
@@ -3442,7 +3485,8 @@ function renderBudget(){
   var rev = (f.revenus||0) * factor;
   var dep = (f.depenses||0) * factor;
   var ep  = (f.epargne != null && f.epargne !== '' ? f.epargne : 0) * factor;
-  var rav = (f.rav != null ? f.rav : Math.max(0, (f.revenus||0) - (f.depenses||0) - (f.epargne||0))) * factor;
+  var inv2= (f.invest||0) * factor;
+  var rav = (f.rav != null ? f.rav : Math.max(0, (f.revenus||0) - (f.depenses||0) - (f.epargne||0) - (f.invest||0))) * factor;
   var pct = rev > 0 ? Math.round(dep/rev*100) : 50;
 
   // Zone couleur
@@ -3467,7 +3511,7 @@ function renderBudget(){
   var _sfx=isAnnual?'/an':'/mois';
   var _mRev=document.getElementById('miniRev'); if(_mRev) _mRev.innerHTML=euro(rev)+'<small style="font-size:10px;opacity:.6;margin-left:2px">'+_sfx+'</small>';
   var _mDep=document.getElementById('miniDep'); if(_mDep) _mDep.innerHTML=euro(dep)+'<small style="font-size:10px;opacity:.6;margin-left:2px">'+_sfx+'</small>';
-  var _mEp =document.getElementById('miniEp');  if(_mEp)  _mEp.innerHTML =euro(ep)+'<small style="font-size:10px;opacity:.6;margin-left:2px">'+_sfx+'</small>';
+  var _mEp =document.getElementById('miniEp');  if(_mEp)  _mEp.innerHTML =euro(ep+inv2)+'<small style="font-size:10px;opacity:.6;margin-left:2px">'+_sfx+'</small>';
 
   // Zone 2: Evolution
   trackSnap();
@@ -4753,8 +4797,8 @@ function exportCSV(){
   var q=function(s){return '"'+String(s||'').replace(/"/g,'""')+'"';};
   var sep=';';
   var f=S.fin||{};
-  var rev=f.revenus||0, dep=f.depenses||0, ep=f.epargne||0;
-  var rav=f.rav!=null?f.rav:Math.max(0,rev-dep-ep);
+  var rev=f.revenus||0, dep=f.depenses||0, ep=f.epargne||0, inv=f.invest||0;
+  var rav=f.rav!=null?f.rav:Math.max(0,rev-dep-ep-inv);
   var tauxEp=rev>0?Math.round(ep/rev*100):0;
   var mois=new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
   var sc=calcScore();
@@ -4764,12 +4808,13 @@ function exportCSV(){
   lines2.push([q('Revenus mensuels'),q(rev.toFixed(2)),q('100 %')].join(sep));
   lines2.push([q('Dépenses totales'),q(dep.toFixed(2)),q((rev>0?Math.round(dep/rev*100):0)+' %')].join(sep));
   lines2.push([q('Épargne'),q(ep.toFixed(2)),q(tauxEp+' %')].join(sep));
+  lines2.push([q('Investissements'),q(inv.toFixed(2)),q((rev>0?Math.round(inv/rev*100):0)+' %')].join(sep));
   lines2.push([q('Reste à vivre'),q(rav.toFixed(2)),q((rev>0?Math.round(rav/rev*100):0)+' %')].join(sep));
   lines2.push([q('Score santé'),q(sc+' / 100'),q(tauxEp>=20?'Excellent':tauxEp>=10?'Bien':'À améliorer')].join(sep));
   lines2.push('');
   lines2.push(q('=== BUDGET 50/30/20 ==='));
   lines2.push([q('Section'),q('Élément'),q('Montant (€)'),q('% revenus')].join(sep));
-  [['Besoins','besoins_items'],['Envies','envies_items'],['Épargne','epargne_items']].forEach(function(pair){
+  [['Besoins','besoins_items'],['Envies','envies_items'],['Épargne','epargne_items'],['Investissements','invest_items']].forEach(function(pair){
     var items=parseItems(f[pair[1]]||'[]');
     var catTot=items.reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
     items.forEach(function(i){
@@ -4825,20 +4870,22 @@ function exportPrint(){
   var fmt=function(n){return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n||0);};
   var pct=function(v,b){return b>0?Math.round(v/b*100):0;};
   var f=S.fin||{};
-  var rev=f.revenus||0, dep=f.depenses||0, ep=f.epargne||0;
-  var rav=f.rav!=null?f.rav:Math.max(0,rev-dep-ep);
+  var rev=f.revenus||0, dep=f.depenses||0, ep=f.epargne||0, inv=f.invest||0;
+  var rav=f.rav!=null?f.rav:Math.max(0,rev-dep-ep-inv);
   var mois=new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
   var sc=calcScore(); var si=scoreInfo(sc);
-  var tauxEp=pct(ep,rev);
+  var tauxEp=pct(ep+inv,rev);
   var ravNeg=rav<0;
   var ravCol=ravNeg?'#ef4444':'#10b981';
   var tauxRating=tauxEp>=20?{t:'🎯 Excellent',c:'#10b981',bg:'#d1fae5'}:tauxEp>=10?{t:'👍 Bien',c:'#0d9488',bg:'#ccfbf1'}:{t:'⚠️ À améliorer',c:'#f59e0b',bg:'#fef3c7'};
   var besoinsItems=parseItems(f.besoins_items||'[]');
   var enviesItems=parseItems(f.envies_items||'[]');
   var epargneItems=parseItems(f.epargne_items||'[]');
+  var investItems=parseItems(f.invest_items||'[]');
   var besoinsT=besoinsItems.reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
   var enviesT=enviesItems.reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
   var epargneT=epargneItems.reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+  var investT=investItems.reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
   var gR=40,gCc=2*Math.PI*gR,gP=sc/100;
   var gaugeHtml='<svg width="100" height="100" viewBox="0 0 100 100">'
     +'<circle cx="50" cy="50" r="'+gR+'" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="10"/>'
@@ -4852,7 +4899,8 @@ function exportPrint(){
   var segs=[
     {p:pct(besoinsT,rev)/100,c:'#3b82f6',lbl:'Besoins'},
     {p:pct(enviesT,rev)/100,c:'#f59e0b',lbl:'Envies'},
-    {p:pct(epargneT,rev)/100,c:'#10b981',lbl:'Épargne'}
+    {p:pct(epargneT,rev)/100,c:'#10b981',lbl:'Épargne'},
+    {p:pct(investT,rev)/100,c:'#8b5cf6',lbl:'Invest.'}
   ];
   var segSum=segs.reduce(function(s,x){return s+x.p;},0);
   if(segSum<0.99) segs.push({p:Math.max(0,1-segSum),c:'#e5e7eb',lbl:'Non alloué'});
@@ -4864,7 +4912,7 @@ function exportPrint(){
       +'stroke-dasharray="'+dLen.toFixed(1)+' '+(dC-dLen).toFixed(1)+'" '
       +'stroke-dashoffset="'+off.toFixed(1)+'" transform="rotate(-90 '+dCx+' '+dCy+')" />';
   }).join('');
-  var allPct=pct(besoinsT+enviesT+epargneT,rev);
+  var allPct=pct(besoinsT+enviesT+epargneT+investT,rev);
   var donutSvg='<svg width="128" height="128" viewBox="0 0 128 128">'
     +'<circle cx="'+dCx+'" cy="'+dCy+'" r="'+dR+'" fill="none" stroke="#f3f4f6" stroke-width="18"/>'
     +donutCircles
@@ -5052,7 +5100,8 @@ function exportPrint(){
     +'<div class="bcols">'
     +'<div class="bcol"><div class="bcol-h" style="color:#3b82f6">🏠 Besoins — '+fmt(besoinsT)+' '+targetBadge(pct(besoinsT,rev),50)+'</div>'+budgetBars(besoinsItems,'#3b82f6')+'</div>'
     +'<div class="bcol"><div class="bcol-h" style="color:#f59e0b">✨ Envies — '+fmt(enviesT)+' '+targetBadge(pct(enviesT,rev),30)+'</div>'+budgetBars(enviesItems,'#f59e0b')+'</div>'
-    +'<div class="bcol"><div class="bcol-h" style="color:#10b981">💰 Épargne — '+fmt(epargneT)+' '+targetBadge(pct(epargneT,rev),20)+'</div>'+budgetBars(epargneItems,'#10b981')+'</div>'
+    +'<div class="bcol"><div class="bcol-h" style="color:#10b981">💰 Épargne — '+fmt(epargneT)+' '+targetBadge(pct(epargneT,rev),10)+'</div>'+budgetBars(epargneItems,'#10b981')+'</div>'
+    +'<div class="bcol"><div class="bcol-h" style="color:#8b5cf6">📈 Investissements — '+fmt(investT)+' '+targetBadge(pct(investT,rev),10)+'</div>'+budgetBars(investItems,'#8b5cf6')+'</div>'
     +'</div></div>'
     +'<div class="sec"><div class="sec-title">🔥 Top dépenses par catégorie</div>'+catHtml+'</div>'
     +'<div class="sec"><div class="sec-title">🏅 Score santé financière — '+sc+' / 100 ('+si.lbl+')</div>'+scoreBarsHtml+'</div>'
@@ -5096,7 +5145,7 @@ function checkBudgetAlerts(){
   var f=S.fin||{};
   var rev=f.revenus||0, dep=f.depenses||0;
   if(!rev) return;
-  var rav=f.rav!=null ? f.rav : Math.max(0, rev-dep-(f.epargne||0));
+  var rav=f.rav!=null ? f.rav : Math.max(0, rev-dep-(f.epargne||0)-(f.invest||0));
   var enviesPct=f.envies_items ? (function(){
     try{
       var items=JSON.parse(f.envies_items||'[]');
