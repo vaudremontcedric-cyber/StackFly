@@ -941,7 +941,7 @@ body.light .analyse-card{
 // ══ SERVICE WORKER OFFLINE ══
 (function(){
   if(!('serviceWorker' in navigator)) return;
-  var SW_VERSION = '5.17';
+  var SW_VERSION = '5.20';
   var CACHE = 'rb-cache-v'+SW_VERSION;
   var swCode = [
     'var CACHE="rb-cache-v'+SW_VERSION+'";',
@@ -1627,12 +1627,12 @@ body.light .analyse-card{
       4&#46; Colle-les ici → tes donn&#233;es se synchronisent sur tous tes appareils automatiquement &#128526;
     </div>
     <div class="profil-sect">&#8505;&#65039; &#192; propos</div>
-    <div class="setting-row" onclick="toast('RescueBudget v5.12 — Coach IA L&#233;o &#129302;','#0d9488')">
+    <div class="setting-row" onclick="toast('RescueBudget v5.20 — Coach IA L&#233;o &#129302;','#0d9488')">
       <div class="s-row-left">
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" style="font-size:13px;color:var(--accent2);font-weight:700">v5.12</span>
+      <span class="s-row-arr" style="font-size:13px;color:var(--accent2);font-weight:700">v5.20</span>
     </div>
     <div class="setting-row" onclick="openPrivacyModal()">
       <div class="s-row-left">
@@ -2731,7 +2731,19 @@ function renderTriCards(){
 // SCORE SANTÉ FINANCIÈRE
 // ══════════════════════════════════════════════
 // Calcul dynamique du RAV — TOUJOURS à partir des composants
+// Synchronise les totaux (epargne, invest, depenses) depuis leurs items respectifs
+function syncTotals(){
+  var f=S.fin||{};
+  var bi=parseItems(f.besoins_items||'[]').reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+  var ei=parseItems(f.envies_items ||'[]').reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+  var si=parseItems(f.epargne_items||'[]').reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+  var ii=parseItems(f.invest_items ||'[]').reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+  if(bi+ei>0) S.fin.depenses=Math.round((bi+ei)*100)/100;
+  if(si>0)    S.fin.epargne =Math.round(si*100)/100;
+  S.fin.invest=Math.round(ii*100)/100; // toujours sync (même si 0)
+}
 function calcRAV(){
+  syncTotals();
   var f=S.fin||{};
   var rev=f.revenus||0, dep=f.depenses||0, ep=f.epargne||0, inv=f.invest||0;
   if(!rev && !dep) return f.rav!=null ? f.rav : 0;
@@ -2906,7 +2918,7 @@ function saveActifItem(key){
   if(existing.length){ existing[0].v = Math.round((existing[0].v + v)*100)/100; }
   else { S.actifs[key].push({n: name, v: v}); }
   if(inp) inp.value = '';
-  save(); renderActifs();
+  save(); renderActifs(); renderSynthTable();
   setTimeout(function(){ toggleActifAcc(key); }, 30);
   toast('💰 Actif ajouté','#0d9488');
 }
@@ -2916,7 +2928,7 @@ function delActifItem(key, idx){
   showConfirm('Supprimer cet actif ?', function(){
     S.actifs[key].splice(idx, 1);
     var prevKey = _actifOpenKey;
-    save(); renderActifs();
+    save(); renderActifs(); renderSynthTable();
     if(prevKey) setTimeout(function(){ toggleActifAcc(prevKey); }, 30);
   }, 'Supprimer');
 }
@@ -2999,19 +3011,7 @@ function deleteRepItem(sectionKey, idx){
   var items = parseItems(S.fin[sectionKey]);
   items.splice(idx, 1);
   S.fin[sectionKey] = JSON.stringify(items);
-  // Recalculer le total dépenses (besoins + envies)
-  var totalDep = (parseItems(S.fin.besoins_items).reduce(function(s,i){return s+(parseFloat(i.v)||0);},0)
-                + parseItems(S.fin.envies_items||'[]').reduce(function(s,i){return s+(parseFloat(i.v)||0);},0));
-  if(totalDep > 0) S.fin.depenses = Math.round(totalDep*100)/100;
-  // Recalculer l'épargne si l'item supprimé était dans epargne_items
-  if(sectionKey === 'epargne_items'){
-    var totalEp = parseItems(S.fin.epargne_items).reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
-    S.fin.epargne = Math.round(totalEp*100)/100;
-  }
-  if(sectionKey === 'invest_items'){
-    var totalInv = parseItems(S.fin.invest_items||'[]').reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
-    S.fin.invest = Math.round(totalInv*100)/100;
-  }
+  syncTotals();
   S.fin.rav=calcRAV(); save(); renderTriCards(); renderScore(); renderPoche(); renderBudget();
 }
 
@@ -3125,6 +3125,7 @@ function injectSubToItems(name,amt,section){
   if(ex.length){ ex[0].v=Math.round((ex[0].v+amt)*100)/100; }
   else { items.push({n:name,v:amt}); }
   S.fin[key]=JSON.stringify(items);
+  syncTotals();
 }
 function removeSubFromItems(name,amt){
   ['besoins_items','envies_items','epargne_items','invest_items'].forEach(function(key){
@@ -3235,14 +3236,7 @@ function saveTxn(){
     items.push({n:label,v:amt});
   }
   S.fin[key]=JSON.stringify(items);
-  // Mettre à jour le total dépenses
-  var totalDep=(parseItems(S.fin.besoins_items).reduce(function(s,i){return s+(parseFloat(i.v)||0);},0)
-               +parseItems(S.fin.envies_items||'[]').reduce(function(s,i){return s+(parseFloat(i.v)||0);},0));
-  if(totalDep>0) S.fin.depenses=Math.round(totalDep*100)/100;
-  if(section==='invest'){
-    var tInv=parseItems(S.fin.invest_items||'[]').reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
-    S.fin.invest=Math.round(tInv*100)/100;
-  }
+  syncTotals();
   save(); closeTxnModal(); renderTxns(); renderPoche(); renderScore(); renderTriCards();
   var sLabel=CAT_SECTION_LABEL[section]||section;
   toast(_selTxnCat.ico+' '+euro(amt)+' → '+sLabel,'#10b981');
@@ -3419,6 +3413,7 @@ var DEP_COLS  = ['#0d9488','#f59e0b','#10b981'];
 function renderSynthTable(){
   var el = document.getElementById('synthTable');
   if(!el) return;
+  syncTotals(); // toujours en premier — garantit ep, invest, dep à jour
   var f = S.fin || {};
   if(!f.revenus && !f.depenses){
     el.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:10px 0">Parle à Léo pour construire ton budget</div>';
@@ -3437,6 +3432,15 @@ function renderSynthTable(){
   var tauxEp  = f.revenus>0 ? Math.round(((f.epargne||0)+(f.invest||0))/f.revenus*100) : 0;
   var tauxDep = f.revenus>0 ? Math.round((f.depenses||0)/f.revenus*100) : 0;
   var tauxRav = f.revenus>0 ? Math.round(_ravVal/f.revenus*100) : 0;
+  // Calcul du patrimoine total depuis Mes actifs
+  var actifs = S.actifs || {};
+  var grandTotal = 0;
+  if(typeof ACTIF_TYPES !== 'undefined'){
+    ACTIF_TYPES.forEach(function(t){
+      var items = Array.isArray(actifs[t.key]) ? actifs[t.key] : [];
+      grandTotal += items.reduce(function(s,i){ return s+(parseFloat(i.v)||0); }, 0);
+    });
+  }
   var rows = [
     {lbl:'💶 Revenus',          val:rev, col:'var(--green)',   pct:'100%'},
     {lbl:'💸 Dépenses',         val:dep, col:'var(--orange)',  pct:tauxDep+'%'},
@@ -3454,7 +3458,14 @@ function renderSynthTable(){
   }).join('')
   +'<div style="font-size:11px;color:var(--text3);text-align:right;margin-top:8px;padding-top:4px">'
   +'Taux épargne+invest : <strong style="color:var(--accent2)">'+tauxEp+'%</strong>'
-  +(tauxEp>=20?' 🎯':tauxEp>=10?' 👍':' ⚠️')+'</div>';
+  +(tauxEp>=20?' 🎯':tauxEp>=10?' 👍':' ⚠️')+'</div>'
+  +(grandTotal>0
+    ? '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding:10px 12px;'
+      +'background:rgba(13,148,136,.08);border-radius:10px;border:1px solid rgba(13,148,136,.2)">'
+      +'<span style="font-size:12px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.4px">💰 Patrimoine total</span>'
+      +'<span style="font-size:15px;font-weight:900;color:var(--accent2)">'+euro(grandTotal)+'</span>'
+      +'</div>'
+    : '');
 }
 
 function buildRavPeriodOptions(){
@@ -3479,6 +3490,7 @@ function buildRavPeriodOptions(){
 }
 
 function renderBudget(){
+  syncTotals();
   var f = S.fin;
   var hasData = !!(f.revenus || f.depenses || f.rav);
   document.getElementById('z1-empty').style.display = hasData ? 'none' : 'block';
@@ -3612,6 +3624,7 @@ function renderBudget(){
   renderSubs();
   renderTxns();
   renderTriCards();
+  renderSynthTable(); // synchronise Synthese budget apres chaque mise a jour
   trackSnap();
   checkBadges();
 }
@@ -3944,7 +3957,7 @@ async function sendMsg(txt, hiddenUser, fileData){
           checkBadges();
           toast('Léo valide ton action ! 🎉','#10b981');
         }
-        if(upd){ S.fin.rav=calcRAV(); save(); updateAnalyseCards(); updateLevelUI(); renderBudget(); }
+        if(upd){ syncTotals(); S.fin.rav=calcRAV(); save(); updateAnalyseCards(); updateLevelUI(); renderBudget(); }
       }catch(e){ /* JSON mal formé — on ignore */ }
     }
     var clean=raw.replace(/\[FD\][\s\S]*?\[\/FD\]/g,'').trim();
@@ -4151,7 +4164,9 @@ function sendQuick(txt){ go('chat'); setTimeout(function(){ sendMsg(txt); },100)
 // ══════════════════════════════════════════════
 function calcProjection(goal){
   var f=S.fin;
-  var monthly=f.epargne||(f.revenus&&f.depenses?Math.max(0,f.revenus-f.depenses):null);
+  // epargne + invest = capacité mensuelle d'accumulation
+  var epInv=(f.epargne||0)+(f.invest||0);
+  var monthly=epInv||( f.revenus&&f.depenses?Math.max(0,f.revenus-f.depenses):null );
   if(!monthly||monthly<=0) return null;
   var rem=goal.target-goal.current;
   if(rem<=0) return 0;
@@ -4183,7 +4198,7 @@ function renderGoals(){
       projHtml='<div class="goal-proj"><span style="font-size:20px">&#127881;</span><span class="proj-txt"><strong>Objectif atteint !</strong> Félicitations !</span></div>';
     } else if(proj!=null){
       var arrDate=monthName(proj);
-      var motiv=proj<=(g.target>0?Math.ceil((g.target-g.current)/((S.fin.epargne||100)))+1:12)
+      var motiv=proj<=(g.target>0?Math.ceil((g.target-g.current)/(((S.fin.epargne||0)+(S.fin.invest||0))||100))+1:12)
         ? 'Continue comme ça !' : 'Augmente un peu ton épargne mensuelle pour aller plus vite.';
       projHtml='<div class="goal-proj"><span style="font-size:18px">&#128200;</span><span class="proj-txt">Objectif atteint dans <strong>'+proj+' mois</strong> ('+arrDate+')<br>'+motiv+'</span></div>';
     }
@@ -5165,9 +5180,11 @@ function checkBudgetAlerts(){
     }catch(e){return 0;}
   })() : 0;
 
+  var epInvPct=rev>0?Math.round(((f.epargne||0)+(f.invest||0))/rev*100):null;
   var alerts=[];
   if(rav<0) alerts.push('🚨 Reste à vivre négatif ! Tu dépenses plus que tu ne gagnes.');
   else if(rav<rev*0.1) alerts.push('⚠️ Reste à vivre très faible ('+Math.round(rav)+'€).');
+  if(epInvPct!==null&&epInvPct<10&&rev>0) alerts.push('💡 Tu épargnes/investis seulement '+epInvPct+'% de tes revenus. Vise au moins 10%.');
   if(enviesPct>30) alerts.push('✨ Tes envies représentent '+Math.round(enviesPct)+'% de tes revenus (seuil conseillé : 30%).');
 
   if(!alerts.length) return;
@@ -5185,9 +5202,9 @@ function checkBudgetAlerts(){
   }
 }
 
-// ??????????????????????????????????????????????
+// ══════════════════════════════════════════════
 // INITIALISATION
-// ??????????????????????????????????????????????
+// ══════════════════════════════════════════════
 if(isLoggedIn()){
   if((S.key&&S.key.length>10)||localStorage.getItem('cf_setup_done')==='1'){ startApp(); }
   else{
