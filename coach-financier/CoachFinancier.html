@@ -4845,7 +4845,6 @@ function exportPrint(){
   var besoinsT=besoinsItems.reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
   var enviesT=enviesItems.reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
   var epargneT=epargneItems.reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
-  // Score gauge SVG
   var gR=40,gCc=2*Math.PI*gR,gP=sc/100;
   var gaugeHtml='<svg width="100" height="100" viewBox="0 0 100 100">'
     +'<circle cx="50" cy="50" r="'+gR+'" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="10"/>'
@@ -4855,7 +4854,6 @@ function exportPrint(){
     +'<text x="50" y="46" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" font-weight="900" fill="white">'+sc+'</text>'
     +'<text x="50" y="62" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" fill="rgba(255,255,255,.7)">/ 100</text>'
     +'</svg>';
-  // SVG Donut 50/30/20
   var dR=52,dCx=64,dCy=64,dC=2*Math.PI*dR;
   var segs=[
     {p:pct(besoinsT,rev)/100,c:'#3b82f6',lbl:'Besoins'},
@@ -4886,7 +4884,6 @@ function exportPrint(){
       +'<div style="font-size:12px;font-weight:700;color:'+seg.c+'">'+Math.round(seg.p*100)+'%</div>'
       +'</div>';
   }).join('');
-  // Budget bar rows
   var budgetBars=function(items,color){
     if(!items.length) return '<p style="color:#9ca3af;font-size:11px;font-style:italic;margin:4px 0">Aucun élément.</p>';
     var maxV=Math.max.apply(null,items.map(function(i){return parseFloat(i.v)||0;}));
@@ -4907,7 +4904,6 @@ function exportPrint(){
     return '<span style="font-size:10px;padding:1px 7px;border-radius:20px;font-weight:700;background:'
       +(ok?'#d1fae5':'#fee2e2')+';color:'+(ok?'#065f46':'#991b1b')+'">cible '+target+'%</span>';
   };
-  // Score bars
   var rev1=Math.max(1,rev);
   var scoreBarsHtml=[
     {l:'Épargne',v:Math.min(35,Math.round(ep/rev1*100*0.7)),m:35,c:'#10b981'},
@@ -4925,7 +4921,6 @@ function exportPrint(){
       +'<div style="font-size:11px;font-weight:700;min-width:36px;text-align:right;color:'+b.c+'">'+b.v+'/'+b.m+'</div>'
       +'</div>';
   }).join('');
-  // Goals
   var goalsHtml='';
   (S.goals||[]).forEach(function(g){
     var pr=g.target>0?Math.min(100,Math.round((g.current||0)/g.target*100)):0;
@@ -4944,7 +4939,6 @@ function exportPrint(){
       +'</div></div>';
   });
   if(!goalsHtml) goalsHtml='<p style="color:#9ca3af;font-size:12px;font-style:italic">Aucun objectif défini.</p>';
-  // Abonnements
   var subTot=0, subsHtml='';
   (S.subs||[]).forEach(function(sub){
     subTot+=(sub.amt||0);
@@ -4956,7 +4950,6 @@ function exportPrint(){
       +'<td style="text-align:right;color:#6b7280">'+fmt((sub.amt||0)*12)+'</td></tr>';
   });
   if(!subsHtml) subsHtml='<tr><td colspan="4" style="color:#9ca3af;font-style:italic">Aucun abonnement.</td></tr>';
-  // Patrimoine
   var actifsT=0, actifsHtml='';
   ACTIF_TYPES.forEach(function(t){
     var items=Array.isArray((S.actifs||{})[t.key])?(S.actifs||{})[t.key]:[];
@@ -4972,7 +4965,6 @@ function exportPrint(){
     });
   });
   if(!actifsHtml) actifsHtml='<tr><td colspan="3" style="color:#9ca3af;font-style:italic">Aucun actif renseigné.</td></tr>';
-  // Transactions
   var txnsHtml='';
   (S.txns||[]).slice(0,20).forEach(function(t){
     var badge=t.section==='besoins'
@@ -4987,7 +4979,6 @@ function exportPrint(){
       +'<td style="text-align:right;font-weight:700;color:#ef4444">'+fmt(t.amt||0)+'</td></tr>';
   });
   if(!txnsHtml) txnsHtml='<tr><td colspan="5" style="color:#9ca3af;font-style:italic">Aucune transaction.</td></tr>';
-  // Projection 6 mois
   var projHtml='',projBase=0;
   ACTIF_TYPES.forEach(function(t){
     if(t.key==='epargne'){
@@ -5009,7 +5000,6 @@ function exportPrint(){
       +'<div style="min-width:72px;text-align:right;font-size:12px;font-weight:700;color:#0d9488">'+fmt(pVal)+'</div>'
       +'</div>';
   }
-  // Top dépenses par catégorie
   var catMap={};
   (S.txns||[]).forEach(function(t){var c=t.cat||'Autre';catMap[c]=(catMap[c]||0)+(t.amt||0);});
   var catArr=Object.keys(catMap).map(function(k){return{k:k,v:catMap[k]};}).sort(function(a,b){return b.v-a.v;}).slice(0,8);
@@ -5023,7 +5013,6 @@ function exportPrint(){
       +'<div style="min-width:56px;text-align:right;font-size:11px;font-weight:700;color:#ef4444">'+fmt(c.v)+'</div>'
       +'</div>';
   }).join(''):'<p style="color:#9ca3af;font-size:12px;font-style:italic">Aucune transaction enregistrée.</p>';
-  // Build HTML
   var win=window.open('','_blank');
   if(!win){ toast('Autorise les popups pour le bilan PDF','#f59e0b'); return; }
   win.document.write('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/>'
@@ -5107,4 +5096,333 @@ function closeReceiptModal(){
 
 // ═══════════════════════════════════════════════════
 // NOTIFICATIONS BUDGÉTAIRES
-// ══════════════════════════════════
+// ═══════════════════════════════════════════════════
+function checkBudgetAlerts(){
+  if(!('Notification' in window)) return;
+  var f=S.fin||{};
+  var rev=f.revenus||0, dep=f.depenses||0;
+  if(!rev) return;
+  var rav=f.rav!=null ? f.rav : rev-dep;
+  var enviesPct=f.envies_items ? (function(){
+    try{
+      var items=JSON.parse(f.envies_items||'[]');
+      var total=items.reduce(function(s,i){return s+(i.v||0);},0);
+      return total/rev*100;
+    }catch(e){return 0;}
+  })() : 0;
+
+  var alerts=[];
+  if(rav<0) alerts.push('🚨 Reste à vivre négatif ! Tu dépenses plus que tu ne gagnes.');
+  else if(rav<rev*0.1) alerts.push('⚠️ Reste à vivre très faible ('+Math.round(rav)+'€).');
+  if(enviesPct>30) alerts.push('✨ Tes envies représentent '+Math.round(enviesPct)+'% de tes revenus (seuil conseillé : 30%).');
+
+  if(!alerts.length) return;
+
+  function sendNotifs(){
+    alerts.forEach(function(msg){
+      new Notification('RescueBudget',{body:msg,icon:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23ef4444'/%3E%3Crect x='13' y='5' width='6' height='22' rx='3' fill='white'/%3E%3Crect x='5' y='13' width='22' height='6' rx='3' fill='white'/%3E%3C/svg%3E"});
+    });
+  }
+
+  if(Notification.permission==='granted'){
+    sendNotifs();
+  } else if(Notification.permission!=='denied'){
+    Notification.requestPermission().then(function(p){ if(p==='granted') sendNotifs(); });
+  }
+}
+
+// ??????????????????????????????????????????????
+// INITIALISATION
+// ??????????????????????????????????????????????
+if(isLoggedIn()){
+  if((S.key&&S.key.length>10)||localStorage.getItem('cf_setup_done')==='1'){ startApp(); }
+  else{
+    document.getElementById('pg-login').classList.remove('active');
+    document.getElementById('pg-setup').classList.add('active');
+  }
+} else {
+  // Non connecté : afficher la page de login
+  document.getElementById('pg-login').classList.add('active');
+  checkNoAccountWarning();
+}
+</script>
+
+
+  <!-- ════════ FAB MENU ════════ -->
+  <div id="fabOverlay" style="display:none;position:fixed;inset:0;z-index:3500;background:rgba(0,0,0,.5)" onclick="closeFabMenu()">
+    <div id="fabMenu" style="position:absolute;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 40px);max-width:400px;background:var(--card);border-radius:20px;padding:8px;box-shadow:0 8px 40px rgba(0,0,0,.4)">
+      <!-- Dépense rapide -->
+      <div class="fab-item" onclick="closeFabMenu();openTxnModal()">
+        <div class="fab-item-ico" style="background:rgba(16,185,129,.15);color:var(--green)">💰</div>
+        <div class="fab-item-txt">
+          <div class="fab-item-lbl">Ajouter une dépense</div>
+          <div class="fab-item-sub">Saisie rapide par catégorie</div>
+        </div>
+      </div>
+      <!-- Ticket de caisse -->
+      <div class="fab-item" onclick="openTicketSubMenu(event)">
+        <div class="fab-item-ico" style="background:rgba(45,212,191,.15);color:var(--accent2)">🧾</div>
+        <div class="fab-item-txt">
+          <div class="fab-item-lbl">Scanner un ticket de caisse</div>
+          <div class="fab-item-sub">Photo ou fichier — analysé par Léo</div>
+        </div>
+        <span style="color:var(--text3);font-size:14px">›</span>
+      </div>
+      <!-- Sous-menu ticket -->
+      <div id="ticketSubMenu" style="display:none;border-top:1px solid var(--border);margin-top:4px;padding-top:4px">
+        <label class="fab-item fab-sub" for="receiptCamera" onclick="event.stopPropagation();setTimeout(closeFabMenu,80)" style="cursor:pointer">
+          <div class="fab-item-ico" style="background:rgba(245,158,11,.15);color:var(--orange);width:36px;height:36px;font-size:18px">📸</div>
+          <div class="fab-item-txt">
+            <div class="fab-item-lbl" style="font-size:14px">Prendre une photo</div>
+            <div class="fab-item-sub">Ouvre l'appareil photo</div>
+          </div>
+        </label>
+        <div class="fab-item fab-sub" onclick="triggerReceiptFile(event)">
+          <div class="fab-item-ico" style="background:rgba(59,130,246,.15);color:#3b82f6;width:36px;height:36px;font-size:18px">📁</div>
+          <div class="fab-item-txt">
+            <div class="fab-item-lbl" style="font-size:14px">Importer un fichier</div>
+            <div class="fab-item-sub">Image, PDF, CSV, Excel, texte…</div>
+          </div>
+        </div>
+      </div>
+      <!-- Objectif -->
+      <div class="fab-item" onclick="closeFabMenu();openGoalModal()">
+        <div class="fab-item-ico" style="background:rgba(239,68,68,.15);color:var(--red)">🎯</div>
+        <div class="fab-item-txt">
+          <div class="fab-item-lbl">Ajouter un objectif</div>
+          <div class="fab-item-sub">Épargne, projet, achat</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════ MODAL FIREBASE CONFIG ════════ -->
+  <div id="fbConfigModal" style="display:none;position:fixed;inset:0;z-index:3500;background:rgba(0,0,0,.6);align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeFbConfigModal()">
+    <div style="background:var(--bg);border-radius:22px 22px 0 0;padding:28px 20px 40px;width:100%;max-width:480px;animation:slideUp .25s ease">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <span style="font-size:17px;font-weight:800;color:var(--text)">&#9729;&#65039; Config Firebase</span>
+        <button onclick="closeFbConfigModal()" style="background:none;border:none;font-size:22px;color:var(--sub);cursor:pointer">&#10005;</button>
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="font-size:12px;color:var(--sub);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Project ID</label>
+        <input id="fbProjectId" type="text" placeholder="mon-projet-firebase" style="margin-top:6px;width:100%;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;outline:none" />
+        <div style="font-size:11px;color:var(--text3);margin-top:4px">Ex&#58; rescuebudget-12345</div>
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="font-size:12px;color:var(--sub);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Cl&#233; API Web</label>
+        <input id="fbApiKey" type="text" placeholder="AIzaSy..." style="margin-top:6px;width:100%;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;outline:none;font-family:monospace" />
+        <div style="font-size:11px;color:var(--text3);margin-top:4px">Dans Firebase Console → Param&#232;tres → Cl&#233;s API</div>
+      </div>
+      <button onclick="saveFbConfig()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--accent),var(--accent3));border:none;border-radius:14px;color:#fff;font-size:16px;font-weight:800;cursor:pointer;margin-bottom:10px">
+        &#10003; Sauvegarder et activer
+      </button>
+      <button onclick="clearFbConfig()" style="width:100%;padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:14px;color:var(--red);font-size:14px;font-weight:700;cursor:pointer">
+        &#128465; D&#233;sactiver la sync cloud
+      </button>
+    </div>
+  </div>
+
+  <!-- Inputs cachés pour la capture ticket -->
+  <input type="file" id="receiptCamera" accept="image/*" capture="environment" style="display:none" onchange="handleReceiptCapture(event)"/>
+  <input type="file" id="receiptFile"   accept="*/*" style="display:none" onchange="handleReceiptCapture(event)"/>
+
+  <!-- ════════ MODAL TICKET DE CAISSE ════════ -->
+  <div id="receiptModal" style="display:none;position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.6);align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeReceiptModal()">
+    <div style="background:var(--bg);border-radius:22px 22px 0 0;padding:24px 20px 36px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;animation:slideUp .25s ease">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <span id="receiptModalTitle" style="font-size:17px;font-weight:800;color:var(--text)">&#128462; Fichier analys&#233;</span>
+        <button onclick="closeReceiptModal()" style="background:none;border:none;font-size:22px;color:var(--text2);cursor:pointer">&#10005;</button>
+      </div>
+      <div id="receiptLoading" style="text-align:center;padding:30px 0;display:none">
+        <div id="receiptLoadingIco" style="font-size:32px;margin-bottom:12px">&#128462;</div>
+        <div id="receiptLoadingTxt" style="color:var(--text2);font-size:14px">L&#233;o analyse ton fichier&#8230;</div>
+      </div>
+      <div id="receiptContent" style="display:none">
+        <div id="receiptMeta" style="background:var(--card);border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--text2)"></div>
+        <div id="receiptItemsLabel" style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Articles d&#233;tect&#233;s</div>
+        <div id="receiptItems"></div>
+        <div id="receiptTotal" style="background:var(--card2);border-radius:12px;padding:10px 14px;margin-top:12px;display:flex;justify-content:space-between;align-items:center;font-weight:800;color:var(--text)"></div>
+        <div style="margin-top:6px;font-size:11px;color:var(--text3);text-align:center">V&#233;rifie les cat&#233;gories avant de valider</div>
+        <div style="display:flex;gap:10px;margin-top:16px">
+          <button onclick="closeReceiptModal()" style="flex:1;padding:13px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--text2);font-size:14px;font-weight:700;cursor:pointer">Annuler</button>
+          <button onclick="validateReceipt()" style="flex:2;padding:13px;background:linear-gradient(135deg,var(--green),#059669);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:800;cursor:pointer">&#10003; Valider et int&#233;grer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  FIREBASE FIRESTORE SYNC — RescueBudget v5.4
+// ═══════════════════════════════════════════════════
+var FB_CFG = null;
+var _syncTimer = null;
+
+function loadFbCfg(){
+  try{ FB_CFG = JSON.parse(localStorage.getItem('cf_fbcfg')||'null'); }
+  catch(e){ FB_CFG = null; }
+}
+loadFbCfg();
+
+function getFbUrl(){
+  if(!FB_CFG||!FB_CFG.projectId||!FB_CFG.apiKey) return null;
+  var auth = getStoredAuth();
+  if(!auth) return null;
+  // Doc ID = hash stable du username
+  var docId = 'u_' + btoa(unescape(encodeURIComponent(auth.user))).replace(/[^a-zA-Z0-9]/g,'_').slice(0,40);
+  return 'https://firestore.googleapis.com/v1/projects/'+FB_CFG.projectId+
+         '/databases/(default)/documents/rescuebudget/'+docId+'?key='+FB_CFG.apiKey;
+}
+
+function setSyncDot(state){
+  var d=document.getElementById('syncDot');
+  if(!d) return;
+  d.className='';
+  if(state==='ok')      d.className='ok';
+  else if(state==='err')d.className='err';
+  else if(state==='syncing') d.className='syncing';
+  var badge=document.getElementById('fbStatusBadge');
+  var txt=document.getElementById('fbStatusTxt');
+  if(!FB_CFG){ 
+    if(badge){ badge.className='sync-row-status off'; badge.textContent='OFF'; }
+    if(txt) txt.textContent='Non configuré — configure Firebase ci-dessous';
+    return;
+  }
+  if(state==='ok'){
+    if(badge){ badge.className='sync-row-status ok'; badge.textContent='OK'; }
+    if(txt) txt.textContent='Synchronisé — '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  } else if(state==='err'){
+    if(badge){ badge.className='sync-row-status err'; badge.textContent='ERR'; }
+    if(txt) txt.textContent='Erreur de connexion — vérifie ta config Firebase';
+  } else if(state==='syncing'){
+    if(badge){ badge.className='sync-row-status off'; badge.textContent='⟳'; }
+    if(txt) txt.textContent='Synchronisation en cours…';
+  }
+}
+
+function syncToCloud(){
+  var url = getFbUrl();
+  if(!url) return;
+  setSyncDot('syncing');
+  var keys=['cf_auth','cf_fin','cf_subs','cf_txns','cf_goals','cf_actifs','cf_snaps',
+            'cf_key','cf_theme','cf_profile','cf_hist','cf_badges','cf_streak',
+            'cf_actions','cf_start','cf_greet','cf_anal'];
+  var backup={};
+  keys.forEach(function(k){ var v=localStorage.getItem(k); if(v) backup[k]=v; });
+  backup['_synced']=new Date().toISOString();
+  fetch(url,{
+    method:'PATCH',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({fields:{data:{stringValue:JSON.stringify(backup)},lastSync:{stringValue:backup['_synced']}}})
+  }).then(function(r){
+    setSyncDot(r.ok?'ok':'err');
+  }).catch(function(){ setSyncDot('err'); });
+}
+
+function loadFromCloud(manual){
+  var url = getFbUrl();
+  if(!url){ if(manual) toast('Configure Firebase d\'abord','#f59e0b'); return; }
+  setSyncDot('syncing');
+  fetch(url).then(function(r){
+    if(r.status===404){ setSyncDot('ok'); if(manual) toast('Aucune donnée cloud pour ce compte','#f59e0b'); return; }
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.json();
+  }).then(function(doc){
+    if(!doc||!doc.fields||!doc.fields.data) return;
+    var backup=JSON.parse(doc.fields.data.stringValue);
+    var keys=['cf_fin','cf_subs','cf_txns','cf_goals','cf_actifs','cf_snaps',
+              'cf_key','cf_theme','cf_profile','cf_hist','cf_badges','cf_streak',
+              'cf_actions','cf_start','cf_greet','cf_anal'];
+    keys.forEach(function(k){ if(backup[k]!==undefined) localStorage.setItem(k,backup[k]); });
+    setSyncDot('ok');
+    if(manual){
+      toast('☁️ Données cloud chargées !','#10b981');
+      setTimeout(function(){ location.reload(); },1500);
+    }
+  }).catch(function(e){ setSyncDot('err'); if(manual) toast('Erreur cloud: '+e.message,'#ef4444'); });
+}
+
+function forceSyncNow(){
+  syncToCloud();
+  toast('☁️ Synchronisation en cours…','#0d9488');
+}
+
+// ── Config modal ────────────────────────────────────
+function openFbConfigModal(){
+  var m=document.getElementById('fbConfigModal');
+  if(!m) return;
+  if(FB_CFG){
+    var pi=document.getElementById('fbProjectId'); if(pi) pi.value=FB_CFG.projectId||'';
+    var ak=document.getElementById('fbApiKey');    if(ak) ak.value=FB_CFG.apiKey||'';
+  }
+  m.style.display='flex';
+  updateFbRows();
+}
+function closeFbConfigModal(){
+  var m=document.getElementById('fbConfigModal'); if(m) m.style.display='none';
+}
+function saveFbConfig(){
+  var pid=document.getElementById('fbProjectId').value.trim();
+  var key=document.getElementById('fbApiKey').value.trim();
+  if(!pid||!key){ toast('Remplis les deux champs','#ef4444'); return; }
+  FB_CFG={projectId:pid, apiKey:key};
+  localStorage.setItem('cf_fbcfg',JSON.stringify(FB_CFG));
+  closeFbConfigModal();
+  updateFbRows();
+  toast('☁️ Firebase configuré ! Sync en cours…','#10b981');
+  syncToCloud();
+}
+function clearFbConfig(){
+  showConfirm('Désactiver la sync cloud ?', function(){
+    FB_CFG=null;
+    localStorage.removeItem('cf_fbcfg');
+    closeFbConfigModal();
+    updateFbRows();
+    setSyncDot('off');
+    toast('Sync cloud désactivée','#64748b');
+  }, 'Désactiver');
+}
+function updateFbRows(){
+  var on=!!FB_CFG;
+  var r1=document.getElementById('fbSyncRow'); if(r1) r1.style.display=on?'':'none';
+  var r2=document.getElementById('fbLoadRow');  if(r2) r2.style.display=on?'':'none';
+  setSyncDot(on?'ok':'off');
+}
+
+// ── Hook into save() ─────────────────────────────────
+var _origSave = save;
+save = function(){
+  _origSave();
+  if(!_syncTimer){
+    _syncTimer = setTimeout(function(){ _syncTimer=null; syncToCloud(); }, 4000);
+  }
+};
+
+// ── Auto-init on page load ───────────────────────────
+window.addEventListener('DOMContentLoaded', function(){
+  updateFbRows();
+});
+
+// ── Load from cloud after login ──────────────────────
+var _origDoLogin = doLogin;
+doLogin = function(){
+  _origDoLogin();
+  if(isLoggedIn()){ setTimeout(function(){ loadFromCloud(false); }, 1000); }
+};
+var _origDoRegister = doRegister;
+doRegister = function(){
+  _origDoRegister();
+  if(isLoggedIn()){ setTimeout(function(){ syncToCloud(); }, 2000); }
+};
+</script>
+
+<!-- Tooltip info global — hors de toute .page pour ne pas hériter de display:none -->
+<div id="infoTip" style="display:none;position:fixed;z-index:9000">
+  <button class="info-tip-close" onclick="closeInfoTip()">✕</button>
+  <div class="info-tip-title" id="infoTipTitle"></div>
+  <div id="infoTipBody"></div>
+</div>
+
+</body>
+</html>
