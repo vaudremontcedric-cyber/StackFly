@@ -934,7 +934,7 @@ body.light .analyse-card{
 // ══ SERVICE WORKER OFFLINE ══
 (function(){
   if(!('serviceWorker' in navigator)) return;
-  var SW_VERSION = '5.14';
+  var SW_VERSION = '5.15';
   var CACHE = 'rb-cache-v'+SW_VERSION;
   var swCode = [
     'var CACHE="rb-cache-v'+SW_VERSION+'";',
@@ -2072,7 +2072,7 @@ var SYSTEM_BASE = "Tu es Léo, un coach financier personnel IA. Ta mission : acc
   + "\"cat1_nom\":null,\"cat1_mt\":null,\"cat2_nom\":null,\"cat2_mt\":null,\"cat3_nom\":null,\"cat3_mt\":null,"
   + "\"analyse_jour\":null,\"priorite_jour\":null,\"defi_semaine\":null,\"coach_message\":null,"
   + "\"besoins_items\":null,\"envies_items\":null,\"epargne_items\":null}[/FD] "
-  + "Remplis UNIQUEMENT les champs concernes. rav = revenus - depenses si les deux sont connus. "
+  + "Remplis UNIQUEMENT les champs concernes. rav = revenus - depenses - epargne si les trois sont connus (sinon revenus - depenses)."
   + "action = une action courte et precise a faire maintenant. impact = son benefice estime (ex: +40EUR/mois). "
   + "_actionDone = true UNIQUEMENT quand l'utilisateur confirme explicitement avoir accompli l'action recommandee (ex: 'c'est fait', 'j'ai fait', 'done', 'accompli'). Ne jamais mettre true sans confirmation explicite. "
   + "analyse_jour = analyse de la situation du jour en 1-2 phrases. priorite_jour = UNE seule priorite du jour. "
@@ -5096,7 +5096,7 @@ function checkBudgetAlerts(){
   var f=S.fin||{};
   var rev=f.revenus||0, dep=f.depenses||0;
   if(!rev) return;
-  var rav=f.rav!=null ? f.rav : rev-dep;
+  var rav=f.rav!=null ? f.rav : Math.max(0, rev-dep-(f.epargne||0));
   var enviesPct=f.envies_items ? (function(){
     try{
       var items=JSON.parse(f.envies_items||'[]');
@@ -5419,4 +5419,4 @@ doRegister = function(){
 </div>
 
 </body>
-</html>                                                                                                                                                                                          
+</html>                                                                                                                         
