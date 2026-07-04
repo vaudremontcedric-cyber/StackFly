@@ -941,7 +941,7 @@ body.light .analyse-card{
 // ══ SERVICE WORKER OFFLINE ══
 (function(){
   if(!('serviceWorker' in navigator)) return;
-  var SW_VERSION = '5.16';
+  var SW_VERSION = '5.17';
   var CACHE = 'rb-cache-v'+SW_VERSION;
   var swCode = [
     'var CACHE="rb-cache-v'+SW_VERSION+'";',
@@ -2309,7 +2309,7 @@ function openAmeliorerModal(){
   var f = S.fin;
   var rev = f.revenus || 0;
   var dep = f.depenses || 0;
-  var ep  = f.epargne  || Math.max(0, rev - dep);
+  var ep  = (f.epargne||0)+(f.invest||0) || Math.max(0, rev - dep);
   var b   = parseItems(f.besoins_items);
   var e   = parseItems(f.envies_items);
   var s   = parseItems(f.epargne_items);
@@ -2324,10 +2324,10 @@ function openAmeliorerModal(){
   var epPct = rev > 0 ? Math.round(ep/rev*100) : 0;
   if(epPct < 20){
     points.push({ico:'💰',lbl:'Épargne insuffisante',
-      sub:'Tu épargnes '+(rev>0?epPct+'%':'??')+' de tes revenus. L\'objectif est 20%. Essaie d\'automatiser un virement dès le début du mois.',
+      sub:'Tu épargnes/investis '+(rev>0?epPct+'%':'??')+' de tes revenus. L\'objectif est 20%. Automatise un virement dès le début du mois.',
       status: epPct<10?'bad':'warn'});
   } else {
-    points.push({ico:'💰',lbl:'Épargne',sub:'Bravo ! Tu épargnes '+epPct+'% de tes revenus, au-dessus des 20% recommandés.',status:'ok'});
+    points.push({ico:'💰',lbl:'Épargne & Invest',sub:'Bravo ! Tu épargnes/investis '+epPct+'% de tes revenus, au-dessus des 20% recommandés.',status:'ok'});
   }
 
   // Besoins
@@ -2450,7 +2450,7 @@ function saveProfileEdit(){
 var _infoTips = {
   'synth':   { title:'📊 Synthèse budget',      body:'Vue d\'ensemble de tes revenus, dépenses et épargne du mois en cours. Change la période (Mensuel / Journalier / Annuel) pour adapter l\'affichage.' },
   'depenses':{ title:'📋 Dépenses du jour',      body:'Toutes les dépenses saisies aujourd\'hui. Appuie sur + pour en ajouter une. Elles s\'intègrent automatiquement dans ta répartition 50/30/20.' },
-  'repartit':{ title:'📈 Répartition 50/30/20',  body:'Méthode budgétaire recommandée : 50% de tes revenus pour les Besoins (loyer, courses…), 30% pour les Envies (sorties, abos…), 20% pour l\'Épargne.' },
+  'repartit':{ title:'📊 Répartition budgétaire',  body:'Méthode recommandée : 50% pour les Besoins (loyer, courses…), 30% pour les Envies (sorties, abos…), 10% Épargne (livret, fonds urgence) + 10% Investissements (PEA, ETF…).' },
   'sante':   { title:'🏥 Santé financière',      body:'Score calculé à partir de ton reste à vivre, ton taux d\'épargne et tes habitudes de dépenses. Plus il est vert, mieux tu gères ton budget !' },
   'abos':    { title:'🔄 Abonnements',           body:'Toutes tes charges récurrentes (Netflix, salle de sport, assurances…). Ils sont déduits automatiquement de tes revenus. Choisis mensuel ou annuel.' },
   'actifs':  { title:'💰 Mes actifs',            body:'Valeur totale de ton patrimoine : compte épargne, immobilier, investissements, crypto… Permet à Léo de te donner des conseils plus précis.' },
@@ -2730,12 +2730,19 @@ function renderTriCards(){
 // ══════════════════════════════════════════════
 // SCORE SANTÉ FINANCIÈRE
 // ══════════════════════════════════════════════
+// Calcul dynamique du RAV — TOUJOURS à partir des composants
+function calcRAV(){
+  var f=S.fin||{};
+  var rev=f.revenus||0, dep=f.depenses||0, ep=f.epargne||0, inv=f.invest||0;
+  if(!rev && !dep) return f.rav!=null ? f.rav : 0;
+  return Math.max(0, rev - dep - ep - inv);
+}
 function calcScore(){
   var f=S.fin; var s=0;
   var rev=f.revenus||0;
   var ep=(f.epargne||0)+(f.invest||0)||(rev&&f.depenses?Math.max(0,rev-f.depenses):0);
   if(rev>0) s+=Math.min(35,Math.round(ep/rev*100*0.7));
-  if(f.rav>0) s+=20; else if(f.rav!=null&&f.rav>-200) s+=8;
+  var rav0=calcRAV(); if(rav0>0) s+=20; else if(rav0>-200) s+=8;
   s+=Math.min(15,(S.goals||[]).length*5);
   s+=Math.min(15,(S.actions||0)*3);
   s+=Math.min(15,Math.floor((S.streak||0)/3)*3);
@@ -2771,10 +2778,11 @@ function renderScore(){
   document.getElementById('scoreNum').style.color=si.col;
   // Sous-barres
   var rev=f.revenus||1;
-  var ep2=f.epargne||(f.revenus&&f.depenses?Math.max(0,f.revenus-f.depenses):0);
+  var ep2=(f.epargne||0)+(f.invest||0)||(f.revenus&&f.depenses?Math.max(0,f.revenus-f.depenses):0);
+  var rav1=calcRAV();
   var bars=[
-    {l:'Épargne',v:Math.min(35,Math.round(ep2/rev*100*0.7)),m:35,c:'#10b981'},
-    {l:'Budget',v:f.rav>0?20:f.rav>-200?8:0,m:20,c:'#0d9488'},
+    {l:'Épargne+Invest',v:Math.min(35,Math.round(ep2/rev*100*0.7)),m:35,c:'#10b981'},
+    {l:'Budget',v:rav1>0?20:rav1>-200?8:0,m:20,c:'#0d9488'},
     {l:'Objectifs',v:Math.min(15,(S.goals||[]).length*5),m:15,c:'#2dd4bf'},
     {l:'Actions',v:Math.min(15,(S.actions||0)*3),m:15,c:'#f59e0b'},
     {l:'Régularité',v:Math.min(15,Math.floor((S.streak||0)/3)*3),m:15,c:'#10b981'}
@@ -2799,7 +2807,7 @@ function renderPoche(){
   var f=S.fin; var el=document.getElementById('pocheCard'); if(!el) return;
   if(!f.revenus){ el.style.display='none'; return; }
   el.style.display='flex';
-  var _pRav = f.rav != null ? f.rav : Math.max(0,(f.revenus||0)-(f.depenses||0)-(f.epargne||0)-(f.invest||0));
+  var _pRav = calcRAV(); S.fin.rav = _pRav;
   var daily=Math.max(0,_pRav/30);
   var spent=getTodaySpent();
   var poche=Math.max(0,daily-spent);
@@ -3004,7 +3012,7 @@ function deleteRepItem(sectionKey, idx){
     var totalInv = parseItems(S.fin.invest_items||'[]').reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
     S.fin.invest = Math.round(totalInv*100)/100;
   }
-  save(); renderTriCards(); renderScore(); renderPoche(); renderBudget();
+  S.fin.rav=calcRAV(); save(); renderTriCards(); renderScore(); renderPoche(); renderBudget();
 }
 
 // ── Modal versement objectif ──
@@ -3119,7 +3127,7 @@ function injectSubToItems(name,amt,section){
   S.fin[key]=JSON.stringify(items);
 }
 function removeSubFromItems(name,amt){
-  ['besoins_items','envies_items','epargne_items'].forEach(function(key){
+  ['besoins_items','envies_items','epargne_items','invest_items'].forEach(function(key){
     if(!S.fin||!S.fin[key]) return;
     var items=parseItems(S.fin[key]);
     items=items.filter(function(i){ return i.n!==name; });
@@ -3259,13 +3267,13 @@ function updateStreak(){
 // ══════════════════════════════════════════════
 var ALL_BADGES=[
   {id:'b1',ico:'🎯',name:'Premier pas',check:function(){return !!(S.fin.revenus);}},
-  {id:'b2',ico:'💰',name:'Épargnant',check:function(){return S.fin.revenus>0&&(S.fin.epargne||0)/S.fin.revenus>=0.1;}},
+  {id:'b2',ico:'💰',name:'Épargnant',check:function(){return S.fin.revenus>0&&((S.fin.epargne||0)+(S.fin.invest||0))/S.fin.revenus>=0.1;}},
   {id:'b3',ico:'🏆',name:'Visionnaire',check:function(){return (S.goals||[]).length>=1;}},
   {id:'b4',ico:'⚡',name:'Actif x5',check:function(){return (S.actions||0)>=5;}},
   {id:'b5',ico:'🔥',name:'7 jours',check:function(){return (S.streak||0)>=7;}},
   {id:'b6',ico:'💎',name:'30 jours',check:function(){return (S.streak||0)>=30;}},
   {id:'b7',ico:'🚀',name:'Ambitieux',check:function(){return (S.goals||[]).length>=3;}},
-  {id:'b8',ico:'🌟',name:'Super saver',check:function(){return S.fin.revenus>0&&(S.fin.epargne||0)/S.fin.revenus>=0.2;}}
+  {id:'b8',ico:'🌟',name:'Super saver',check:function(){return S.fin.revenus>0&&((S.fin.epargne||0)+(S.fin.invest||0))/S.fin.revenus>=0.2;}}
 ];
 function checkBadges(){
   if(!S.badges) S.badges=[];
@@ -3341,8 +3349,9 @@ function getSystem(){
     ctx += ' CONTEXTE FINANCIER ACTUEL DE L\'UTILISATEUR : ';
     if(f.revenus)  ctx += 'revenus='+f.revenus+'€/mois. ';
     if(f.depenses) ctx += 'dépenses='+f.depenses+'€/mois. ';
-    if(f.rav)      ctx += 'reste à vivre='+f.rav+'€. ';
+    ctx += 'reste à vivre='+calcRAV()+'€. ';
     if(f.epargne)  ctx += 'épargne='+f.epargne+'€/mois. ';
+    if(f.invest)   ctx += 'investissements='+f.invest+'€/mois. ';
     // Résumé des catégories 50/30/20
     var bi = (typeof parseItems==='function') ? parseItems(f.besoins_items) : [];
     var ei = (typeof parseItems==='function') ? parseItems(f.envies_items) : [];
@@ -3363,17 +3372,17 @@ function getSystem(){
 // EVOLUTION / SNAPSHOTS
 // ══════════════════════════════════════════════
 function trackSnap(){
-  if(S.fin.rav == null) return;
+  var snapRav = calcRAV(); if(!S.fin.revenus) return;
   var d = today();
   S.dailySnaps = S.dailySnaps.filter(function(s){ return s.d !== d; });
-  S.dailySnaps.push({d:d, v:S.fin.rav});
+  S.dailySnaps.push({d:d, v:snapRav});
   S.dailySnaps.sort(function(a,b){ return a.d<b.d?-1:1; });
   if(S.dailySnaps.length > 40) S.dailySnaps = S.dailySnaps.slice(-40);
   save();
 }
 function getEvol(days){
   if(S.dailySnaps.length < 2) return null;
-  var cur = S.fin.rav||0;
+  var cur = calcRAV();
   var cutoff = new Date(Date.now()-days*86400000).toISOString().slice(0,10);
   var past = null;
   S.dailySnaps.forEach(function(s){ if(s.d <= cutoff) past = s.v; });
@@ -3423,7 +3432,7 @@ function renderSynthTable(){
   var dep  = (f.depenses || 0) * factor;
   var ep   = (f.epargne  || 0) * factor;
   var inv  = (f.invest   || 0) * factor;
-  var _ravVal = f.rav != null ? f.rav : Math.max(0,(f.revenus||0)-(f.depenses||0)-(f.epargne||0)-(f.invest||0));
+  var _ravVal = calcRAV();
   var rav  = _ravVal * factor;
   var tauxEp  = f.revenus>0 ? Math.round(((f.epargne||0)+(f.invest||0))/f.revenus*100) : 0;
   var tauxDep = f.revenus>0 ? Math.round((f.depenses||0)/f.revenus*100) : 0;
@@ -3486,7 +3495,8 @@ function renderBudget(){
   var dep = (f.depenses||0) * factor;
   var ep  = (f.epargne != null && f.epargne !== '' ? f.epargne : 0) * factor;
   var inv2= (f.invest||0) * factor;
-  var rav = (f.rav != null ? f.rav : Math.max(0, (f.revenus||0) - (f.depenses||0) - (f.epargne||0) - (f.invest||0))) * factor;
+  var _ravComputed = calcRAV(); S.fin.rav = _ravComputed;
+  var rav = _ravComputed * factor;
   var pct = rev > 0 ? Math.round(dep/rev*100) : 50;
 
   // Zone couleur
@@ -3694,8 +3704,9 @@ function getLeoProactiveMsg(){
     else if(pctDep < 65)
       contextMsgs.push(sal+prenomStr+' tu as de la marge 💪 — tes dépenses sont à '+pctDep+'% de tes revenus. Tu pourrais épargner davantage. On voit comment ?');
   }
-  if(f.rav && f.rav > 0 && f.revenus)
-    contextMsgs.push(sal+' Ton reste à vivre ce mois : **'+euro(f.rav)+'**. Tu veux l’optimiser ou avancer sur un objectif ?');
+  var _ctxRav = calcRAV();
+  if(_ctxRav > 0 && f.revenus)
+    contextMsgs.push(sal+' Ton reste à vivre ce mois : **'+euro(_ctxRav)+'**. Tu veux l’optimiser ou avancer sur un objectif ?');
   if(S.goals && S.goals.length > 0){
     var g = S.goals[0];
     if(g.target > 0){
@@ -3933,7 +3944,7 @@ async function sendMsg(txt, hiddenUser, fileData){
           checkBadges();
           toast('Léo valide ton action ! 🎉','#10b981');
         }
-        if(upd){ save(); updateAnalyseCards(); updateLevelUI(); renderBudget(); }
+        if(upd){ S.fin.rav=calcRAV(); save(); updateAnalyseCards(); updateLevelUI(); renderBudget(); }
       }catch(e){ /* JSON mal formé — on ignore */ }
     }
     var clean=raw.replace(/\[FD\][\s\S]*?\[\/FD\]/g,'').trim();
@@ -4798,7 +4809,7 @@ function exportCSV(){
   var sep=';';
   var f=S.fin||{};
   var rev=f.revenus||0, dep=f.depenses||0, ep=f.epargne||0, inv=f.invest||0;
-  var rav=f.rav!=null?f.rav:Math.max(0,rev-dep-ep-inv);
+  var rav=calcRAV();
   var tauxEp=rev>0?Math.round(ep/rev*100):0;
   var mois=new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
   var sc=calcScore();
@@ -4871,7 +4882,7 @@ function exportPrint(){
   var pct=function(v,b){return b>0?Math.round(v/b*100):0;};
   var f=S.fin||{};
   var rev=f.revenus||0, dep=f.depenses||0, ep=f.epargne||0, inv=f.invest||0;
-  var rav=f.rav!=null?f.rav:Math.max(0,rev-dep-ep-inv);
+  var rav=calcRAV();
   var mois=new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
   var sc=calcScore(); var si=scoreInfo(sc);
   var tauxEp=pct(ep+inv,rev);
@@ -4949,7 +4960,7 @@ function exportPrint(){
   var rev1=Math.max(1,rev);
   var scoreBarsHtml=[
     {l:'Épargne',v:Math.min(35,Math.round(ep/rev1*100*0.7)),m:35,c:'#10b981'},
-    {l:'Budget',v:f.rav>0?20:(f.rav!=null&&f.rav>-200?8:0),m:20,c:'#0d9488'},
+    {l:'Budget',v:rav>0?20:(rav>-200?8:0),m:20,c:'#0d9488'},
     {l:'Objectifs',v:Math.min(15,(S.goals||[]).length*5),m:15,c:'#2dd4bf'},
     {l:'Actions',v:Math.min(15,(S.actions||0)*3),m:15,c:'#f59e0b'},
     {l:'Régularité',v:Math.min(15,Math.floor((S.streak||0)/3)*3),m:15,c:'#10b981'}
@@ -5145,7 +5156,7 @@ function checkBudgetAlerts(){
   var f=S.fin||{};
   var rev=f.revenus||0, dep=f.depenses||0;
   if(!rev) return;
-  var rav=f.rav!=null ? f.rav : Math.max(0, rev-dep-(f.epargne||0)-(f.invest||0));
+  var rav=calcRAV();
   var enviesPct=f.envies_items ? (function(){
     try{
       var items=JSON.parse(f.envies_items||'[]');
