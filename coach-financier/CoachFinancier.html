@@ -918,7 +918,7 @@ body.light .analyse-card{
 // ══ SERVICE WORKER OFFLINE ══
 (function(){
   if(!('serviceWorker' in navigator)) return;
-  var SW_VERSION = '5.10';
+  var SW_VERSION = '5.11';
   var CACHE = 'rb-cache-v'+SW_VERSION;
   var swCode = [
     'var CACHE="rb-cache-v'+SW_VERSION+'";',
@@ -1592,12 +1592,12 @@ body.light .analyse-card{
       4&#46; Colle-les ici → tes donn&#233;es se synchronisent sur tous tes appareils automatiquement &#128526;
     </div>
     <div class="profil-sect">&#8505;&#65039; &#192; propos</div>
-    <div class="setting-row" onclick="toast('RescueBudget v5.10 — Coach IA L&#233;o &#129302;','#0d9488')">
+    <div class="setting-row" onclick="toast('RescueBudget v5.11 — Coach IA L&#233;o &#129302;','#0d9488')">
       <div class="s-row-left">
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" style="font-size:13px;color:var(--accent2);font-weight:700">v5.10</span>
+      <span class="s-row-arr" style="font-size:13px;color:var(--accent2);font-weight:700">v5.11</span>
     </div>
     <div class="setting-row" onclick="openPrivacyModal()">
       <div class="s-row-left">
@@ -2759,7 +2759,8 @@ function renderPoche(){
   var f=S.fin; var el=document.getElementById('pocheCard'); if(!el) return;
   if(!f.revenus){ el.style.display='none'; return; }
   el.style.display='flex';
-  var daily=Math.max(0,(f.rav||(f.revenus-(f.depenses||0)))/30);
+  var _pRav = f.rav != null ? f.rav : Math.max(0,(f.revenus||0)-(f.depenses||0)-(f.epargne||0));
+  var daily=Math.max(0,_pRav/30);
   var spent=getTodaySpent();
   var poche=Math.max(0,daily-spent);
   document.getElementById('pocheVal').textContent=euro(poche);
@@ -2902,10 +2903,15 @@ function deleteRepItem(sectionKey, idx){
   var items = parseItems(S.fin[sectionKey]);
   items.splice(idx, 1);
   S.fin[sectionKey] = JSON.stringify(items);
-  // Recalculer le total dépenses
+  // Recalculer le total dépenses (besoins + envies)
   var totalDep = (parseItems(S.fin.besoins_items).reduce(function(s,i){return s+(parseFloat(i.v)||0);},0)
                 + parseItems(S.fin.envies_items||'[]').reduce(function(s,i){return s+(parseFloat(i.v)||0);},0));
   if(totalDep > 0) S.fin.depenses = Math.round(totalDep*100)/100;
+  // Recalculer l'épargne si l'item supprimé était dans epargne_items
+  if(sectionKey === 'epargne_items'){
+    var totalEp = parseItems(S.fin.epargne_items).reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+    S.fin.epargne = Math.round(totalEp*100)/100;
+  }
   save(); renderTriCards(); renderScore(); renderPoche(); renderBudget();
 }
 
@@ -3127,8 +3133,8 @@ function saveTxn(){
   }
   S.fin[key]=JSON.stringify(items);
   // Mettre à jour le total dépenses
-  var totalDep=(parseItems(S.fin.besoins_items).reduce(function(s,i){return s+i.v;},0)
-               +parseItems(S.fin.envies_items||'[]').reduce(function(s,i){return s+i.v;},0));
+  var totalDep=(parseItems(S.fin.besoins_items).reduce(function(s,i){return s+(parseFloat(i.v)||0);},0)
+               +parseItems(S.fin.envies_items||'[]').reduce(function(s,i){return s+(parseFloat(i.v)||0);},0));
   if(totalDep>0) S.fin.depenses=Math.round(totalDep*100)/100;
   save(); closeTxnModal(); renderTxns(); renderPoche(); renderScore(); renderTriCards();
   var sLabel=CAT_SECTION_LABEL[section]||section;
@@ -3317,10 +3323,11 @@ function renderSynthTable(){
   var rev  = (f.revenus  || 0) * factor;
   var dep  = (f.depenses || 0) * factor;
   var ep   = (f.epargne  || 0) * factor;
-  var rav  = (f.rav      != null ? f.rav : Math.max(0,(f.revenus||0)-(f.depenses||0))) * factor;
+  var _ravVal = f.rav != null ? f.rav : Math.max(0,(f.revenus||0)-(f.depenses||0)-(f.epargne||0));
+  var rav  = _ravVal * factor;
   var tauxEp  = f.revenus>0 ? Math.round((f.epargne||0)/f.revenus*100) : 0;
   var tauxDep = f.revenus>0 ? Math.round((f.depenses||0)/f.revenus*100) : 0;
-  var tauxRav = f.revenus>0 ? Math.round((f.rav||0)/f.revenus*100) : 0;
+  var tauxRav = f.revenus>0 ? Math.round(_ravVal/f.revenus*100) : 0;
   var rows = [
     {lbl:'💶 Revenus',       val:rev, col:'var(--green)',   pct:'100%'},
     {lbl:'💸 Dépenses',      val:dep, col:'var(--orange)',  pct:tauxDep+'%'},
@@ -3376,8 +3383,8 @@ function renderBudget(){
 
   var rev = (f.revenus||0) * factor;
   var dep = (f.depenses||0) * factor;
-  var rav = (f.rav != null ? f.rav : ((f.revenus||0) - (f.depenses||0))) * factor;
-  var ep  = ((f.epargne != null && f.epargne !== '' && f.epargne !== 0) ? f.epargne : Math.max(0, f.rav||0)) * factor;
+  var ep  = (f.epargne != null && f.epargne !== '' ? f.epargne : 0) * factor;
+  var rav = (f.rav != null ? f.rav : Math.max(0, (f.revenus||0) - (f.depenses||0) - (f.epargne||0))) * factor;
   var pct = rev > 0 ? Math.round(dep/rev*100) : 50;
 
   // Zone couleur
