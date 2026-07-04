@@ -918,7 +918,7 @@ body.light .analyse-card{
 // ══ SERVICE WORKER OFFLINE ══
 (function(){
   if(!('serviceWorker' in navigator)) return;
-  var SW_VERSION = '5.9';
+  var SW_VERSION = '5.10';
   var CACHE = 'rb-cache-v'+SW_VERSION;
   var swCode = [
     'var CACHE="rb-cache-v'+SW_VERSION+'";',
@@ -1544,13 +1544,13 @@ body.light .analyse-card{
       </div>
       <span class="s-row-arr">&#8250;</span>
     </div>
-    <div class="setting-row" style="position:relative;overflow:hidden">
+    <div class="setting-row" style="position:relative">
       <div class="s-row-left">
         <span class="s-row-ico">&#128228;</span>
         <div><div class="s-row-lbl">Importer une sauvegarde</div><div class="s-row-sub">Restaure tes donn&#233;es depuis un fichier .json</div></div>
       </div>
       <span class="s-row-arr">&#8250;</span>
-      <input type="file" accept=".json" onchange="importBackup(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;font-size:100px"/>
+      <input type="file" accept=".json" onchange="importBackup(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%"/>
     </div>
     <div class="profil-sect">&#9729;&#65039; Sync cloud (multi-appareils)</div>
     <div id="fbStatusRow" class="setting-row" style="pointer-events:none">
@@ -1592,12 +1592,12 @@ body.light .analyse-card{
       4&#46; Colle-les ici → tes donn&#233;es se synchronisent sur tous tes appareils automatiquement &#128526;
     </div>
     <div class="profil-sect">&#8505;&#65039; &#192; propos</div>
-    <div class="setting-row" onclick="toast('RescueBudget v5.4 — Coach IA L&#233;o &#129302;','#0d9488')">
+    <div class="setting-row" onclick="toast('RescueBudget v5.10 — Coach IA L&#233;o &#129302;','#0d9488')">
       <div class="s-row-left">
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" style="font-size:13px;color:var(--accent2);font-weight:700">v5.4</span>
+      <span class="s-row-arr" style="font-size:13px;color:var(--accent2);font-weight:700">v5.10</span>
     </div>
     <div class="setting-row" onclick="openPrivacyModal()">
       <div class="s-row-left">
@@ -1663,6 +1663,9 @@ body.light .analyse-card{
     <div class="ni-fab" onclick="openFabMenu()">+</div>
     <button class="ni" id="ni-obj" onclick="go('obj')">
       <span class="ni-i">&#127919;</span><span class="ni-l">Objectifs</span>
+    </button>
+    <button class="ni" id="ni-tuto" onclick="openTutoModal()">
+      <span class="ni-i">&#128214;</span><span class="ni-l">Guide</span>
     </button>
     <button class="ni" id="ni-profil" onclick="go('profil')">
       <span class="ni-i">&#128100;</span><span class="ni-l">Profil</span>
@@ -4815,4 +4818,251 @@ if(isLoggedIn()){
           </div>
         </label>
         <div class="fab-item fab-sub" onclick="triggerReceiptFile(event)">
-          <div class="fab-item-ico" style="background:rg
+          <div class="fab-item-ico" style="background:rgba(59,130,246,.15);color:#3b82f6;width:36px;height:36px;font-size:18px">📁</div>
+          <div class="fab-item-txt">
+            <div class="fab-item-lbl" style="font-size:14px">Importer un fichier</div>
+            <div class="fab-item-sub">Image, PDF, CSV, Excel, texte…</div>
+          </div>
+        </div>
+      </div>
+      <!-- Objectif -->
+      <div class="fab-item" onclick="closeFabMenu();openGoalModal()">
+        <div class="fab-item-ico" style="background:rgba(239,68,68,.15);color:var(--red)">🎯</div>
+        <div class="fab-item-txt">
+          <div class="fab-item-lbl">Ajouter un objectif</div>
+          <div class="fab-item-sub">Épargne, projet, achat</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════ MODAL FIREBASE CONFIG ════════ -->
+  <div id="fbConfigModal" style="display:none;position:fixed;inset:0;z-index:3500;background:rgba(0,0,0,.6);align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeFbConfigModal()">
+    <div style="background:var(--bg);border-radius:22px 22px 0 0;padding:28px 20px 40px;width:100%;max-width:480px;animation:slideUp .25s ease">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <span style="font-size:17px;font-weight:800;color:var(--text)">&#9729;&#65039; Config Firebase</span>
+        <button onclick="closeFbConfigModal()" style="background:none;border:none;font-size:22px;color:var(--sub);cursor:pointer">&#10005;</button>
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="font-size:12px;color:var(--sub);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Project ID</label>
+        <input id="fbProjectId" type="text" placeholder="mon-projet-firebase" style="margin-top:6px;width:100%;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;outline:none" />
+        <div style="font-size:11px;color:var(--text3);margin-top:4px">Ex&#58; rescuebudget-12345</div>
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="font-size:12px;color:var(--sub);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Cl&#233; API Web</label>
+        <input id="fbApiKey" type="text" placeholder="AIzaSy..." style="margin-top:6px;width:100%;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;outline:none;font-family:monospace" />
+        <div style="font-size:11px;color:var(--text3);margin-top:4px">Dans Firebase Console → Param&#232;tres → Cl&#233;s API</div>
+      </div>
+      <button onclick="saveFbConfig()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--accent),var(--accent3));border:none;border-radius:14px;color:#fff;font-size:16px;font-weight:800;cursor:pointer;margin-bottom:10px">
+        &#10003; Sauvegarder et activer
+      </button>
+      <button onclick="clearFbConfig()" style="width:100%;padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:14px;color:var(--red);font-size:14px;font-weight:700;cursor:pointer">
+        &#128465; D&#233;sactiver la sync cloud
+      </button>
+    </div>
+  </div>
+
+  <!-- Inputs cachés pour la capture ticket -->
+  <input type="file" id="receiptCamera" accept="image/*" capture="environment" style="display:none" onchange="handleReceiptCapture(event)"/>
+  <input type="file" id="receiptFile"   accept="*/*" style="display:none" onchange="handleReceiptCapture(event)"/>
+
+  <!-- ════════ MODAL TICKET DE CAISSE ════════ -->
+  <div id="receiptModal" style="display:none;position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.6);align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeReceiptModal()">
+    <div style="background:var(--bg);border-radius:22px 22px 0 0;padding:24px 20px 36px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;animation:slideUp .25s ease">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <span id="receiptModalTitle" style="font-size:17px;font-weight:800;color:var(--text)">&#128462; Fichier analys&#233;</span>
+        <button onclick="closeReceiptModal()" style="background:none;border:none;font-size:22px;color:var(--text2);cursor:pointer">&#10005;</button>
+      </div>
+      <div id="receiptLoading" style="text-align:center;padding:30px 0;display:none">
+        <div id="receiptLoadingIco" style="font-size:32px;margin-bottom:12px">&#128462;</div>
+        <div id="receiptLoadingTxt" style="color:var(--text2);font-size:14px">L&#233;o analyse ton fichier&#8230;</div>
+      </div>
+      <div id="receiptContent" style="display:none">
+        <div id="receiptMeta" style="background:var(--card);border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--text2)"></div>
+        <div id="receiptItemsLabel" style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Articles d&#233;tect&#233;s</div>
+        <div id="receiptItems"></div>
+        <div id="receiptTotal" style="background:var(--card2);border-radius:12px;padding:10px 14px;margin-top:12px;display:flex;justify-content:space-between;align-items:center;font-weight:800;color:var(--text)"></div>
+        <div style="margin-top:6px;font-size:11px;color:var(--text3);text-align:center">V&#233;rifie les cat&#233;gories avant de valider</div>
+        <div style="display:flex;gap:10px;margin-top:16px">
+          <button onclick="closeReceiptModal()" style="flex:1;padding:13px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--text2);font-size:14px;font-weight:700;cursor:pointer">Annuler</button>
+          <button onclick="validateReceipt()" style="flex:2;padding:13px;background:linear-gradient(135deg,var(--green),#059669);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:800;cursor:pointer">&#10003; Valider et int&#233;grer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  FIREBASE FIRESTORE SYNC — RescueBudget v5.4
+// ═══════════════════════════════════════════════════
+var FB_CFG = null;
+var _syncTimer = null;
+
+function loadFbCfg(){
+  try{ FB_CFG = JSON.parse(localStorage.getItem('cf_fbcfg')||'null'); }
+  catch(e){ FB_CFG = null; }
+}
+loadFbCfg();
+
+function getFbUrl(){
+  if(!FB_CFG||!FB_CFG.projectId||!FB_CFG.apiKey) return null;
+  var auth = getStoredAuth();
+  if(!auth) return null;
+  // Doc ID = hash stable du username
+  var docId = 'u_' + btoa(unescape(encodeURIComponent(auth.user))).replace(/[^a-zA-Z0-9]/g,'_').slice(0,40);
+  return 'https://firestore.googleapis.com/v1/projects/'+FB_CFG.projectId+
+         '/databases/(default)/documents/rescuebudget/'+docId+'?key='+FB_CFG.apiKey;
+}
+
+function setSyncDot(state){
+  var d=document.getElementById('syncDot');
+  if(!d) return;
+  d.className='';
+  if(state==='ok')      d.className='ok';
+  else if(state==='err')d.className='err';
+  else if(state==='syncing') d.className='syncing';
+  var badge=document.getElementById('fbStatusBadge');
+  var txt=document.getElementById('fbStatusTxt');
+  if(!FB_CFG){ 
+    if(badge){ badge.className='sync-row-status off'; badge.textContent='OFF'; }
+    if(txt) txt.textContent='Non configuré — configure Firebase ci-dessous';
+    return;
+  }
+  if(state==='ok'){
+    if(badge){ badge.className='sync-row-status ok'; badge.textContent='OK'; }
+    if(txt) txt.textContent='Synchronisé — '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  } else if(state==='err'){
+    if(badge){ badge.className='sync-row-status err'; badge.textContent='ERR'; }
+    if(txt) txt.textContent='Erreur de connexion — vérifie ta config Firebase';
+  } else if(state==='syncing'){
+    if(badge){ badge.className='sync-row-status off'; badge.textContent='⟳'; }
+    if(txt) txt.textContent='Synchronisation en cours…';
+  }
+}
+
+function syncToCloud(){
+  var url = getFbUrl();
+  if(!url) return;
+  setSyncDot('syncing');
+  var keys=['cf_auth','cf_fin','cf_subs','cf_txns','cf_goals','cf_actifs','cf_snaps',
+            'cf_key','cf_theme','cf_profile','cf_hist','cf_badges','cf_streak',
+            'cf_actions','cf_start','cf_greet','cf_anal'];
+  var backup={};
+  keys.forEach(function(k){ var v=localStorage.getItem(k); if(v) backup[k]=v; });
+  backup['_synced']=new Date().toISOString();
+  fetch(url,{
+    method:'PATCH',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({fields:{data:{stringValue:JSON.stringify(backup)},lastSync:{stringValue:backup['_synced']}}})
+  }).then(function(r){
+    setSyncDot(r.ok?'ok':'err');
+  }).catch(function(){ setSyncDot('err'); });
+}
+
+function loadFromCloud(manual){
+  var url = getFbUrl();
+  if(!url){ if(manual) toast('Configure Firebase d\'abord','#f59e0b'); return; }
+  setSyncDot('syncing');
+  fetch(url).then(function(r){
+    if(r.status===404){ setSyncDot('ok'); if(manual) toast('Aucune donnée cloud pour ce compte','#f59e0b'); return; }
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.json();
+  }).then(function(doc){
+    if(!doc||!doc.fields||!doc.fields.data) return;
+    var backup=JSON.parse(doc.fields.data.stringValue);
+    var keys=['cf_fin','cf_subs','cf_txns','cf_goals','cf_actifs','cf_snaps',
+              'cf_key','cf_theme','cf_profile','cf_hist','cf_badges','cf_streak',
+              'cf_actions','cf_start','cf_greet','cf_anal'];
+    keys.forEach(function(k){ if(backup[k]!==undefined) localStorage.setItem(k,backup[k]); });
+    setSyncDot('ok');
+    if(manual){
+      toast('☁️ Données cloud chargées !','#10b981');
+      setTimeout(function(){ location.reload(); },1500);
+    }
+  }).catch(function(e){ setSyncDot('err'); if(manual) toast('Erreur cloud: '+e.message,'#ef4444'); });
+}
+
+function forceSyncNow(){
+  syncToCloud();
+  toast('☁️ Synchronisation en cours…','#0d9488');
+}
+
+// ── Config modal ────────────────────────────────────
+function openFbConfigModal(){
+  var m=document.getElementById('fbConfigModal');
+  if(!m) return;
+  if(FB_CFG){
+    var pi=document.getElementById('fbProjectId'); if(pi) pi.value=FB_CFG.projectId||'';
+    var ak=document.getElementById('fbApiKey');    if(ak) ak.value=FB_CFG.apiKey||'';
+  }
+  m.style.display='flex';
+  updateFbRows();
+}
+function closeFbConfigModal(){
+  var m=document.getElementById('fbConfigModal'); if(m) m.style.display='none';
+}
+function saveFbConfig(){
+  var pid=document.getElementById('fbProjectId').value.trim();
+  var key=document.getElementById('fbApiKey').value.trim();
+  if(!pid||!key){ toast('Remplis les deux champs','#ef4444'); return; }
+  FB_CFG={projectId:pid, apiKey:key};
+  localStorage.setItem('cf_fbcfg',JSON.stringify(FB_CFG));
+  closeFbConfigModal();
+  updateFbRows();
+  toast('☁️ Firebase configuré ! Sync en cours…','#10b981');
+  syncToCloud();
+}
+function clearFbConfig(){
+  showConfirm('Désactiver la sync cloud ?', function(){
+    FB_CFG=null;
+    localStorage.removeItem('cf_fbcfg');
+    closeFbConfigModal();
+    updateFbRows();
+    setSyncDot('off');
+    toast('Sync cloud désactivée','#64748b');
+  }, 'Désactiver');
+}
+function updateFbRows(){
+  var on=!!FB_CFG;
+  var r1=document.getElementById('fbSyncRow'); if(r1) r1.style.display=on?'':'none';
+  var r2=document.getElementById('fbLoadRow');  if(r2) r2.style.display=on?'':'none';
+  setSyncDot(on?'ok':'off');
+}
+
+// ── Hook into save() ─────────────────────────────────
+var _origSave = save;
+save = function(){
+  _origSave();
+  if(!_syncTimer){
+    _syncTimer = setTimeout(function(){ _syncTimer=null; syncToCloud(); }, 4000);
+  }
+};
+
+// ── Auto-init on page load ───────────────────────────
+window.addEventListener('DOMContentLoaded', function(){
+  updateFbRows();
+});
+
+// ── Load from cloud after login ──────────────────────
+var _origDoLogin = doLogin;
+doLogin = function(){
+  _origDoLogin();
+  if(isLoggedIn()){ setTimeout(function(){ loadFromCloud(false); }, 1000); }
+};
+var _origDoRegister = doRegister;
+doRegister = function(){
+  _origDoRegister();
+  if(isLoggedIn()){ setTimeout(function(){ syncToCloud(); }, 2000); }
+};
+</script>
+
+<!-- Tooltip info global — hors de toute .page pour ne pas hériter de display:none -->
+<div id="infoTip" style="display:none;position:fixed;z-index:9000">
+  <button class="info-tip-close" onclick="closeInfoTip()">✕</button>
+  <div class="info-tip-title" id="infoTipTitle"></div>
+  <div id="infoTipBody"></div>
+</div>
+
+</body>
+</html>
