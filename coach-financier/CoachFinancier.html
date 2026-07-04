@@ -934,7 +934,7 @@ body.light .analyse-card{
 // ══ SERVICE WORKER OFFLINE ══
 (function(){
   if(!('serviceWorker' in navigator)) return;
-  var SW_VERSION = '5.12';
+  var SW_VERSION = '5.13';
   var CACHE = 'rb-cache-v'+SW_VERSION;
   var swCode = [
     'var CACHE="rb-cache-v'+SW_VERSION+'";',
@@ -4756,46 +4756,346 @@ function importBackup(event){
 }
 
 function exportCSV(){
-  var rows=[['Date','Description','Catégorie','Section','Montant (€)']];
-  var txns=S.txns||[];
-  txns.forEach(function(t){
-    rows.push([t.date||'',t.desc||'',t.cat||'',t.section||'',(t.amt||0).toFixed(2)]);
+  var q=function(s){return '"'+String(s||'').replace(/"/g,'""')+'"';};
+  var sep=';';
+  var f=S.fin||{};
+  var rev=f.revenus||0, dep=f.depenses||0, ep=f.epargne||0;
+  var rav=f.rav!=null?f.rav:Math.max(0,rev-dep-ep);
+  var tauxEp=rev>0?Math.round(ep/rev*100):0;
+  var mois=new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+  var sc=calcScore();
+  var lines2=[];
+  lines2.push(q('=== BILAN RESCUEBUDGET — '+mois.toUpperCase()+' ==='));
+  lines2.push([q('Indicateur'),q('Valeur'),q('% revenus')].join(sep));
+  lines2.push([q('Revenus mensuels'),q(rev.toFixed(2)),q('100 %')].join(sep));
+  lines2.push([q('Dépenses totales'),q(dep.toFixed(2)),q((rev>0?Math.round(dep/rev*100):0)+' %')].join(sep));
+  lines2.push([q('Épargne'),q(ep.toFixed(2)),q(tauxEp+' %')].join(sep));
+  lines2.push([q('Reste à vivre'),q(rav.toFixed(2)),q((rev>0?Math.round(rav/rev*100):0)+' %')].join(sep));
+  lines2.push([q('Score santé'),q(sc+' / 100'),q(tauxEp>=20?'Excellent':tauxEp>=10?'Bien':'À améliorer')].join(sep));
+  lines2.push('');
+  lines2.push(q('=== BUDGET 50/30/20 ==='));
+  lines2.push([q('Section'),q('Élément'),q('Montant (€)'),q('% revenus')].join(sep));
+  [['Besoins','besoins_items'],['Envies','envies_items'],['Épargne','epargne_items']].forEach(function(pair){
+    var items=parseItems(f[pair[1]]||'[]');
+    var catTot=items.reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+    items.forEach(function(i){
+      lines2.push([q(pair[0]),q(i.n||''),q((parseFloat(i.v)||0).toFixed(2)),q(rev>0?Math.round((parseFloat(i.v)||0)/rev*100)+' %':'—')].join(sep));
+    });
+    lines2.push([q(pair[0]+' TOTAL'),q(''),q(catTot.toFixed(2)),q(rev>0?Math.round(catTot/rev*100)+' %':'—')].join(sep));
+    lines2.push('');
   });
-  var csv=rows.map(function(r){return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"';}).join(';');}).join('\n');
-  var bom='\uFEFF'; // UTF-8 BOM pour Excel FR
-  var blob=new Blob([bom+csv],{type:'text/csv;charset=utf-8'});
+  lines2.push(q('=== TRANSACTIONS ==='));
+  lines2.push([q('Date'),q('Description'),q('Catégorie'),q('Section'),q('Montant (€)')].join(sep));
+  (S.txns||[]).forEach(function(t){
+    lines2.push([q(t.date||''),q(t.desc||''),q(t.cat||''),q(t.section||''),q((t.amt||0).toFixed(2))].join(sep));
+  });
+  lines2.push('');
+  lines2.push(q('=== OBJECTIFS ==='));
+  lines2.push([q('Nom'),q('Cible (€)'),q('Actuel (€)'),q('Progression'),q('Échéance')].join(sep));
+  (S.goals||[]).forEach(function(g){
+    var pr=g.target>0?Math.round((g.current||0)/g.target*100):0;
+    lines2.push([q(g.name||''),q((g.target||0).toFixed(2)),q((g.current||0).toFixed(2)),q(pr+' %'),q(g.deadline||'Sans échéance')].join(sep));
+  });
+  lines2.push('');
+  lines2.push(q('=== ABONNEMENTS ==='));
+  lines2.push([q('Nom'),q('Section'),q('Mensuel (€)'),q('Annuel (€)')].join(sep));
+  var subTotC=0;
+  (S.subs||[]).forEach(function(sub){
+    subTotC+=(sub.amt||0);
+    lines2.push([q(sub.name||''),q(sub.section||''),q((sub.amt||0).toFixed(2)),q(((sub.amt||0)*12).toFixed(2))].join(sep));
+  });
+  lines2.push([q('TOTAL'),q(''),q(subTotC.toFixed(2)),q((subTotC*12).toFixed(2))].join(sep));
+  lines2.push('');
+  lines2.push(q('=== PATRIMOINE ==='));
+  lines2.push([q('Catégorie'),q('Élément'),q('Valeur (€)')].join(sep));
+  var patTot=0;
+  ACTIF_TYPES.forEach(function(t){
+    var items=Array.isArray((S.actifs||{})[t.key])?(S.actifs||{})[t.key]:[];
+    items.forEach(function(i){
+      patTot+=(parseFloat(i.v)||0);
+      lines2.push([q(t.label),q(i.n||''),q((parseFloat(i.v)||0).toFixed(2))].join(sep));
+    });
+  });
+  lines2.push([q('TOTAL PATRIMOINE'),q(''),q(patTot.toFixed(2))].join(sep));
+  var bom='﻿';
+  var blob=new Blob([bom+lines2.join('\n')],{type:'text/csv;charset=utf-8'});
   var a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  var mois=new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
-  a.download='RescueBudget_'+mois.replace(/ /g,'_')+'.csv';
+  a.download='RescueBudget_Bilan_'+mois.replace(/ /g,'_')+'.csv';
   a.click();
-  toast('Export CSV téléchargé ✓','#10b981');
+  toast('📊 Bilan complet CSV exporté ✓','#10b981');
 }
 
 function exportPrint(){
+  var esc=function(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
+  var fmt=function(n){return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n||0);};
+  var pct=function(v,b){return b>0?Math.round(v/b*100):0;};
   var f=S.fin||{};
   var rev=f.revenus||0, dep=f.depenses||0, ep=f.epargne||0;
-  var txns=S.txns||[];
-  var rows=txns.map(function(t){
-    return '<tr><td>'+t.date+'</td><td>'+t.ico+' '+t.desc+'</td><td>'+t.section+'</td><td style="text-align:right;font-weight:700">'+((t.amt||0).toFixed(2))+' €</td></tr>';
+  var rav=f.rav!=null?f.rav:Math.max(0,rev-dep-ep);
+  var mois=new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+  var sc=calcScore(); var si=scoreInfo(sc);
+  var tauxEp=pct(ep,rev);
+  var ravNeg=rav<0;
+  var ravCol=ravNeg?'#ef4444':'#10b981';
+  var tauxRating=tauxEp>=20?{t:'🎯 Excellent',c:'#10b981',bg:'#d1fae5'}:tauxEp>=10?{t:'👍 Bien',c:'#0d9488',bg:'#ccfbf1'}:{t:'⚠️ À améliorer',c:'#f59e0b',bg:'#fef3c7'};
+  var besoinsItems=parseItems(f.besoins_items||'[]');
+  var enviesItems=parseItems(f.envies_items||'[]');
+  var epargneItems=parseItems(f.epargne_items||'[]');
+  var besoinsT=besoinsItems.reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+  var enviesT=enviesItems.reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+  var epargneT=epargneItems.reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+  // Score gauge SVG
+  var gR=40,gCc=2*Math.PI*gR,gP=sc/100;
+  var gaugeHtml='<svg width="100" height="100" viewBox="0 0 100 100">'
+    +'<circle cx="50" cy="50" r="'+gR+'" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="10"/>'
+    +'<circle cx="50" cy="50" r="'+gR+'" fill="none" stroke="'+si.col+'" stroke-width="10" '
+    +'stroke-dasharray="'+(gP*gCc).toFixed(1)+' '+((1-gP)*gCc).toFixed(1)+'" '
+    +'transform="rotate(-90 50 50)" stroke-linecap="round"/>'
+    +'<text x="50" y="46" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" font-weight="900" fill="white">'+sc+'</text>'
+    +'<text x="50" y="62" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" fill="rgba(255,255,255,.7)">/ 100</text>'
+    +'</svg>';
+  // SVG Donut 50/30/20
+  var dR=52,dCx=64,dCy=64,dC=2*Math.PI*dR;
+  var segs=[
+    {p:pct(besoinsT,rev)/100,c:'#3b82f6',lbl:'Besoins'},
+    {p:pct(enviesT,rev)/100,c:'#f59e0b',lbl:'Envies'},
+    {p:pct(epargneT,rev)/100,c:'#10b981',lbl:'Épargne'}
+  ];
+  var segSum=segs.reduce(function(s,x){return s+x.p;},0);
+  if(segSum<0.99) segs.push({p:Math.max(0,1-segSum),c:'#e5e7eb',lbl:'Non alloué'});
+  var cumul=0;
+  var donutCircles=segs.map(function(seg){
+    var dLen=seg.p*dC, off=-(cumul*dC);
+    cumul+=seg.p;
+    return '<circle cx="'+dCx+'" cy="'+dCy+'" r="'+dR+'" fill="none" stroke="'+seg.c+'" stroke-width="18" '
+      +'stroke-dasharray="'+dLen.toFixed(1)+' '+(dC-dLen).toFixed(1)+'" '
+      +'stroke-dashoffset="'+off.toFixed(1)+'" transform="rotate(-90 '+dCx+' '+dCy+')" />';
   }).join('');
+  var allPct=pct(besoinsT+enviesT+epargneT,rev);
+  var donutSvg='<svg width="128" height="128" viewBox="0 0 128 128">'
+    +'<circle cx="'+dCx+'" cy="'+dCy+'" r="'+dR+'" fill="none" stroke="#f3f4f6" stroke-width="18"/>'
+    +donutCircles
+    +'<text x="'+dCx+'" y="60" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="900" fill="#1a1a2e">'+allPct+'%</text>'
+    +'<text x="'+dCx+'" y="76" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#6b7280">alloué</text>'
+    +'</svg>';
+  var legendHtml=segs.filter(function(s){return s.p>0.005;}).map(function(seg){
+    return '<div style="display:flex;align-items:center;gap:7px;margin-bottom:6px">'
+      +'<div style="width:11px;height:11px;border-radius:50%;background:'+seg.c+';flex-shrink:0"></div>'
+      +'<div style="font-size:12px;flex:1">'+seg.lbl+'</div>'
+      +'<div style="font-size:12px;font-weight:700;color:'+seg.c+'">'+Math.round(seg.p*100)+'%</div>'
+      +'</div>';
+  }).join('');
+  // Budget bar rows
+  var budgetBars=function(items,color){
+    if(!items.length) return '<p style="color:#9ca3af;font-size:11px;font-style:italic;margin:4px 0">Aucun élément.</p>';
+    var maxV=Math.max.apply(null,items.map(function(i){return parseFloat(i.v)||0;}));
+    if(!maxV) maxV=1;
+    return items.map(function(i){
+      var v=parseFloat(i.v)||0;
+      return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0">'
+        +'<div style="width:90px;font-size:11px;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(i.n||'')+'</div>'
+        +'<div style="flex:1;height:6px;background:#f3f4f6;border-radius:99px;overflow:hidden">'
+        +'<div style="width:'+Math.round(v/maxV*100)+'%;background:'+color+';height:100%;border-radius:99px"></div>'
+        +'</div>'
+        +'<div style="min-width:52px;text-align:right;font-size:11px;font-weight:700;color:'+color+'">'+fmt(v)+'</div>'
+        +'</div>';
+    }).join('');
+  };
+  var targetBadge=function(actual,target){
+    var ok=actual<=target;
+    return '<span style="font-size:10px;padding:1px 7px;border-radius:20px;font-weight:700;background:'
+      +(ok?'#d1fae5':'#fee2e2')+';color:'+(ok?'#065f46':'#991b1b')+'">cible '+target+'%</span>';
+  };
+  // Score bars
+  var rev1=Math.max(1,rev);
+  var scoreBarsHtml=[
+    {l:'Épargne',v:Math.min(35,Math.round(ep/rev1*100*0.7)),m:35,c:'#10b981'},
+    {l:'Budget',v:f.rav>0?20:(f.rav!=null&&f.rav>-200?8:0),m:20,c:'#0d9488'},
+    {l:'Objectifs',v:Math.min(15,(S.goals||[]).length*5),m:15,c:'#2dd4bf'},
+    {l:'Actions',v:Math.min(15,(S.actions||0)*3),m:15,c:'#f59e0b'},
+    {l:'Régularité',v:Math.min(15,Math.floor((S.streak||0)/3)*3),m:15,c:'#10b981'}
+  ].map(function(b){
+    var w=b.m?Math.round(b.v/b.m*100):0;
+    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
+      +'<div style="width:72px;font-size:11px;color:#6b7280">'+b.l+'</div>'
+      +'<div style="flex:1;height:8px;background:#f3f4f6;border-radius:99px;overflow:hidden">'
+      +'<div style="width:'+w+'%;background:'+b.c+';height:100%;border-radius:99px"></div>'
+      +'</div>'
+      +'<div style="font-size:11px;font-weight:700;min-width:36px;text-align:right;color:'+b.c+'">'+b.v+'/'+b.m+'</div>'
+      +'</div>';
+  }).join('');
+  // Goals
+  var goalsHtml='';
+  (S.goals||[]).forEach(function(g){
+    var pr=g.target>0?Math.min(100,Math.round((g.current||0)/g.target*100)):0;
+    var bc=pr>=100?'#10b981':pr>=50?'#0d9488':'#f59e0b';
+    goalsHtml+='<div style="margin-bottom:12px">'
+      +'<div style="display:flex;justify-content:space-between;margin-bottom:4px">'
+      +'<span style="font-size:12px;font-weight:600">'+esc(g.name||'Objectif')+'</span>'
+      +'<span style="font-size:12px;color:'+bc+';font-weight:700">'+pr+'%</span>'
+      +'</div>'
+      +'<div style="background:#f3f4f6;border-radius:99px;height:8px;overflow:hidden">'
+      +'<div style="width:'+pr+'%;background:'+bc+';height:100%;border-radius:99px"></div>'
+      +'</div>'
+      +'<div style="display:flex;justify-content:space-between;margin-top:3px;font-size:10px;color:#6b7280">'
+      +'<span>'+fmt(g.current||0)+' / '+fmt(g.target||0)+'</span>'
+      +'<span>'+(g.deadline?'📅 '+esc(g.deadline):'Sans échéance')+'</span>'
+      +'</div></div>';
+  });
+  if(!goalsHtml) goalsHtml='<p style="color:#9ca3af;font-size:12px;font-style:italic">Aucun objectif défini.</p>';
+  // Abonnements
+  var subTot=0, subsHtml='';
+  (S.subs||[]).forEach(function(sub){
+    subTot+=(sub.amt||0);
+    var badge=sub.section==='besoins'
+      ?'<span style="background:#dbeafe;color:#1d4ed8;padding:1px 7px;border-radius:20px;font-size:10px;font-weight:700">Besoin</span>'
+      :'<span style="background:#fef3c7;color:#92400e;padding:1px 7px;border-radius:20px;font-size:10px;font-weight:700">Envie</span>';
+    subsHtml+='<tr><td>'+esc(sub.name||'')+'</td><td>'+badge+'</td>'
+      +'<td style="text-align:right;font-weight:700">'+fmt(sub.amt||0)+'</td>'
+      +'<td style="text-align:right;color:#6b7280">'+fmt((sub.amt||0)*12)+'</td></tr>';
+  });
+  if(!subsHtml) subsHtml='<tr><td colspan="4" style="color:#9ca3af;font-style:italic">Aucun abonnement.</td></tr>';
+  // Patrimoine
+  var actifsT=0, actifsHtml='';
+  ACTIF_TYPES.forEach(function(t){
+    var items=Array.isArray((S.actifs||{})[t.key])?(S.actifs||{})[t.key]:[];
+    if(!items.length) return;
+    var catT=items.reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+    actifsT+=catT;
+    actifsHtml+='<tr style="background:#f9fafb"><td style="font-weight:700">'+t.ico+' '+esc(t.label)+'</td>'
+      +'<td style="color:#6b7280;font-size:11px">'+items.map(function(i){return esc(i.n||'');}).join(', ')+'</td>'
+      +'<td style="text-align:right;font-weight:700;color:#0d9488">'+fmt(catT)+'</td></tr>';
+    items.forEach(function(i){
+      actifsHtml+='<tr><td style="padding-left:28px;color:#6b7280;font-size:11px">↳ '+esc(i.n||'')+'</td>'
+        +'<td></td><td style="text-align:right;font-size:11px">'+fmt(parseFloat(i.v)||0)+'</td></tr>';
+    });
+  });
+  if(!actifsHtml) actifsHtml='<tr><td colspan="3" style="color:#9ca3af;font-style:italic">Aucun actif renseigné.</td></tr>';
+  // Transactions
+  var txnsHtml='';
+  (S.txns||[]).slice(0,20).forEach(function(t){
+    var badge=t.section==='besoins'
+      ?'<span style="background:#dbeafe;color:#1d4ed8;padding:1px 6px;border-radius:20px;font-size:10px">Besoin</span>'
+      :t.section==='epargne'
+      ?'<span style="background:#d1fae5;color:#065f46;padding:1px 6px;border-radius:20px;font-size:10px">Épargne</span>'
+      :'<span style="background:#fef3c7;color:#92400e;padding:1px 6px;border-radius:20px;font-size:10px">Envie</span>';
+    txnsHtml+='<tr><td style="color:#6b7280;white-space:nowrap">'+esc(t.date||'')+'</td>'
+      +'<td>'+(t.ico||'💸')+' '+esc(t.desc||'')+'</td>'
+      +'<td style="color:#6b7280">'+esc(t.cat||'')+'</td>'
+      +'<td>'+badge+'</td>'
+      +'<td style="text-align:right;font-weight:700;color:#ef4444">'+fmt(t.amt||0)+'</td></tr>';
+  });
+  if(!txnsHtml) txnsHtml='<tr><td colspan="5" style="color:#9ca3af;font-style:italic">Aucune transaction.</td></tr>';
+  // Projection 6 mois
+  var projHtml='',projBase=0;
+  ACTIF_TYPES.forEach(function(t){
+    if(t.key==='epargne'){
+      var items=Array.isArray((S.actifs||{})[t.key])?(S.actifs||{})[t.key]:[];
+      projBase+=items.reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+    }
+  });
+  var projMax=projBase+ep*6; if(projMax<=0) projMax=1;
+  var months=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  var nowM=new Date().getMonth();
+  for(var pi=1;pi<=6;pi++){
+    var pVal=projBase+ep*pi;
+    var pW=projMax>0?Math.round(pVal/projMax*100):0;
+    projHtml+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'
+      +'<div style="width:32px;font-size:11px;color:#6b7280;font-weight:600">'+months[(nowM+pi)%12]+'</div>'
+      +'<div style="flex:1;height:14px;background:#f3f4f6;border-radius:4px;overflow:hidden">'
+      +'<div style="width:'+pW+'%;height:100%;background:linear-gradient(90deg,#0d9488,#10b981);border-radius:4px"></div>'
+      +'</div>'
+      +'<div style="min-width:72px;text-align:right;font-size:12px;font-weight:700;color:#0d9488">'+fmt(pVal)+'</div>'
+      +'</div>';
+  }
+  // Top dépenses par catégorie
+  var catMap={};
+  (S.txns||[]).forEach(function(t){var c=t.cat||'Autre';catMap[c]=(catMap[c]||0)+(t.amt||0);});
+  var catArr=Object.keys(catMap).map(function(k){return{k:k,v:catMap[k]};}).sort(function(a,b){return b.v-a.v;}).slice(0,8);
+  var catMax=catArr.length?catArr[0].v:1;
+  var catHtml=catArr.length?catArr.map(function(c){
+    return '<div style="display:flex;align-items:center;gap:8px;padding:5px 0">'
+      +'<div style="width:90px;font-size:11px;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(c.k)+'</div>'
+      +'<div style="flex:1;height:7px;background:#f3f4f6;border-radius:99px;overflow:hidden">'
+      +'<div style="width:'+Math.round(c.v/catMax*100)+'%;background:#ef4444;height:100%;border-radius:99px"></div>'
+      +'</div>'
+      +'<div style="min-width:56px;text-align:right;font-size:11px;font-weight:700;color:#ef4444">'+fmt(c.v)+'</div>'
+      +'</div>';
+  }).join(''):'<p style="color:#9ca3af;font-size:12px;font-style:italic">Aucune transaction enregistrée.</p>';
+  // Build HTML
   var win=window.open('','_blank');
-  if(!win){ toast('Autorise les popups pour exporter en PDF','#f59e0b'); return; }
-  win.document.write(
-    '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/><title>Bilan RescueBudget</title>'+
-    '<style>body{font-family:Arial,sans-serif;padding:24px;color:#111}h1{color:#0d9488}table{width:100%;border-collapse:collapse;margin-top:16px}th{background:#0d9488;color:#fff;padding:8px 10px;text-align:left}td{padding:7px 10px;border-bottom:1px solid #e5e7eb}.kpi{display:flex;gap:16px;margin:16px 0}.kpi div{flex:1;background:#f0fdf4;border-radius:8px;padding:12px;text-align:center}.kpi span{display:block;font-size:22px;font-weight:700;color:#0d9488}.kpi small{color:#6b7280;font-size:12px}</style>'+
-    '</head><body>'+
-    '<h1>📊 Bilan RescueBudget — '+new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'})+'</h1>'+
-    '<div class="kpi">'+
-    '<div><span>'+rev.toLocaleString('fr-FR',{style:"currency",currency:"EUR"})+'</span><small>Revenus</small></div>'+
-    '<div><span>'+dep.toLocaleString('fr-FR',{style:"currency",currency:"EUR"})+'</span><small>Dépenses</small></div>'+
-    '<div><span>'+ep.toLocaleString('fr-FR',{style:"currency",currency:"EUR"})+'</span><small>Épargne</small></div>'+
-    '</div>'+
-    '<table><thead><tr><th>Date</th><th>Dépense</th><th>Section</th><th>Montant</th></tr></thead><tbody>'+rows+'</tbody></table>'+
-    '</body></html>'
-  );
+  if(!win){ toast('Autorise les popups pour le bilan PDF','#f59e0b'); return; }
+  win.document.write('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/>'
+    +'<title>Bilan RescueBudget — '+mois+'</title>'
+    +'<style>'
+    +'*{box-sizing:border-box;margin:0;padding:0}'
+    +'body{font-family:"Segoe UI",Arial,sans-serif;color:#1a1a2e;background:#fff;font-size:13px}'
+    +'.hdr{background:linear-gradient(135deg,#0d9488,#10b981);color:#fff;padding:20px 32px;display:flex;justify-content:space-between;align-items:center}'
+    +'.hdr-logo{font-size:22px;font-weight:900;letter-spacing:-.5px}'
+    +'.hdr-sub{font-size:12px;opacity:.75;margin-top:3px}'
+    +'.kpi-row{display:flex;gap:10px;padding:14px 32px;background:#f8fafc;border-bottom:1px solid #e5e7eb}'
+    +'.kpi{flex:1;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:11px;text-align:center}'
+    +'.kpi-v{font-size:15px;font-weight:800}'
+    +'.kpi-l{font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;margin-top:3px}'
+    +'.kpi-p{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;margin-top:5px}'
+    +'.sec{padding:16px 32px;border-bottom:1px solid #f3f4f6}'
+    +'.sec-title{font-size:12px;font-weight:700;color:#0d9488;text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;padding-bottom:7px;border-bottom:2px solid #e5e7eb}'
+    +'.bcols{display:flex;gap:14px;margin-top:14px}'
+    +'.bcol{flex:1;background:#f9fafb;border-radius:10px;padding:11px}'
+    +'.bcol-h{font-size:11px;font-weight:700;margin-bottom:8px}'
+    +'table{width:100%;border-collapse:collapse;font-size:12px}'
+    +'th{background:#0d9488;color:#fff;padding:7px 10px;text-align:left;font-size:11px;letter-spacing:.3px}'
+    +'td{padding:6px 10px;border-bottom:1px solid #f3f4f6;vertical-align:middle}'
+    +'tr:nth-child(even) td{background:#fafafa}'
+    +'.ftr{text-align:center;font-size:10px;color:#9ca3af;padding:14px 32px;margin-top:6px}'
+    +'@page{margin:10mm}'
+    +'@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'
+    +'</style></head><body>'
+    +'<div class="hdr">'
+    +'<div><div class="hdr-logo">✚ RescueBudget</div><div class="hdr-sub">Bilan financier — '+mois+'</div></div>'
+    +'<div style="text-align:center">'+gaugeHtml+'<div style="font-size:11px;opacity:.75;margin-top:2px">'+si.lbl+'</div></div>'
+    +'</div>'
+    +'<div class="kpi-row">'
+    +'<div class="kpi"><div class="kpi-v" style="color:#10b981">'+fmt(rev)+'</div><div class="kpi-l">Revenus</div><div class="kpi-p" style="background:#d1fae5;color:#065f46">100 %</div></div>'
+    +'<div class="kpi"><div class="kpi-v" style="color:#f59e0b">'+fmt(dep)+'</div><div class="kpi-l">Dépenses</div><div class="kpi-p" style="background:#fef3c7;color:#92400e">'+pct(dep,rev)+' %</div></div>'
+    +'<div class="kpi"><div class="kpi-v" style="color:#0d9488">'+fmt(ep)+'</div><div class="kpi-l">Épargne</div><div class="kpi-p" style="background:#ccfbf1;color:#0f766e">'+tauxEp+' %</div></div>'
+    +'<div class="kpi"><div class="kpi-v" style="color:'+ravCol+'">'+fmt(rav)+'</div><div class="kpi-l">Reste à vivre</div><div class="kpi-p" style="background:'+(ravNeg?'#fee2e2':'#f0fdf4')+';color:'+(ravNeg?'#991b1b':'#065f46')+'">'+pct(rav,rev)+' %</div></div>'
+    +'<div class="kpi"><div class="kpi-v" style="color:'+tauxRating.c+'">'+tauxEp+' %</div><div class="kpi-l">Taux épargne</div><div class="kpi-p" style="background:'+tauxRating.bg+';color:'+tauxRating.c+'">'+tauxRating.t+'</div></div>'
+    +'</div>'
+    +'<div class="sec">'
+    +'<div class="sec-title">📊 Répartition budget 50/30/20</div>'
+    +'<div style="display:flex;align-items:center;gap:24px">'+donutSvg+'<div style="flex:1">'+legendHtml+'</div></div>'
+    +'<div class="bcols">'
+    +'<div class="bcol"><div class="bcol-h" style="color:#3b82f6">🏠 Besoins — '+fmt(besoinsT)+' '+targetBadge(pct(besoinsT,rev),50)+'</div>'+budgetBars(besoinsItems,'#3b82f6')+'</div>'
+    +'<div class="bcol"><div class="bcol-h" style="color:#f59e0b">✨ Envies — '+fmt(enviesT)+' '+targetBadge(pct(enviesT,rev),30)+'</div>'+budgetBars(enviesItems,'#f59e0b')+'</div>'
+    +'<div class="bcol"><div class="bcol-h" style="color:#10b981">💰 Épargne — '+fmt(epargneT)+' '+targetBadge(pct(epargneT,rev),20)+'</div>'+budgetBars(epargneItems,'#10b981')+'</div>'
+    +'</div></div>'
+    +'<div class="sec"><div class="sec-title">🔥 Top dépenses par catégorie</div>'+catHtml+'</div>'
+    +'<div class="sec"><div class="sec-title">🏅 Score santé financière — '+sc+' / 100 ('+si.lbl+')</div>'+scoreBarsHtml+'</div>'
+    +'<div class="sec"><div class="sec-title">🎯 Objectifs d\'épargne</div>'+goalsHtml+'</div>'
+    +'<div class="sec">'
+    +'<div class="sec-title">🔄 Abonnements — '+fmt(subTot)+'/mois · '+fmt(subTot*12)+'/an</div>'
+    +'<table><thead><tr><th>Nom</th><th>Section</th><th>Mensuel</th><th>Annuel</th></tr></thead>'
+    +'<tbody>'+subsHtml+'</tbody>'
+    +(subTot>0?'<tfoot><tr><td colspan="2" style="font-weight:700">Total</td><td style="text-align:right;font-weight:800;color:#0d9488">'+fmt(subTot)+'</td><td style="text-align:right;color:#6b7280">'+fmt(subTot*12)+'</td></tr></tfoot>':'')
+    +'</table></div>'
+    +'<div class="sec">'
+    +'<div class="sec-title">🏦 Patrimoine — total : '+fmt(actifsT)+'</div>'
+    +'<table><thead><tr><th>Catégorie</th><th>Éléments</th><th style="text-align:right">Valeur</th></tr></thead>'
+    +'<tbody>'+actifsHtml+'</tbody>'
+    +(actifsT>0?'<tfoot><tr><td colspan="2" style="font-weight:700">Total patrimoine</td><td style="text-align:right;font-weight:800;color:#0d9488">'+fmt(actifsT)+'</td></tr></tfoot>':'')
+    +'</table></div>'
+    +'<div class="sec">'
+    +'<div class="sec-title">💳 Transactions'+(S.txns&&S.txns.length>20?' (20 dernières sur '+S.txns.length+')':'')+'</div>'
+    +'<table><thead><tr><th>Date</th><th>Description</th><th>Catégorie</th><th>Section</th><th style="text-align:right">Montant</th></tr></thead>'
+    +'<tbody>'+txnsHtml+'</tbody></table></div>'
+    +(ep>0?'<div class="sec"><div class="sec-title">📈 Projection épargne — 6 mois ('+fmt(ep)+'/mois)</div>'+projHtml+'</div>':'')
+    +'<div class="ftr">Généré par RescueBudget le '+new Date().toLocaleDateString('fr-FR')+' — Document confidentiel<br>'
+    +'Score calculé sur l\'épargne, le budget, les objectifs, les actions et la régularité.</div>'
+    +'</body></html>');
   win.document.close();
-  win.print();
+  setTimeout(function(){ win.print(); }, 350);
 }
 
 function closeReceiptModal(){
@@ -4807,333 +5107,4 @@ function closeReceiptModal(){
 
 // ═══════════════════════════════════════════════════
 // NOTIFICATIONS BUDGÉTAIRES
-// ═══════════════════════════════════════════════════
-function checkBudgetAlerts(){
-  if(!('Notification' in window)) return;
-  var f=S.fin||{};
-  var rev=f.revenus||0, dep=f.depenses||0;
-  if(!rev) return;
-  var rav=f.rav!=null ? f.rav : rev-dep;
-  var enviesPct=f.envies_items ? (function(){
-    try{
-      var items=JSON.parse(f.envies_items||'[]');
-      var total=items.reduce(function(s,i){return s+(i.v||0);},0);
-      return total/rev*100;
-    }catch(e){return 0;}
-  })() : 0;
-
-  var alerts=[];
-  if(rav<0) alerts.push('🚨 Reste à vivre négatif ! Tu dépenses plus que tu ne gagnes.');
-  else if(rav<rev*0.1) alerts.push('⚠️ Reste à vivre très faible ('+Math.round(rav)+'€).');
-  if(enviesPct>30) alerts.push('✨ Tes envies représentent '+Math.round(enviesPct)+'% de tes revenus (seuil conseillé : 30%).');
-
-  if(!alerts.length) return;
-
-  function sendNotifs(){
-    alerts.forEach(function(msg){
-      new Notification('RescueBudget',{body:msg,icon:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23ef4444'/%3E%3Crect x='13' y='5' width='6' height='22' rx='3' fill='white'/%3E%3Crect x='5' y='13' width='22' height='6' rx='3' fill='white'/%3E%3C/svg%3E"});
-    });
-  }
-
-  if(Notification.permission==='granted'){
-    sendNotifs();
-  } else if(Notification.permission!=='denied'){
-    Notification.requestPermission().then(function(p){ if(p==='granted') sendNotifs(); });
-  }
-}
-
-// ??????????????????????????????????????????????
-// INITIALISATION
-// ??????????????????????????????????????????????
-if(isLoggedIn()){
-  if((S.key&&S.key.length>10)||localStorage.getItem('cf_setup_done')==='1'){ startApp(); }
-  else{
-    document.getElementById('pg-login').classList.remove('active');
-    document.getElementById('pg-setup').classList.add('active');
-  }
-} else {
-  // Non connecté : afficher la page de login
-  document.getElementById('pg-login').classList.add('active');
-  checkNoAccountWarning();
-}
-</script>
-
-
-  <!-- ════════ FAB MENU ════════ -->
-  <div id="fabOverlay" style="display:none;position:fixed;inset:0;z-index:3500;background:rgba(0,0,0,.5)" onclick="closeFabMenu()">
-    <div id="fabMenu" style="position:absolute;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 40px);max-width:400px;background:var(--card);border-radius:20px;padding:8px;box-shadow:0 8px 40px rgba(0,0,0,.4)">
-      <!-- Dépense rapide -->
-      <div class="fab-item" onclick="closeFabMenu();openTxnModal()">
-        <div class="fab-item-ico" style="background:rgba(16,185,129,.15);color:var(--green)">💰</div>
-        <div class="fab-item-txt">
-          <div class="fab-item-lbl">Ajouter une dépense</div>
-          <div class="fab-item-sub">Saisie rapide par catégorie</div>
-        </div>
-      </div>
-      <!-- Ticket de caisse -->
-      <div class="fab-item" onclick="openTicketSubMenu(event)">
-        <div class="fab-item-ico" style="background:rgba(45,212,191,.15);color:var(--accent2)">🧾</div>
-        <div class="fab-item-txt">
-          <div class="fab-item-lbl">Scanner un ticket de caisse</div>
-          <div class="fab-item-sub">Photo ou fichier — analysé par Léo</div>
-        </div>
-        <span style="color:var(--text3);font-size:14px">›</span>
-      </div>
-      <!-- Sous-menu ticket -->
-      <div id="ticketSubMenu" style="display:none;border-top:1px solid var(--border);margin-top:4px;padding-top:4px">
-        <label class="fab-item fab-sub" for="receiptCamera" onclick="event.stopPropagation();setTimeout(closeFabMenu,80)" style="cursor:pointer">
-          <div class="fab-item-ico" style="background:rgba(245,158,11,.15);color:var(--orange);width:36px;height:36px;font-size:18px">📸</div>
-          <div class="fab-item-txt">
-            <div class="fab-item-lbl" style="font-size:14px">Prendre une photo</div>
-            <div class="fab-item-sub">Ouvre l'appareil photo</div>
-          </div>
-        </label>
-        <div class="fab-item fab-sub" onclick="triggerReceiptFile(event)">
-          <div class="fab-item-ico" style="background:rgba(59,130,246,.15);color:#3b82f6;width:36px;height:36px;font-size:18px">📁</div>
-          <div class="fab-item-txt">
-            <div class="fab-item-lbl" style="font-size:14px">Importer un fichier</div>
-            <div class="fab-item-sub">Image, PDF, CSV, Excel, texte…</div>
-          </div>
-        </div>
-      </div>
-      <!-- Objectif -->
-      <div class="fab-item" onclick="closeFabMenu();openGoalModal()">
-        <div class="fab-item-ico" style="background:rgba(239,68,68,.15);color:var(--red)">🎯</div>
-        <div class="fab-item-txt">
-          <div class="fab-item-lbl">Ajouter un objectif</div>
-          <div class="fab-item-sub">Épargne, projet, achat</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- ════════ MODAL FIREBASE CONFIG ════════ -->
-  <div id="fbConfigModal" style="display:none;position:fixed;inset:0;z-index:3500;background:rgba(0,0,0,.6);align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeFbConfigModal()">
-    <div style="background:var(--bg);border-radius:22px 22px 0 0;padding:28px 20px 40px;width:100%;max-width:480px;animation:slideUp .25s ease">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-        <span style="font-size:17px;font-weight:800;color:var(--text)">&#9729;&#65039; Config Firebase</span>
-        <button onclick="closeFbConfigModal()" style="background:none;border:none;font-size:22px;color:var(--sub);cursor:pointer">&#10005;</button>
-      </div>
-      <div style="margin-bottom:14px">
-        <label style="font-size:12px;color:var(--sub);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Project ID</label>
-        <input id="fbProjectId" type="text" placeholder="mon-projet-firebase" style="margin-top:6px;width:100%;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;outline:none" />
-        <div style="font-size:11px;color:var(--text3);margin-top:4px">Ex&#58; rescuebudget-12345</div>
-      </div>
-      <div style="margin-bottom:20px">
-        <label style="font-size:12px;color:var(--sub);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Cl&#233; API Web</label>
-        <input id="fbApiKey" type="text" placeholder="AIzaSy..." style="margin-top:6px;width:100%;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;outline:none;font-family:monospace" />
-        <div style="font-size:11px;color:var(--text3);margin-top:4px">Dans Firebase Console → Param&#232;tres → Cl&#233;s API</div>
-      </div>
-      <button onclick="saveFbConfig()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--accent),var(--accent3));border:none;border-radius:14px;color:#fff;font-size:16px;font-weight:800;cursor:pointer;margin-bottom:10px">
-        &#10003; Sauvegarder et activer
-      </button>
-      <button onclick="clearFbConfig()" style="width:100%;padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:14px;color:var(--red);font-size:14px;font-weight:700;cursor:pointer">
-        &#128465; D&#233;sactiver la sync cloud
-      </button>
-    </div>
-  </div>
-
-  <!-- Inputs cachés pour la capture ticket -->
-  <input type="file" id="receiptCamera" accept="image/*" capture="environment" style="display:none" onchange="handleReceiptCapture(event)"/>
-  <input type="file" id="receiptFile"   accept="*/*" style="display:none" onchange="handleReceiptCapture(event)"/>
-
-  <!-- ════════ MODAL TICKET DE CAISSE ════════ -->
-  <div id="receiptModal" style="display:none;position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.6);align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeReceiptModal()">
-    <div style="background:var(--bg);border-radius:22px 22px 0 0;padding:24px 20px 36px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;animation:slideUp .25s ease">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
-        <span id="receiptModalTitle" style="font-size:17px;font-weight:800;color:var(--text)">&#128462; Fichier analys&#233;</span>
-        <button onclick="closeReceiptModal()" style="background:none;border:none;font-size:22px;color:var(--text2);cursor:pointer">&#10005;</button>
-      </div>
-      <div id="receiptLoading" style="text-align:center;padding:30px 0;display:none">
-        <div id="receiptLoadingIco" style="font-size:32px;margin-bottom:12px">&#128462;</div>
-        <div id="receiptLoadingTxt" style="color:var(--text2);font-size:14px">L&#233;o analyse ton fichier&#8230;</div>
-      </div>
-      <div id="receiptContent" style="display:none">
-        <div id="receiptMeta" style="background:var(--card);border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--text2)"></div>
-        <div id="receiptItemsLabel" style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Articles d&#233;tect&#233;s</div>
-        <div id="receiptItems"></div>
-        <div id="receiptTotal" style="background:var(--card2);border-radius:12px;padding:10px 14px;margin-top:12px;display:flex;justify-content:space-between;align-items:center;font-weight:800;color:var(--text)"></div>
-        <div style="margin-top:6px;font-size:11px;color:var(--text3);text-align:center">V&#233;rifie les cat&#233;gories avant de valider</div>
-        <div style="display:flex;gap:10px;margin-top:16px">
-          <button onclick="closeReceiptModal()" style="flex:1;padding:13px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--text2);font-size:14px;font-weight:700;cursor:pointer">Annuler</button>
-          <button onclick="validateReceipt()" style="flex:2;padding:13px;background:linear-gradient(135deg,var(--green),#059669);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:800;cursor:pointer">&#10003; Valider et int&#233;grer</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-<script>
-// ═══════════════════════════════════════════════════
-//  FIREBASE FIRESTORE SYNC — RescueBudget v5.4
-// ═══════════════════════════════════════════════════
-var FB_CFG = null;
-var _syncTimer = null;
-
-function loadFbCfg(){
-  try{ FB_CFG = JSON.parse(localStorage.getItem('cf_fbcfg')||'null'); }
-  catch(e){ FB_CFG = null; }
-}
-loadFbCfg();
-
-function getFbUrl(){
-  if(!FB_CFG||!FB_CFG.projectId||!FB_CFG.apiKey) return null;
-  var auth = getStoredAuth();
-  if(!auth) return null;
-  // Doc ID = hash stable du username
-  var docId = 'u_' + btoa(unescape(encodeURIComponent(auth.user))).replace(/[^a-zA-Z0-9]/g,'_').slice(0,40);
-  return 'https://firestore.googleapis.com/v1/projects/'+FB_CFG.projectId+
-         '/databases/(default)/documents/rescuebudget/'+docId+'?key='+FB_CFG.apiKey;
-}
-
-function setSyncDot(state){
-  var d=document.getElementById('syncDot');
-  if(!d) return;
-  d.className='';
-  if(state==='ok')      d.className='ok';
-  else if(state==='err')d.className='err';
-  else if(state==='syncing') d.className='syncing';
-  var badge=document.getElementById('fbStatusBadge');
-  var txt=document.getElementById('fbStatusTxt');
-  if(!FB_CFG){ 
-    if(badge){ badge.className='sync-row-status off'; badge.textContent='OFF'; }
-    if(txt) txt.textContent='Non configuré — configure Firebase ci-dessous';
-    return;
-  }
-  if(state==='ok'){
-    if(badge){ badge.className='sync-row-status ok'; badge.textContent='OK'; }
-    if(txt) txt.textContent='Synchronisé — '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-  } else if(state==='err'){
-    if(badge){ badge.className='sync-row-status err'; badge.textContent='ERR'; }
-    if(txt) txt.textContent='Erreur de connexion — vérifie ta config Firebase';
-  } else if(state==='syncing'){
-    if(badge){ badge.className='sync-row-status off'; badge.textContent='⟳'; }
-    if(txt) txt.textContent='Synchronisation en cours…';
-  }
-}
-
-function syncToCloud(){
-  var url = getFbUrl();
-  if(!url) return;
-  setSyncDot('syncing');
-  var keys=['cf_auth','cf_fin','cf_subs','cf_txns','cf_goals','cf_actifs','cf_snaps',
-            'cf_key','cf_theme','cf_profile','cf_hist','cf_badges','cf_streak',
-            'cf_actions','cf_start','cf_greet','cf_anal'];
-  var backup={};
-  keys.forEach(function(k){ var v=localStorage.getItem(k); if(v) backup[k]=v; });
-  backup['_synced']=new Date().toISOString();
-  fetch(url,{
-    method:'PATCH',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({fields:{data:{stringValue:JSON.stringify(backup)},lastSync:{stringValue:backup['_synced']}}})
-  }).then(function(r){
-    setSyncDot(r.ok?'ok':'err');
-  }).catch(function(){ setSyncDot('err'); });
-}
-
-function loadFromCloud(manual){
-  var url = getFbUrl();
-  if(!url){ if(manual) toast('Configure Firebase d\'abord','#f59e0b'); return; }
-  setSyncDot('syncing');
-  fetch(url).then(function(r){
-    if(r.status===404){ setSyncDot('ok'); if(manual) toast('Aucune donnée cloud pour ce compte','#f59e0b'); return; }
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    return r.json();
-  }).then(function(doc){
-    if(!doc||!doc.fields||!doc.fields.data) return;
-    var backup=JSON.parse(doc.fields.data.stringValue);
-    var keys=['cf_fin','cf_subs','cf_txns','cf_goals','cf_actifs','cf_snaps',
-              'cf_key','cf_theme','cf_profile','cf_hist','cf_badges','cf_streak',
-              'cf_actions','cf_start','cf_greet','cf_anal'];
-    keys.forEach(function(k){ if(backup[k]!==undefined) localStorage.setItem(k,backup[k]); });
-    setSyncDot('ok');
-    if(manual){
-      toast('☁️ Données cloud chargées !','#10b981');
-      setTimeout(function(){ location.reload(); },1500);
-    }
-  }).catch(function(e){ setSyncDot('err'); if(manual) toast('Erreur cloud: '+e.message,'#ef4444'); });
-}
-
-function forceSyncNow(){
-  syncToCloud();
-  toast('☁️ Synchronisation en cours…','#0d9488');
-}
-
-// ── Config modal ────────────────────────────────────
-function openFbConfigModal(){
-  var m=document.getElementById('fbConfigModal');
-  if(!m) return;
-  if(FB_CFG){
-    var pi=document.getElementById('fbProjectId'); if(pi) pi.value=FB_CFG.projectId||'';
-    var ak=document.getElementById('fbApiKey');    if(ak) ak.value=FB_CFG.apiKey||'';
-  }
-  m.style.display='flex';
-  updateFbRows();
-}
-function closeFbConfigModal(){
-  var m=document.getElementById('fbConfigModal'); if(m) m.style.display='none';
-}
-function saveFbConfig(){
-  var pid=document.getElementById('fbProjectId').value.trim();
-  var key=document.getElementById('fbApiKey').value.trim();
-  if(!pid||!key){ toast('Remplis les deux champs','#ef4444'); return; }
-  FB_CFG={projectId:pid, apiKey:key};
-  localStorage.setItem('cf_fbcfg',JSON.stringify(FB_CFG));
-  closeFbConfigModal();
-  updateFbRows();
-  toast('☁️ Firebase configuré ! Sync en cours…','#10b981');
-  syncToCloud();
-}
-function clearFbConfig(){
-  showConfirm('Désactiver la sync cloud ?', function(){
-    FB_CFG=null;
-    localStorage.removeItem('cf_fbcfg');
-    closeFbConfigModal();
-    updateFbRows();
-    setSyncDot('off');
-    toast('Sync cloud désactivée','#64748b');
-  }, 'Désactiver');
-}
-function updateFbRows(){
-  var on=!!FB_CFG;
-  var r1=document.getElementById('fbSyncRow'); if(r1) r1.style.display=on?'':'none';
-  var r2=document.getElementById('fbLoadRow');  if(r2) r2.style.display=on?'':'none';
-  setSyncDot(on?'ok':'off');
-}
-
-// ── Hook into save() ─────────────────────────────────
-var _origSave = save;
-save = function(){
-  _origSave();
-  if(!_syncTimer){
-    _syncTimer = setTimeout(function(){ _syncTimer=null; syncToCloud(); }, 4000);
-  }
-};
-
-// ── Auto-init on page load ───────────────────────────
-window.addEventListener('DOMContentLoaded', function(){
-  updateFbRows();
-});
-
-// ── Load from cloud after login ──────────────────────
-var _origDoLogin = doLogin;
-doLogin = function(){
-  _origDoLogin();
-  if(isLoggedIn()){ setTimeout(function(){ loadFromCloud(false); }, 1000); }
-};
-var _origDoRegister = doRegister;
-doRegister = function(){
-  _origDoRegister();
-  if(isLoggedIn()){ setTimeout(function(){ syncToCloud(); }, 2000); }
-};
-</script>
-
-<!-- Tooltip info global — hors de toute .page pour ne pas hériter de display:none -->
-<div id="infoTip" style="display:none;position:fixed;z-index:9000">
-  <button class="info-tip-close" onclick="closeInfoTip()">✕</button>
-  <div class="info-tip-title" id="infoTipTitle"></div>
-  <div id="infoTipBody"></div>
-</div>
-
-</body>
-</html>
+// ══════════════════════════════════
