@@ -19,6 +19,7 @@
   --text:#f8fafc;--text2:#94a3b8;--text3:#475569;--border:#1e1e38;
   --r:16px;--sb:env(safe-area-inset-bottom,0px);
   --bg2:var(--card2);--sub:var(--text2);
+  --bot-bbl:linear-gradient(145deg,#1a1a32,#1e1e38);
 }
 body.light{
   --bg:#f0f4f8;--surface:#ffffff;--card:#ffffff;--card2:#e8edf2;
@@ -28,6 +29,7 @@ body.light{
   --red:#dc2626;--red2:rgba(220,38,38,.12);
   --text:#0f172a;--text2:#475569;--text3:#94a3b8;--border:#cbd5e1;
   --bg2:#e8edf2;--sub:#475569;
+  --bot-bbl:var(--card);
 }
 
 
@@ -156,7 +158,10 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 .rav-card.r .rav-status{background:rgba(239,68,68,.2);color:var(--red)}
 .rav-msg{font-size:13px;color:var(--text2);margin-top:10px;line-height:1.5;text-align:center}
 .rav-row{display:flex;gap:10px;margin-top:14px;width:100%}
-.rav-mini{flex:1;background:rgba(255,255,255,.06);border-radius:10px;padding:10px 12px}
+.rav-mini{flex:1;background:var(--bg2);border-radius:10px;padding:10px 12px}
+.rav-period-sel{background:var(--card2);border:1px solid var(--border);border-radius:8px;
+  color:var(--text);font-size:11px;font-weight:600;padding:3px 6px;cursor:pointer;
+  max-width:160px;outline:none;font-family:inherit}
 .rav-mini-lbl{font-size:10px;color:var(--text2);font-weight:600;margin-bottom:2px;text-transform:uppercase}
 .rav-mini-val{font-size:16px;font-weight:800}
 
@@ -342,13 +347,12 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 /* Barre d'envoi */
 .chat-bar{padding:10px 14px;padding-bottom:calc(10px + var(--sb));
   background:var(--surface);border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end;flex-shrink:0}
-#chatIn{flex:1;background:var(--card);border:1.5px solid rgba(255,255,255,.25);
+#chatIn{flex:1;background:var(--card);border:1.5px solid var(--border);
   border-radius:22px;padding:11px 16px;color:var(--text);font-size:14px;
   resize:none;outline:none;max-height:100px;min-height:42px;
-  font-family:inherit;line-height:1.4;transition:border-color .2s,box-shadow .2s;
-  box-shadow:0 0 0 1px rgba(255,255,255,.08),0 0 14px rgba(255,255,255,.12),0 0 28px rgba(255,255,255,.06)}
-#chatIn:focus{border-color:rgba(255,255,255,.55);box-shadow:0 0 0 1.5px rgba(255,255,255,.2),0 0 18px rgba(255,255,255,.22),0 0 36px rgba(255,255,255,.1)}
-#chatIn::placeholder{color:rgba(248,250,252,.5)}
+  font-family:inherit;line-height:1.4;transition:border-color .2s,box-shadow .2s}
+#chatIn:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(13,148,136,.2)}
+#chatIn::placeholder{color:var(--text3)}
 #sendBtn{width:42px;height:42px;border-radius:50%;
   background:linear-gradient(135deg,var(--accent),var(--accent3));
   border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
@@ -544,11 +548,11 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 .s-input:focus,.m-in:focus{box-shadow:0 0 0 3px rgba(13,148,136,.18)}
 /* #chatIn:focus — handled above */
 
-/* Bot message bubble */
+/* Bot message bubble — adapts to light/dark mode */
 .msg.bot .bbl{
-  background:linear-gradient(145deg,#1a1a32,#1e1e38);
+  background:var(--bot-bbl);
   border:1px solid rgba(13,148,136,.22);
-  box-shadow:0 2px 12px rgba(0,0,0,.25)}
+  box-shadow:0 2px 12px rgba(0,0,0,.15)}
 
 /* User bubble */
 .msg.user .bbl{box-shadow:0 2px 12px rgba(13,148,136,.3)}
@@ -561,7 +565,15 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 .coach-av{animation:miloPulse 3.5s ease infinite}
 
 /* Typing indicator */
-.typing{background:linear-gradient(145deg,#1a1a32,#1e1e38);border-color:rgba(13,148,136,.22)}
+.typing{background:var(--bot-bbl);border-color:rgba(13,148,136,.22)}
+
+/* ===== LIGHT MODE — overrides globaux ===== */
+body.light .hdr{background:rgba(240,244,248,.92);border-bottom:1px solid var(--border)}
+body.light .bnav{background:rgba(240,244,248,.92);border-top:1px solid var(--border)}
+body.light #chatIn{border-color:var(--border);box-shadow:none}
+body.light #chatIn:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(13,148,136,.18)}
+body.light #chatIn::placeholder{color:var(--text3)}
+body.light .coach-msg-card{border:1px solid var(--border)}
 
 /* Suggestions */
 .sugg{transition:all .18s ease;border:1px solid var(--border)}
@@ -571,6 +583,8 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 .analyse-card{
   background:linear-gradient(135deg,rgba(13,148,136,.07),rgba(17,17,32,.9));
   border:1px solid rgba(13,148,136,.3)}
+body.light .analyse-card{
+  background:linear-gradient(135deg,rgba(13,148,136,.06),rgba(240,244,248,.9));}
 .atab.active{color:var(--accent2);border-bottom:2px solid var(--accent2)}
 .atab-content{font-size:12.5px;line-height:1.7}
 
@@ -804,6 +818,8 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 .rep-card.s .rep-item-dot{background:rgba(16,185,129,.6)}
 .rep-item-name{font-size:13px;color:var(--text2);flex:1}
 .rep-item-amt{font-size:13px;font-weight:600;color:var(--text)}
+.rep-item-del{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:0 0 0 10px;line-height:1;opacity:0.45;transition:opacity .15s;flex-shrink:0}
+.rep-item-del:active{opacity:1;color:var(--red)}
 .rep-empty{padding:10px 16px 12px;font-size:12px;color:var(--text3);font-style:italic}
 
 /* ════ MODALS NOUVEAU ════ */
@@ -842,7 +858,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 .login-btn:active{opacity:.85}
 .login-switch{text-align:center;font-size:14px;color:var(--text2);margin-top:10px}
 .login-switch a{color:var(--accent2);font-weight:600;cursor:pointer;text-decoration:none}
-.login-tabs{display:flex;gap:0;margin-bottom:16px;background:var(--card);border-radius:14px;padding:4px;border:1px solid var(--border)}
+.login-tabs{display:flex;gap:0;margin-top:16px;background:var(--card);border-radius:14px;padding:4px;border:1px solid var(--border)}
 .ltab{flex:1;padding:9px 4px;border:none;background:none;color:var(--text2);font-size:11px;font-weight:700;border-radius:10px;cursor:pointer;transition:.2s;text-align:center;white-space:nowrap}
 .ltab.sel{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(13,148,136,.4)}
 .login-safe{text-align:center;margin-top:14px;font-size:12px;color:var(--text3)}
@@ -884,7 +900,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 // ══ SERVICE WORKER OFFLINE ══
 (function(){
   if(!('serviceWorker' in navigator)) return;
-  var SW_VERSION = '5.2';
+  var SW_VERSION = '5.6';
   var CACHE = 'rb-cache-v'+SW_VERSION;
   var swCode = [
     'var CACHE="rb-cache-v'+SW_VERSION+'";',
@@ -965,18 +981,11 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
         <div class="login-sub" style="margin-top:10px">Quand ton pouvoir d'achat disparaît, RescueBudget intervient.</div>
       </div>
 
-      <!-- Tabs navigation -->
-      <div class="login-tabs">
-        <button class="ltab sel" id="ltab-login"    onclick="showLoginForm()">Connexion</button>
-        <button class="ltab"     id="ltab-register" onclick="showRegister()">Créer un compte</button>
-        <button class="ltab"     id="ltab-forgot"   onclick="showForgotForm()">Mot de passe oublié</button>
-      </div>
-
       <!-- Formulaire connexion -->
       <div id="form-login">
         <div id="noAccountWarn" style="display:none;background:rgba(245,158,11,.15);border:1.5px solid rgba(245,158,11,.4);border-radius:14px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--orange);line-height:1.5">
           ⚠️ <strong>Aucun compte trouvé.</strong><br>
-          Tu as peut-être effacé ton historique. Clique sur <strong>«&nbsp;Créer un compte&nbsp;»</strong> ci-dessous, ou restaure une sauvegarde pour récupérer tes données.
+          Tu as peut-être effacé ton historique. Clique sur <strong>«&nbsp;Créer un compte&nbsp;»</strong> ou restaure une sauvegarde.
           <label style="display:flex;align-items:center;gap:8px;margin-top:10px;background:rgba(0,0,0,.2);border-radius:10px;padding:8px 10px;cursor:pointer">
             <span>📂</span><span style="font-weight:700">Restaurer une sauvegarde (.json)</span>
             <input type="file" accept=".json" style="display:none" onchange="importBackup(event)"/>
@@ -984,10 +993,18 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
         </div>
         <div class="login-card">
           <div class="login-lbl">Identifiant</div>
-          <input class="login-in" id="loginUser" type="text" placeholder="Ton pr&#233;nom ou pseudo" autocomplete="username"/>
+          <input class="login-in" id="loginUser" type="text" placeholder="Ton prénom ou pseudo" autocomplete="username"
+            onkeydown="if(event.key==='Enter'){document.getElementById('loginPass').focus();}"/>
           <div class="login-lbl">Mot de passe</div>
-          <input class="login-in" id="loginPass" type="password" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;" autocomplete="current-password"/>
-          <button class="login-btn" onclick="doLogin()" style="background:linear-gradient(135deg,#10b981,#059669)">Se connecter &#8594;</button>
+          <input class="login-in" id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password"
+            onkeydown="if(event.key==='Enter'){doLogin();}"/>
+          <button class="login-btn" onclick="doLogin()" style="background:linear-gradient(135deg,#10b981,#059669)">Se connecter →</button>
+        </div>
+        <!-- Tabs navigation sous le bouton -->
+        <div class="login-tabs">
+          <button class="ltab sel" id="ltab-login"    onclick="showLoginForm()">Connexion</button>
+          <button class="ltab"     id="ltab-register" onclick="showRegister()">Créer un compte</button>
+          <button class="ltab"     id="ltab-forgot"   onclick="showForgotForm()">Mot de passe oublié</button>
         </div>
       </div>
 
@@ -995,12 +1012,20 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
       <div id="form-register" style="display:none">
         <div class="login-card">
           <div class="login-lbl">Choisis un identifiant</div>
-          <input class="login-in" id="regUser" type="text" placeholder="Ton pr&#233;nom ou pseudo" autocomplete="username"/>
+          <input class="login-in" id="regUser" type="text" placeholder="Ton prénom ou pseudo" autocomplete="username"
+            onkeydown="if(event.key==='Enter'){document.getElementById('regPass').focus();}"/>
           <div class="login-lbl">Mot de passe</div>
-          <input class="login-in" id="regPass" type="password" placeholder="Min. 4 caract&#232;res" autocomplete="new-password"/>
+          <input class="login-in" id="regPass" type="password" placeholder="Min. 4 caractères" autocomplete="new-password"
+            onkeydown="if(event.key==='Enter'){document.getElementById('regPass2').focus();}"/>
           <div class="login-lbl">Confirme le mot de passe</div>
-          <input class="login-in" id="regPass2" type="password" placeholder="M&#234;me mot de passe" autocomplete="new-password"/>
-          <button class="login-btn" onclick="doRegister()" style="background:linear-gradient(135deg,#10b981,#059669)">Cr&#233;er mon compte &#8594;</button>
+          <input class="login-in" id="regPass2" type="password" placeholder="Même mot de passe" autocomplete="new-password"
+            onkeydown="if(event.key==='Enter'){doRegister();}"/>
+          <button class="login-btn" onclick="doRegister()" style="background:linear-gradient(135deg,#10b981,#059669)">Créer mon compte →</button>
+        </div>
+        <div class="login-tabs">
+          <button class="ltab"     id="ltab-login2"    onclick="showLoginForm()">Connexion</button>
+          <button class="ltab sel" id="ltab-register2" onclick="showRegister()">Créer un compte</button>
+          <button class="ltab"     id="ltab-forgot2"   onclick="showForgotForm()">Mot de passe oublié</button>
         </div>
       </div>
 
@@ -1010,13 +1035,19 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
           <div style="text-align:center;font-size:24px;margin-bottom:8px">🔑</div>
           <div style="font-size:14px;color:var(--text2);text-align:center;margin-bottom:16px">Entre ton identifiant pour réinitialiser ton compte</div>
           <div class="login-lbl">Ton identifiant</div>
-          <input class="login-in" id="forgotUser" type="text" placeholder="Ton prénom ou pseudo"/>
-          <div style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center">⚠️ Cette action supprimera tes données locales et réinitialisera ton mot de passe.</div>
+          <input class="login-in" id="forgotUser" type="text" placeholder="Ton prénom ou pseudo"
+            onkeydown="if(event.key==='Enter'){doForgotPassword();}"/>
+          <div style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center">⚠️ Cette action supprimera tes données locales.</div>
           <button class="login-btn" onclick="doForgotPassword()" style="background:var(--red)">Réinitialiser mon compte →</button>
+        </div>
+        <div class="login-tabs">
+          <button class="ltab"     id="ltab-login3"    onclick="showLoginForm()">Connexion</button>
+          <button class="ltab"     id="ltab-register3" onclick="showRegister()">Créer un compte</button>
+          <button class="ltab sel" id="ltab-forgot3"   onclick="showForgotForm()">Mot de passe oublié</button>
         </div>
       </div>
 
-      <div class="login-safe">&#128274; Tout reste sur ton appareil &#8212; aucune donn&#233;e envoy&#233;e</div>
+      <div class="login-safe">🔒 Tout reste sur ton appareil — aucune donnée envoyée</div>
     </div>
   </section>
 
@@ -1043,8 +1074,9 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
         3. Clique sur <strong>"Create API Key"</strong><br>
         4. Copie-colle la cle ici
       </div>
-      <button class="s-btn" onclick="saveKey()">Parler &#224; L&#233;o &#8594;</button>
-      <div class="s-safe">&#128274; Aucune donn&#233;e bancaire requise &#8212; juste une conversation</div>
+      <button class="s-btn" onclick="saveKey()">Parler à Léo →</button>
+      <button onclick="skipSetup()" style="width:100%;padding:12px;background:transparent;border:1.5px solid var(--border);border-radius:14px;color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;margin-top:10px">Passer cette étape (sans IA) →</button>
+      <div class="s-safe">🔒 Aucune donnée bancaire requise — juste une conversation</div>
     </div>
   </section>
 
@@ -1059,7 +1091,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
         <div class="rav-card g" id="ravCard">
            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
              <div class="rav-lbl" style="margin:0">Reste à vivre</div>
-             <select id="ravPeriodSel" onchange="renderBudget()" style="background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.15);border-radius:8px;color:inherit;font-size:11px;font-weight:600;padding:3px 6px;cursor:pointer;max-width:160px;outline:none"></select>
+             <select id="ravPeriodSel" onchange="renderBudget()" class="rav-period-sel"></select>
            </div>
            <div class="rav-val" id="ravVal">-- &#8364;</div>
            <div class="rav-status" id="ravStatus">-- &#9679;</div>
@@ -1354,12 +1386,6 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
       <button class="file-preview-rm" onclick="clearFileAttachment()" title="Retirer">✕</button>
     </div>
     <!-- Bottom sheet pièce jointe -->
-    <!-- Tooltip info global -->
-    <div id="infoTip" style="display:none;position:fixed;z-index:9000">
-      <button class="info-tip-close" onclick="closeInfoTip()">✕</button>
-      <div class="info-tip-title" id="infoTipTitle"></div>
-      <div id="infoTipBody"></div>
-    </div>
     <div id="attachOverlay" onclick="closeAttachSheet()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:3000"></div>
     <div id="attachSheet" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#111120;border-radius:20px 20px 0 0;z-index:3001;padding:12px 0 calc(16px + env(safe-area-inset-bottom,0px));box-shadow:0 -4px 32px rgba(0,0,0,.6)">
       <div style="width:36px;height:4px;background:#1e1e38;border-radius:4px;margin:0 auto 16px"></div>
@@ -1541,12 +1567,12 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
       4&#46; Colle-les ici → tes donn&#233;es se synchronisent sur tous tes appareils automatiquement &#128526;
     </div>
     <div class="profil-sect">&#8505;&#65039; &#192; propos</div>
-    <div class="setting-row" onclick="toast('RescueBudget v5.2 — Coach IA L&#233;o &#129302;','#0d9488')">
+    <div class="setting-row" onclick="toast('RescueBudget v5.4 — Coach IA L&#233;o &#129302;','#0d9488')">
       <div class="s-row-left">
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" style="font-size:13px;color:var(--accent2);font-weight:700">v5.2</span>
+      <span class="s-row-arr" style="font-size:13px;color:var(--accent2);font-weight:700">v5.4</span>
     </div>
     <div class="setting-row" onclick="openPrivacyModal()">
       <div class="s-row-left">
@@ -1625,12 +1651,44 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
     <div class="modal-drag"></div>
     <div class="modal-title" id="actifModalTitle">Actif</div>
     <div style="font-size:13px;color:var(--text2);margin-bottom:16px" id="actifModalSub"></div>
+    <!-- Vue sélecteur (liste des catégories) -->
+    <div id="actifSelectorView" style="display:none"></div>
+    <!-- Vue édition (montant) -->
+    <div id="actifEditView">
+      <div class="actif-modal-lbl">Montant (€)</div>
+      <input class="actif-modal-in" id="actifModalIn" type="number" inputmode="decimal" placeholder="0" min="0" step="0.01"/>
+      <div style="font-size:12px;color:var(--text3);margin-top:8px;margin-bottom:20px">Saisis la valeur actuelle estimée de cet actif.</div>
+      <button class="login-btn" onclick="saveActif()">Enregistrer ✓</button>
+      <div style="text-align:center;margin-top:10px">
+        <span style="font-size:13px;color:var(--text2);cursor:pointer" onclick="closeActifModal()">Annuler</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Confirm personnalisé -->
+<div class="ov" id="confirmModal" style="display:none" onclick="if(event.target===this)_closeConfirm()">
+  <div class="modal" style="max-width:320px">
+    <div class="modal-drag"></div>
+    <div style="font-size:15px;color:var(--text);text-align:center;margin-bottom:24px;line-height:1.5" id="confirmMsg"></div>
+    <button class="login-btn" id="confirmOkBtn" style="margin-bottom:8px;background:var(--red)">Confirmer</button>
+    <div style="text-align:center;margin-top:2px">
+      <span style="font-size:13px;color:var(--text2);cursor:pointer" onclick="_closeConfirm()">Annuler</span>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Versement Objectif -->
+<div class="ov" id="goalDepositModal" style="display:none" onclick="if(event.target===this)closeGoalDepositModal()">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <div class="modal-title" id="depositModalTitle">+ Versement</div>
     <div class="actif-modal-lbl">Montant (€)</div>
-    <input class="actif-modal-in" id="actifModalIn" type="number" inputmode="decimal" placeholder="0" min="0" step="0.01"/>
-    <div style="font-size:12px;color:var(--text3);margin-top:8px;margin-bottom:20px">Saisis la valeur actuelle estimée de cet actif.</div>
-    <button class="login-btn" onclick="saveActif()">Enregistrer ✓</button>
+    <input class="actif-modal-in" id="depositModalIn" type="number" inputmode="decimal" placeholder="0" min="0" step="0.01"/>
+    <div style="font-size:12px;color:var(--text3);margin-top:8px;margin-bottom:20px" id="depositModalSub"></div>
+    <button class="login-btn" onclick="saveGoalDeposit()">Enregistrer ✓</button>
     <div style="text-align:center;margin-top:10px">
-      <span style="font-size:13px;color:var(--text2);cursor:pointer" onclick="closeActifModal()">Annuler</span>
+      <span style="font-size:13px;color:var(--text2);cursor:pointer" onclick="closeGoalDepositModal()">Annuler</span>
     </div>
   </div>
 </div>
@@ -1923,7 +1981,7 @@ function checkNoAccountWarning(){
 }
 function afterAuth(){
   document.getElementById('pg-login').classList.remove('active');
-  if(S.key&&S.key.length>10){ startApp(); }
+  if((S.key&&S.key.length>10)||localStorage.getItem('cf_setup_done')==='1'){ startApp(); }
   else{ document.getElementById('pg-setup').classList.add('active'); }
 }
 function doLogin(){
@@ -1942,21 +2000,36 @@ function showRegister(){
   document.getElementById('form-register').style.display='block';
   document.getElementById('form-forgot').style.display='none';
   document.querySelectorAll('.ltab').forEach(function(t){t.classList.remove('sel');});
-  var t=document.getElementById('ltab-register'); if(t) t.classList.add('sel');
+  ['ltab-register','ltab-register2','ltab-register3'].forEach(function(id){
+    var t=document.getElementById(id); if(t) t.classList.add('sel');
+  });
+  setTimeout(function(){ var e=document.getElementById('regUser'); if(e) e.focus(); },100);
 }
 function showLoginForm(){
   document.getElementById('form-login').style.display='block';
   document.getElementById('form-register').style.display='none';
   document.getElementById('form-forgot').style.display='none';
   document.querySelectorAll('.ltab').forEach(function(t){t.classList.remove('sel');});
-  var t=document.getElementById('ltab-login'); if(t) t.classList.add('sel');
+  ['ltab-login','ltab-login2','ltab-login3'].forEach(function(id){
+    var t=document.getElementById(id); if(t) t.classList.add('sel');
+  });
+  setTimeout(function(){ var e=document.getElementById('loginUser'); if(e) e.focus(); },100);
 }
 function showForgotForm(){
   document.getElementById('form-login').style.display='none';
   document.getElementById('form-register').style.display='none';
   document.getElementById('form-forgot').style.display='block';
   document.querySelectorAll('.ltab').forEach(function(t){t.classList.remove('sel');});
-  var t=document.getElementById('ltab-forgot'); if(t) t.classList.add('sel');
+  ['ltab-forgot','ltab-forgot2','ltab-forgot3'].forEach(function(id){
+    var t=document.getElementById(id); if(t) t.classList.add('sel');
+  });
+  setTimeout(function(){ var e=document.getElementById('forgotUser'); if(e) e.focus(); },100);
+}
+function skipSetup(){
+  localStorage.setItem('cf_setup_done','1');
+  document.getElementById('pg-setup').classList.remove('active');
+  toast('Mode sans IA activé. Tu peux saisir ta clé API plus tard dans Profil.','#f59e0b');
+  startApp();
 }
 function doForgotPassword(){
   var user=document.getElementById('forgotUser').value.trim();
@@ -1967,10 +2040,11 @@ function doForgotPassword(){
     var acc=JSON.parse(stored);
     if(acc.user.toLowerCase()!==user.toLowerCase()){ toast('Identifiant introuvable','#ef4444'); return; }
   }catch(e){ toast('Erreur lecture compte','#ef4444'); return; }
-  if(!confirm('Réinitialiser le compte "'+user+'" ? Toutes tes données locales seront effacées.')) return;
-  localStorage.clear(); sessionStorage.clear();
-  toast('Compte réinitialisé. Crée un nouveau compte.','#10b981');
-  setTimeout(function(){ location.reload(); },1500);
+  showConfirm('Réinitialiser le compte "'+user+'" ? Toutes tes données locales seront effacées.', function(){
+    localStorage.clear(); sessionStorage.clear();
+    toast('Compte réinitialisé. Crée un nouveau compte.','#10b981');
+    setTimeout(function(){ location.reload(); },1500);
+  }, 'Réinitialiser');
 }
 function doRegister(){
   var user=document.getElementById('regUser').value.trim();
@@ -2268,24 +2342,25 @@ function toggleTheme(){
   });
 })();
 function doLogout(){
-  if(!confirm('Te déconnecter de RescueBudget ?')) return;
-  // Sauvegarde automatique avant déconnexion
-  try{
-    var backup = {};
-    ['cf_auth','cf_fin','cf_subs','cf_txns','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile'].forEach(function(k){
-      var v=localStorage.getItem(k); if(v!==null) backup[k]=v;
-    });
-    backup._exported=new Date().toISOString(); backup._version='1';
-    var blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
-    var a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    var d=new Date().toLocaleDateString('fr-FR').replace(/\//g,'-');
-    a.download='RescueBudget_sauvegarde_'+d+'.json';
-    a.click();
-    localStorage.setItem('cf_backup_dl',String(Date.now()));
-  }catch(ex){}
-  sessionStorage.removeItem('cf_sess');
-  location.reload();
+  showConfirm('Te déconnecter de RescueBudget ?', function(){
+    // Sauvegarde automatique avant déconnexion
+    try{
+      var backup = {};
+      ['cf_auth','cf_fin','cf_subs','cf_txns','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile'].forEach(function(k){
+        var v=localStorage.getItem(k); if(v!==null) backup[k]=v;
+      });
+      backup._exported=new Date().toISOString(); backup._version='1';
+      var blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+      var a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      var d=new Date().toLocaleDateString('fr-FR').replace(/\//g,'-');
+      a.download='RescueBudget_sauvegarde_'+d+'.json';
+      a.click();
+      localStorage.setItem('cf_backup_dl',String(Date.now()));
+    }catch(ex){}
+    sessionStorage.removeItem('cf_sess');
+    location.reload();
+  }, 'Déconnecter');
 }
 
 try{ S.lastChatOpen = parseInt(localStorage.getItem('cf_chatOpen')||'0')||0; }catch(e){}
@@ -2411,7 +2486,7 @@ function parseItems(raw){
   try{ var p=JSON.parse(raw); return Array.isArray(p)?p:[]; }catch(e){ return []; }
 }
 
-function renderOneCard(itemsId, totalId, pctId, barId, items, rev, idealPct){
+function renderOneCard(itemsId, totalId, pctId, barId, items, rev, idealPct, sectionKey){
   var total=items.reduce(function(s,x){return s+(parseFloat(x.v)||0);},0);
   var pct=rev>0?Math.round(total/rev*100):0;
   var overBudget=pct>idealPct;
@@ -2431,11 +2506,15 @@ function renderOneCard(itemsId, totalId, pctId, barId, items, rev, idealPct){
     itemsEl.innerHTML='<div class="rep-empty">Dis à Léo tes dépenses pour remplir cette section…</div>';
     return;
   }
-  itemsEl.innerHTML=items.map(function(x){
+  itemsEl.innerHTML=items.map(function(x,i){
+    var delBtn = sectionKey
+      ? '<button class="rep-item-del" onclick="deleteRepItem(\''+sectionKey+'\','+i+')" aria-label="Supprimer">×</button>'
+      : '';
     return '<div class="rep-item">'
       +'<div class="rep-item-dot"></div>'
       +'<div class="rep-item-name">'+esc(x.n||x.nom||'')+'</div>'
       +'<div class="rep-item-amt">'+euro(parseFloat(x.v||x.mt)||0)+'</div>'
+      +delBtn
       +'</div>';
   }).join('');
 }
@@ -2452,9 +2531,9 @@ function renderTriCards(){
   }
   // repSection géré par accordéon
 
-  renderOneCard('repBItems','repBTotal','repBPct','repBBar',b,rev,50);
-  renderOneCard('repEItems','repETotal','repEPct','repEBar',e,rev,30);
-  renderOneCard('repSItems','repSTotal','repSPct','repSBar',s,rev,20);
+  renderOneCard('repBItems','repBTotal','repBPct','repBBar',b,rev,50,'besoins_items');
+  renderOneCard('repEItems','repETotal','repEPct','repEBar',e,rev,30,'envies_items');
+  renderOneCard('repSItems','repSTotal','repSPct','repSBar',s,rev,20,'epargne_items');
 }
 
 // ══════════════════════════════════════════════
@@ -2592,15 +2671,44 @@ function renderActifs(){
 }
 
 function openActifModal(key){
+  var m = document.getElementById('actifModal');
+  var selView  = document.getElementById('actifSelectorView');
+  var editView = document.getElementById('actifEditView');
+
+  if(!key){
+    // Mode sélecteur : afficher la liste de toutes les catégories
+    var actifs = S.actifs || {};
+    var listHtml = ACTIF_TYPES.map(function(t){
+      var val = parseFloat(actifs[t.key])||0;
+      var col = val>0 ? 'var(--accent2)' : 'var(--text3)';
+      return '<div onclick="openActifModal(\''+t.key+'\')" style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer">'
+        +'<span style="font-size:20px;width:28px;text-align:center">'+t.ico+'</span>'
+        +'<div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">'+t.label+'</div>'
+        +'<div style="font-size:11px;color:var(--text2)">'+t.sub+'</div></div>'
+        +'<div style="font-size:14px;font-weight:700;color:'+col+'">'+euro(val)+'</div>'
+        +'<span style="color:var(--text3);font-size:16px;margin-left:4px">›</span></div>';
+    }).join('');
+    document.getElementById('actifModalTitle').textContent = '💰 Mes actifs';
+    document.getElementById('actifModalSub').textContent = 'Sélectionne un actif à modifier';
+    selView.innerHTML  = listHtml
+      +'<div style="text-align:center;margin-top:16px">'
+      +'<span style="font-size:13px;color:var(--text2);cursor:pointer" onclick="closeActifModal()">Fermer</span></div>';
+    selView.style.display  = 'block';
+    editView.style.display = 'none';
+    m.style.display = 'flex';
+    return;
+  }
+
   var t = ACTIF_TYPES.find(function(x){ return x.key===key; });
   if(!t) return;
   var actifs = S.actifs || {};
   var val = actifs[key] || '';
-  var m = document.getElementById('actifModal');
   document.getElementById('actifModalTitle').textContent = t.ico+' '+t.label;
   document.getElementById('actifModalSub').textContent = t.sub;
   document.getElementById('actifModalIn').value = val;
   document.getElementById('actifModalIn').dataset.key = key;
+  selView.style.display  = 'none';
+  editView.style.display = 'block';
   m.style.display = 'flex';
   setTimeout(function(){ document.getElementById('actifModalIn').focus(); }, 100);
 }
@@ -2608,7 +2716,7 @@ function openActifModal(key){
 function saveActif(){
   var inp = document.getElementById('actifModalIn');
   var key = inp.dataset.key;
-  var val = parseFloat(inp.value.replace(',','.'))||0;
+  var val = parseMontant(inp.value)||0;
   if(!S.actifs) S.actifs = {};
   S.actifs[key] = val;
   save();
@@ -2619,6 +2727,64 @@ function saveActif(){
 
 function closeActifModal(){
   document.getElementById('actifModal').style.display = 'none';
+}
+
+// ── Confirm modal personnalisé (remplace confirm() natif) ──
+var _confirmCb = null;
+function showConfirm(msg, onOk, btnLabel){
+  document.getElementById('confirmMsg').textContent = msg;
+  var btn = document.getElementById('confirmOkBtn');
+  btn.textContent = btnLabel || 'Confirmer';
+  _confirmCb = onOk || null;
+  btn.onclick = function(){ _closeConfirm(); if(_confirmCb){ var cb=_confirmCb; _confirmCb=null; cb(); } };
+  document.getElementById('confirmModal').style.display = 'flex';
+}
+function _closeConfirm(){
+  document.getElementById('confirmModal').style.display = 'none';
+  _confirmCb = null;
+}
+
+// ── Supprimer un item 50/30/20 ──
+function deleteRepItem(sectionKey, idx){
+  if(!S.fin) return;
+  var items = parseItems(S.fin[sectionKey]);
+  items.splice(idx, 1);
+  S.fin[sectionKey] = JSON.stringify(items);
+  // Recalculer le total dépenses
+  var totalDep = (parseItems(S.fin.besoins_items).reduce(function(s,i){return s+(parseFloat(i.v)||0);},0)
+                + parseItems(S.fin.envies_items||'[]').reduce(function(s,i){return s+(parseFloat(i.v)||0);},0));
+  if(totalDep > 0) S.fin.depenses = Math.round(totalDep*100)/100;
+  save(); renderTriCards(); renderScore(); renderPoche(); renderBudget();
+}
+
+// ── Modal versement objectif ──
+var _depositGoalIdx = null;
+function openGoalDeposit(gi){
+  var g = S.goals[gi]; if(!g) return;
+  _depositGoalIdx = gi;
+  document.getElementById('depositModalTitle').textContent = (g.emoji||'🎯')+' '+g.name;
+  document.getElementById('depositModalSub').textContent = 'Actuel : '+euro(g.current)+' — Cible : '+euro(g.target);
+  document.getElementById('depositModalIn').value = '';
+  document.getElementById('goalDepositModal').style.display = 'flex';
+  setTimeout(function(){ document.getElementById('depositModalIn').focus(); }, 100);
+}
+function closeGoalDepositModal(){
+  document.getElementById('goalDepositModal').style.display = 'none';
+  _depositGoalIdx = null;
+}
+function saveGoalDeposit(){
+  var gi = _depositGoalIdx;
+  if(gi === null) return;
+  var g = S.goals[gi]; if(!g) return;
+  var v = parseMontant(document.getElementById('depositModalIn').value);
+  if(!v || v <= 0){ toast('Montant invalide','#ef4444'); return; }
+  g.current = Math.min(g.target, Math.round((g.current+v)*100)/100);
+  if(g.current >= g.target){
+    toast('🎉 Objectif atteint ! Félicitations !','#10b981');
+  } else {
+    toast('+'+euro(v)+' versés. Reste : '+euro(g.target-g.current),'#0d9488');
+  }
+  S.actions++; save(); renderGoals(); checkBadges(); closeGoalDepositModal();
 }
 
 // ══════════════════════════════════════════════
@@ -2931,7 +3097,7 @@ function getSystem(){
   }
   var goals = S.goals || [];
   if(goals.length){
-    ctx += ' OBJECTIFS : '+goals.map(function(g){return g.name+' (cible: '+g.target+'€, actuelg.current||0)+'€)';}).join(', ')+'.';
+    ctx += ' OBJECTIFS : '+goals.map(function(g){return g.name+' (cible: '+g.target+'€, actuel: '+(g.current||0)+'€)';}).join(', ')+'.';
   }
   return SYSTEM_BASE + (SYSTEM_LEVELS[getLevel()]||'') + ctx;
 }
@@ -3025,19 +3191,22 @@ function renderSynthTable(){
 function buildRavPeriodOptions(){
   var sel = document.getElementById('ravPeriodSel');
   if(!sel) return;
+  var prev = sel.value; // sauvegarder la sélection avant reconstruction
   var now = new Date();
   var yr  = now.getFullYear();
   var mois = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
   var curM = now.getMonth();
+  var defaultVal = yr+'-'+(curM<9?'0':'')+(curM+1);
   var opts = '';
-  // All months of current year up to and including current
   for(var m = 0; m <= curM; m++){
     var val = yr+'-'+(m<9?'0':'')+(m+1);
     var lbl = mois[m]+' '+yr;
-    opts += '<option value="'+val+'"'+(m===curM?' selected':'')+'>📅 '+lbl+'</option>';
+    opts += '<option value="'+val+'">📅 '+lbl+'</option>';
   }
   opts += '<option value="year-'+yr+'">📆 Année '+yr+'</option>';
   sel.innerHTML = opts;
+  // Restaurer la sélection précédente (si encore valide), sinon mois courant
+  sel.value = prev || defaultVal;
 }
 
 function renderBudget(){
@@ -3056,7 +3225,7 @@ function renderBudget(){
   var rev = (f.revenus||0) * factor;
   var dep = (f.depenses||0) * factor;
   var rav = (f.rav != null ? f.rav : ((f.revenus||0) - (f.depenses||0))) * factor;
-  var ep  = (f.epargne || Math.max(0, f.rav||0)) * factor;
+  var ep  = ((f.epargne != null && f.epargne !== '' && f.epargne !== 0) ? f.epargne : Math.max(0, f.rav||0)) * factor;
   var pct = rev > 0 ? Math.round(dep/rev*100) : 50;
 
   // Zone couleur
@@ -3797,27 +3966,13 @@ function togStep(gi,si){
 
 function delGoal(gi){
   var g=S.goals[gi]; if(!g) return;
-  if(!confirm('Supprimer l\'objectif "'+g.name+'" ?')) return;
-  S.goals.splice(gi,1);
-  save(); renderGoals();
-  toast('Objectif supprimé','#64748b');
+  showConfirm('Supprimer l\'objectif "'+g.name+'" ?', function(){
+    S.goals.splice(gi,1);
+    save(); renderGoals();
+    toast('Objectif supprimé','#64748b');
+  }, 'Supprimer');
 }
 
-function openGoalDeposit(gi){
-  var g=S.goals[gi]; if(!g) return;
-  var amt=prompt('Ajouter un versement pour "'+g.name+'" (actuel : '+euro(g.current)+') :\nMontant en € :');
-  if(amt===null) return;
-  var v=parseMontant(amt);
-  if(!v||v<=0){ toast('Montant invalide','#ef4444'); return; }
-  g.current=Math.min(g.target, Math.round((g.current+v)*100)/100);
-  save(); renderGoals();
-  if(g.current>=g.target){
-    toast('🎉 Objectif "'+g.name+'" atteint !','#10b981');
-  } else {
-    toast('+'+euro(v)+' versé sur "'+g.name+'"','#10b981');
-  }
-  S.actions++; save(); checkBadges();
-}
 
 // ══════════════════════════════════════════════
 // DÉMARRAGE APPLICATION
@@ -4304,13 +4459,14 @@ function importBackup(event){
       if(!backup['cf_auth'] && !backup['cf_fin']){
         toast('Fichier invalide ou vide','#ef4444'); return;
       }
-      if(!confirm('Restaurer cette sauvegarde ? Tes données actuelles seront remplacées.')) return;
-      var keys = ['cf_auth','cf_fin','cf_subs','cf_txns','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile'];
-      keys.forEach(function(k){
-        if(backup[k] !== undefined) localStorage.setItem(k, backup[k]);
-      });
-      toast('✅ Données restaurées ! Reconnecte-toi.','#10b981');
-      setTimeout(function(){ location.reload(); }, 1800);
+      showConfirm('Restaurer cette sauvegarde ? Tes données actuelles seront remplacées.', function(){
+        var keys = ['cf_auth','cf_fin','cf_subs','cf_txns','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile'];
+        keys.forEach(function(k){
+          if(backup[k] !== undefined) localStorage.setItem(k, backup[k]);
+        });
+        toast('✅ Données restaurées ! Reconnecte-toi.','#10b981');
+        setTimeout(function(){ location.reload(); }, 1800);
+      }, 'Restaurer');
     } catch(err){
       toast('Erreur lecture fichier : ' + err.message,'#ef4444');
     }
@@ -4409,7 +4565,7 @@ function checkBudgetAlerts(){
 // INITIALISATION
 // ??????????????????????????????????????????????
 if(isLoggedIn()){
-  if(S.key&&S.key.length>10){ startApp(); }
+  if((S.key&&S.key.length>10)||localStorage.getItem('cf_setup_done')==='1'){ startApp(); }
   else{
     document.getElementById('pg-login').classList.remove('active');
     document.getElementById('pg-setup').classList.add('active');
@@ -4417,6 +4573,7 @@ if(isLoggedIn()){
 } else {
   // Non connecté : afficher la page de login
   document.getElementById('pg-login').classList.add('active');
+  checkNoAccountWarning();
 }
 </script>
 
@@ -4527,7 +4684,7 @@ if(isLoggedIn()){
 
 <script>
 // ═══════════════════════════════════════════════════
-//  FIREBASE FIRESTORE SYNC — RescueBudget v5.2
+//  FIREBASE FIRESTORE SYNC — RescueBudget v5.4
 // ═══════════════════════════════════════════════════
 var FB_CFG = null;
 var _syncTimer = null;
@@ -4647,13 +4804,14 @@ function saveFbConfig(){
   syncToCloud();
 }
 function clearFbConfig(){
-  if(!confirm('Désactiver la sync cloud ?')) return;
-  FB_CFG=null;
-  localStorage.removeItem('cf_fbcfg');
-  closeFbConfigModal();
-  updateFbRows();
-  setSyncDot('off');
-  toast('Sync cloud désactivée','#64748b');
+  showConfirm('Désactiver la sync cloud ?', function(){
+    FB_CFG=null;
+    localStorage.removeItem('cf_fbcfg');
+    closeFbConfigModal();
+    updateFbRows();
+    setSyncDot('off');
+    toast('Sync cloud désactivée','#64748b');
+  }, 'Désactiver');
 }
 function updateFbRows(){
   var on=!!FB_CFG;
@@ -4688,6 +4846,13 @@ doRegister = function(){
   if(isLoggedIn()){ setTimeout(function(){ syncToCloud(); }, 2000); }
 };
 </script>
+
+<!-- Tooltip info global — hors de toute .page pour ne pas hériter de display:none -->
+<div id="infoTip" style="display:none;position:fixed;z-index:9000">
+  <button class="info-tip-close" onclick="closeInfoTip()">✕</button>
+  <div class="info-tip-title" id="infoTipTitle"></div>
+  <div id="infoTipBody"></div>
+</div>
 
 </body>
 </html>
