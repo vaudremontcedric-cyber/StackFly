@@ -900,7 +900,7 @@ body.light .analyse-card{
 // ══ SERVICE WORKER OFFLINE ══
 (function(){
   if(!('serviceWorker' in navigator)) return;
-  var SW_VERSION = '5.6';
+  var SW_VERSION = '5.7';
   var CACHE = 'rb-cache-v'+SW_VERSION;
   var swCode = [
     'var CACHE="rb-cache-v'+SW_VERSION+'";',
@@ -1666,21 +1666,20 @@ body.light .analyse-card{
   </div>
 </div>
 
-<!-- Modal Confirm personnalisé -->
-<div class="ov" id="confirmModal" style="display:none" onclick="if(event.target===this)_closeConfirm()">
-  <div class="modal" style="max-width:320px">
-    <div class="modal-drag"></div>
+<!-- Modal Confirm personnalisé (centré) -->
+<div id="confirmModal" style="display:none;position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);align-items:center;justify-content:center" onclick="if(event.target===this)_closeConfirm()">
+  <div style="background:var(--surface);border-radius:20px;padding:28px 24px 22px;width:88%;max-width:320px;margin:20px auto">
     <div style="font-size:15px;color:var(--text);text-align:center;margin-bottom:24px;line-height:1.5" id="confirmMsg"></div>
-    <button class="login-btn" id="confirmOkBtn" style="margin-bottom:8px;background:var(--red)">Confirmer</button>
-    <div style="text-align:center;margin-top:2px">
+    <button class="login-btn" id="confirmOkBtn" style="margin-bottom:10px;background:var(--red)">Confirmer</button>
+    <div style="text-align:center">
       <span style="font-size:13px;color:var(--text2);cursor:pointer" onclick="_closeConfirm()">Annuler</span>
     </div>
   </div>
 </div>
 
 <!-- Modal Versement Objectif -->
-<div class="ov" id="goalDepositModal" style="display:none" onclick="if(event.target===this)closeGoalDepositModal()">
-  <div class="modal">
+<div class="ov" id="goalDepositModal" style="display:none;align-items:center" onclick="if(event.target===this)closeGoalDepositModal()">
+  <div class="modal" style="border-radius:20px;margin:20px">
     <div class="modal-drag"></div>
     <div class="modal-title" id="depositModalTitle">+ Versement</div>
     <div class="actif-modal-lbl">Montant (€)</div>
@@ -1710,7 +1709,7 @@ body.light .analyse-card{
 <div class="ov" id="ovGoal" onclick="if(event.target===this)closeGoalModal()">
   <div class="modal">
     <div class="modal-drag"></div>
-    <div class="modal-title">Nouvel objectif</div>
+    <div class="modal-title" id="goalModalTitle">Nouvel objectif</div>
     <input class="m-in" id="goalEmoji" placeholder="&#127919; Emoji (ex: &#128664; &#127968; &#9992; &#127958;)" maxlength="4" style="font-size:24px;text-align:center"/>
     <input class="m-in" id="goalName" placeholder="Nom de l'objectif (ex: Achat voiture)" maxlength="60"/>
     <div class="m-row">
@@ -1723,7 +1722,7 @@ body.light .analyse-card{
     <input class="m-in" id="goalDeadline" type="month"/>
     <div class="m-btns">
       <button class="mb s" onclick="closeGoalModal()">Annuler</button>
-      <button class="mb p" onclick="addGoal()">Cr&#233;er l'objectif</button>
+      <button class="mb p" id="goalModalSaveBtn" onclick="addGoal()">Cr&#233;er l'objectif</button>
     </div>
   </div>
 </div>
@@ -2737,7 +2736,8 @@ function showConfirm(msg, onOk, btnLabel){
   btn.textContent = btnLabel || 'Confirmer';
   _confirmCb = onOk || null;
   btn.onclick = function(){ _closeConfirm(); if(_confirmCb){ var cb=_confirmCb; _confirmCb=null; cb(); } };
-  document.getElementById('confirmModal').style.display = 'flex';
+  var cm = document.getElementById('confirmModal');
+  cm.style.display = 'flex';
 }
 function _closeConfirm(){
   document.getElementById('confirmModal').style.display = 'none';
@@ -3938,7 +3938,8 @@ function renderGoals(){
       +'<div style="display:flex;gap:8px;margin-top:10px">'
         +'<button class="goal-cta" style="flex:1" onclick="askCoachGoal('+gi+')">Voir mon plan &#8594;</button>'
         +'<button class="goal-cta" style="flex:0;padding:10px 14px;background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.3)" onclick="openGoalDeposit('+gi+')">+ Versement</button>'
-        +'<button class="goal-cta" style="flex:0;padding:10px 14px;background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.25)" onclick="delGoal('+gi+')">🗑</button>'
+        +'<button class="goal-cta" style="flex:0;padding:10px 14px;background:rgba(99,102,241,.12);color:#818cf8;border:1px solid rgba(99,102,241,.28)" onclick="openEditGoalModal('+gi+')" title="Modifier">✏️</button>'
+        +'<button class="goal-cta" style="flex:0;padding:10px 14px;background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.25)" onclick="delGoal('+gi+')" title="Supprimer">🗑</button>'
       +'</div>'
       +'</div>';
   }).join('');
@@ -4025,25 +4026,62 @@ function updateKey(){
 // ══════════════════════════════════════════════
 // GESTION OBJECTIFS — MODAL
 // ══════════════════════════════════════════════
+var _editGoalIdx = null;
+
 function openGoalModal(){
-  document.getElementById('goalEmoji').value='';
-  document.getElementById('goalName').value='';
-  document.getElementById('goalTarget').value='';
-  document.getElementById('goalCurrent').value='';
-  document.getElementById('goalDeadline').value='';
+  _editGoalIdx = null;
+  document.getElementById('goalEmoji').value = '';
+  document.getElementById('goalName').value = '';
+  document.getElementById('goalTarget').value = '';
+  document.getElementById('goalCurrent').value = '';
+  document.getElementById('goalDeadline').value = '';
+  document.getElementById('goalModalTitle').textContent = 'Nouvel objectif';
+  document.getElementById('goalModalSaveBtn').textContent = 'Créer l\'objectif';
   document.getElementById('ovGoal').classList.add('open');
 }
+
+function openEditGoalModal(gi){
+  var g = S.goals[gi]; if(!g) return;
+  _editGoalIdx = gi;
+  document.getElementById('goalEmoji').value = g.emoji || '';
+  document.getElementById('goalName').value = g.name || '';
+  document.getElementById('goalTarget').value = g.target || '';
+  document.getElementById('goalCurrent').value = g.current != null ? g.current : 0;
+  document.getElementById('goalDeadline').value = g.deadline || '';
+  document.getElementById('goalModalTitle').textContent = 'Modifier l\'objectif';
+  document.getElementById('goalModalSaveBtn').textContent = 'Enregistrer';
+  document.getElementById('ovGoal').classList.add('open');
+}
+
 function closeGoalModal(){
   document.getElementById('ovGoal').classList.remove('open');
+  _editGoalIdx = null;
+  document.getElementById('goalModalTitle').textContent = 'Nouvel objectif';
+  document.getElementById('goalModalSaveBtn').textContent = 'Créer l\'objectif';
 }
+
 function addGoal(){
   var emoji=(document.getElementById('goalEmoji').value||'').trim()||'🎯';
   var name=(document.getElementById('goalName').value||'').trim();
-  var target=parseFloat(document.getElementById('goalTarget').value)||0;
-  var current=parseFloat(document.getElementById('goalCurrent').value)||0;
+  var target=parseMontant(document.getElementById('goalTarget').value)||0;
+  var current=parseMontant(document.getElementById('goalCurrent').value)||0;
   var deadline=document.getElementById('goalDeadline').value||'';
   if(!name){ toast('Donne un nom à ton objectif','#ef4444'); return; }
   if(target<=0){ toast('Indique un montant cible','#ef4444'); return; }
+
+  // Mode édition
+  if(_editGoalIdx !== null){
+    var g = S.goals[_editGoalIdx];
+    if(!g) return;
+    g.emoji = emoji; g.name = name; g.target = target;
+    g.current = Math.min(current, target);
+    g.deadline = deadline;
+    save(); closeGoalModal(); renderGoals();
+    toast('Objectif mis à jour ✅','#0d9488');
+    return;
+  }
+
+  // Mode création
   S.goals.push({emoji:emoji,name:name,target:target,current:current,deadline:deadline,steps:[]});
   save(); closeGoalModal(); renderGoals();
   toast('Objectif créé 🎯','#0d9488');
@@ -4797,62 +4835,4 @@ function saveFbConfig(){
   var key=document.getElementById('fbApiKey').value.trim();
   if(!pid||!key){ toast('Remplis les deux champs','#ef4444'); return; }
   FB_CFG={projectId:pid, apiKey:key};
-  localStorage.setItem('cf_fbcfg',JSON.stringify(FB_CFG));
-  closeFbConfigModal();
-  updateFbRows();
-  toast('☁️ Firebase configuré ! Sync en cours…','#10b981');
-  syncToCloud();
-}
-function clearFbConfig(){
-  showConfirm('Désactiver la sync cloud ?', function(){
-    FB_CFG=null;
-    localStorage.removeItem('cf_fbcfg');
-    closeFbConfigModal();
-    updateFbRows();
-    setSyncDot('off');
-    toast('Sync cloud désactivée','#64748b');
-  }, 'Désactiver');
-}
-function updateFbRows(){
-  var on=!!FB_CFG;
-  var r1=document.getElementById('fbSyncRow'); if(r1) r1.style.display=on?'':'none';
-  var r2=document.getElementById('fbLoadRow');  if(r2) r2.style.display=on?'':'none';
-  setSyncDot(on?'ok':'off');
-}
-
-// ── Hook into save() ─────────────────────────────────
-var _origSave = save;
-save = function(){
-  _origSave();
-  if(!_syncTimer){
-    _syncTimer = setTimeout(function(){ _syncTimer=null; syncToCloud(); }, 4000);
-  }
-};
-
-// ── Auto-init on page load ───────────────────────────
-window.addEventListener('DOMContentLoaded', function(){
-  updateFbRows();
-});
-
-// ── Load from cloud after login ──────────────────────
-var _origDoLogin = doLogin;
-doLogin = function(){
-  _origDoLogin();
-  if(isLoggedIn()){ setTimeout(function(){ loadFromCloud(false); }, 1000); }
-};
-var _origDoRegister = doRegister;
-doRegister = function(){
-  _origDoRegister();
-  if(isLoggedIn()){ setTimeout(function(){ syncToCloud(); }, 2000); }
-};
-</script>
-
-<!-- Tooltip info global — hors de toute .page pour ne pas hériter de display:none -->
-<div id="infoTip" style="display:none;position:fixed;z-index:9000">
-  <button class="info-tip-close" onclick="closeInfoTip()">✕</button>
-  <div class="info-tip-title" id="infoTipTitle"></div>
-  <div id="infoTipBody"></div>
-</div>
-
-</body>
-</html>
+  localStorage.setItem('cf_
