@@ -941,7 +941,7 @@ body.light .analyse-card{
 // ══ SERVICE WORKER OFFLINE ══
 (function(){
   if(!('serviceWorker' in navigator)) return;
-  var SW_VERSION = '5.20';
+  var SW_VERSION = '5.21';
   var CACHE = 'rb-cache-v'+SW_VERSION;
   var swCode = [
     'var CACHE="rb-cache-v'+SW_VERSION+'";',
@@ -1126,6 +1126,9 @@ body.light .analyse-card{
 
     <!-- Zone 1: Situation actuelle -->
     <div id="z1-data" style="display:none">
+
+      <!-- ► Bannière d'alertes budget (fallback in-app des notifications) -->
+      <div id="budgetAlertBanner" style="display:none;margin-bottom:10px"></div>
 
       <!-- ► Toujours visible : RAV + Poche -->
       <div class="bud-top-wrap">
@@ -1627,12 +1630,12 @@ body.light .analyse-card{
       4&#46; Colle-les ici → tes donn&#233;es se synchronisent sur tous tes appareils automatiquement &#128526;
     </div>
     <div class="profil-sect">&#8505;&#65039; &#192; propos</div>
-    <div class="setting-row" onclick="toast('RescueBudget v5.20 — Coach IA L&#233;o &#129302;','#0d9488')">
+    <div class="setting-row" onclick="toast('RescueBudget v5.21 — Coach IA L&#233;o &#129302;','#0d9488')">
       <div class="s-row-left">
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" style="font-size:13px;color:var(--accent2);font-weight:700">v5.20</span>
+      <span class="s-row-arr" style="font-size:13px;color:var(--accent2);font-weight:700">v5.21</span>
     </div>
     <div class="setting-row" onclick="openPrivacyModal()">
       <div class="s-row-left">
@@ -2143,6 +2146,7 @@ var S = {
   lastLogin: '',
   startDate: localStorage.getItem('cf_start') || new Date().toISOString(),
   dailySnaps: [],
+  monthRates: {},
   lastGreeting: '',
   lastAnalysis: '',
   busy: false
@@ -2557,6 +2561,7 @@ try{ S.hist       = JSON.parse(localStorage.getItem('cf_hist')  ||'[]'); }catch(
 try{ S.fin        = JSON.parse(localStorage.getItem('cf_fin')   ||'{}'); }catch(e){}
 try{ S.goals      = JSON.parse(localStorage.getItem('cf_goals') ||'[]'); }catch(e){}
 try{ S.dailySnaps = JSON.parse(localStorage.getItem('cf_snaps') ||'[]'); }catch(e){}
+try{ S.monthRates = JSON.parse(localStorage.getItem('cf_monthRates') ||'{}'); }catch(e){ S.monthRates={}; }
 try{ S.subs       = JSON.parse(localStorage.getItem('cf_subs')  ||'[]'); }catch(e){}
 try{ S.txns       = JSON.parse(localStorage.getItem('cf_txns')  ||'[]'); }catch(e){}
 try{ S.badges     = JSON.parse(localStorage.getItem('cf_badges')||'[]'); }catch(e){}
@@ -2575,6 +2580,7 @@ function save(){
     localStorage.setItem('cf_fin',    JSON.stringify(S.fin));
     localStorage.setItem('cf_goals',  JSON.stringify(S.goals));
     localStorage.setItem('cf_snaps',  JSON.stringify(S.dailySnaps.slice(-40)));
+    localStorage.setItem('cf_monthRates', JSON.stringify(S.monthRates||{}));
     localStorage.setItem('cf_subs',   JSON.stringify(S.subs||[]));
     var cutoff=new Date(Date.now()-30*86400000).toISOString().slice(0,10);
     localStorage.setItem('cf_txns',   JSON.stringify((S.txns||[]).filter(function(t){return t.date>=cutoff;})));
@@ -2747,7 +2753,10 @@ function calcRAV(){
   var f=S.fin||{};
   var rev=f.revenus||0, dep=f.depenses||0, ep=f.epargne||0, inv=f.invest||0;
   if(!rev && !dep) return f.rav!=null ? f.rav : 0;
-  return Math.max(0, rev - dep - ep - inv);
+  // Valeur réelle (peut être négative si dépenses+épargne+invest > revenus) —
+  // ne PAS clamper ici : plusieurs écrans (alertes, score, historique) ont besoin
+  // de savoir que le budget est réellement dans le rouge, pas juste à zéro.
+  return rev - dep - ep - inv;
 }
 function calcScore(){
   var f=S.fin; var s=0;
@@ -3294,25 +3303,7 @@ function renderStreak(){
   el.style.display=s>0?'flex':'none';
 }
 
-// ══════════════════════════════════════════════
-// PROJECTION ÉPARGNE 12 MOIS
-// ══════════════════════════════════════════════
-function renderProjection(){
-  var el=document.getElementById('projCard'); if(!el) return;
-  var f=S.fin;
-  var ep=f.epargne||(f.revenus&&f.depenses?Math.max(0,f.revenus-f.depenses):0);
-  if(!ep||ep<=0){ el.style.display='none'; return; }
-  el.style.display='block';
-  var max=ep*12; var html='';
-  [2,4,6,9,12].forEach(function(m){
-    var val=ep*m; var pct=Math.round(val/max*100);
-    html+='<div class="proj-row">'
-      +'<div class="proj-month">'+m+' mois</div>'
-      +'<div class="proj-bar-wrap"><div class="proj-bar" style="width:'+pct+'%"></div></div>'
-      +'<div class="proj-val">+'+euro(val)+'</div></div>';
-  });
-  document.getElementById('projRows').innerHTML=html;
-}
+// (Section "Projection épargne 12 mois" retirée en v5.14 — #projCard n'existe plus dans le DOM)
 
 // ══════════════════════════════════════════════
 // NIVEAU UTILISATEUR
@@ -3382,6 +3373,29 @@ function getEvol(days){
   S.dailySnaps.forEach(function(s){ if(s.d <= cutoff) past = s.v; });
   if(past == null) return null;
   return cur - past;
+}
+
+// Historique mensuel du taux épargne+invest — un point par mois, conservé 24 mois
+function trackMonthRate(){
+  var f=S.fin||{}; var rev=f.revenus||0;
+  if(!rev) return;
+  syncTotals();
+  var rate=Math.round(((f.epargne||0)+(f.invest||0))/rev*100);
+  var now=new Date();
+  var key=now.getFullYear()+'-'+(now.getMonth()<9?'0':'')+(now.getMonth()+1);
+  if(!S.monthRates) S.monthRates={};
+  S.monthRates[key]=rate;
+  var keys=Object.keys(S.monthRates).sort();
+  if(keys.length>24){ keys.slice(0,keys.length-24).forEach(function(k){ delete S.monthRates[k]; }); }
+}
+function getMonthRateTrend(n){
+  var keys=Object.keys(S.monthRates||{}).sort();
+  var last=keys.slice(-n);
+  var moisAbr=['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
+  return last.map(function(k){
+    var parts=k.split('-'); var m=parseInt(parts[1],10)-1;
+    return {k:k, lbl:moisAbr[m]||k, v:S.monthRates[k]};
+  });
 }
 
 // ══════════════════════════════════════════════
@@ -3465,7 +3479,28 @@ function renderSynthTable(){
       +'<span style="font-size:12px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.4px">💰 Patrimoine total</span>'
       +'<span style="font-size:15px;font-weight:900;color:var(--accent2)">'+euro(grandTotal)+'</span>'
       +'</div>'
-    : '');
+    : '')
+  + buildMonthTrendHtml();
+}
+
+// Mini-graphique de tendance du taux épargne+invest sur les derniers mois
+function buildMonthTrendHtml(){
+  var trend=getMonthRateTrend(6);
+  if(trend.length<2) return '';
+  var max=Math.max(20,Math.max.apply(null,trend.map(function(t){return t.v;})));
+  var bars=trend.map(function(t){
+    var h=Math.max(3,Math.round(t.v/max*34));
+    var c=t.v>=20?'#10b981':t.v>=10?'#f59e0b':'#ef4444';
+    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">'
+      +'<div style="font-size:9px;color:var(--text3)">'+t.v+'%</div>'
+      +'<div class="spark-bar" style="width:100%;height:'+h+'px;background:'+c+'"></div>'
+      +'<div style="font-size:9px;color:var(--text3)">'+t.lbl+'</div>'
+      +'</div>';
+  }).join('');
+  return '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">'
+    +'<div style="font-size:11px;color:var(--text3);margin-bottom:6px">📈 Tendance taux épargne+invest ('+trend.length+' mois)</div>'
+    +'<div style="display:flex;align-items:flex-end;gap:5px;height:56px">'+bars+'</div>'
+    +'</div>';
 }
 
 function buildRavPeriodOptions(){
@@ -3537,6 +3572,7 @@ function renderBudget(){
 
   // Zone 2: Evolution
   trackSnap();
+  trackMonthRate();
   var e7  = getEvol(7);
   var e30 = getEvol(30);
   var el7  = document.getElementById('evol7');
@@ -3625,6 +3661,7 @@ function renderBudget(){
   renderTxns();
   renderTriCards();
   renderSynthTable(); // synchronise Synthese budget apres chaque mise a jour
+  renderBudgetAlertBanner();
   trackSnap();
   checkBadges();
 }
@@ -4440,7 +4477,6 @@ function renderProfil(){
   var eg=document.getElementById('statGoals'); if(eg) eg.textContent=(S.goals||[]).length;
   renderStreak();
   renderBadges();
-  renderProjection();
 }
 
 
@@ -5166,11 +5202,11 @@ function closeReceiptModal(){
 // ═══════════════════════════════════════════════════
 // NOTIFICATIONS BUDGÉTAIRES
 // ═══════════════════════════════════════════════════
-function checkBudgetAlerts(){
-  if(!('Notification' in window)) return;
+// Calcule la liste des alertes budget courantes (indépendant des notifications navigateur)
+function computeBudgetAlerts(){
   var f=S.fin||{};
-  var rev=f.revenus||0, dep=f.depenses||0;
-  if(!rev) return;
+  var rev=f.revenus||0;
+  if(!rev) return [];
   var rav=calcRAV();
   var enviesPct=f.envies_items ? (function(){
     try{
@@ -5182,11 +5218,44 @@ function checkBudgetAlerts(){
 
   var epInvPct=rev>0?Math.round(((f.epargne||0)+(f.invest||0))/rev*100):null;
   var alerts=[];
-  if(rav<0) alerts.push('🚨 Reste à vivre négatif ! Tu dépenses plus que tu ne gagnes.');
-  else if(rav<rev*0.1) alerts.push('⚠️ Reste à vivre très faible ('+Math.round(rav)+'€).');
-  if(epInvPct!==null&&epInvPct<10&&rev>0) alerts.push('💡 Tu épargnes/investis seulement '+epInvPct+'% de tes revenus. Vise au moins 10%.');
-  if(enviesPct>30) alerts.push('✨ Tes envies représentent '+Math.round(enviesPct)+'% de tes revenus (seuil conseillé : 30%).');
+  if(rav<0) alerts.push({ico:'🚨',txt:'Reste à vivre négatif ! Tu dépenses plus que tu ne gagnes.'});
+  else if(rav<rev*0.1) alerts.push({ico:'⚠️',txt:'Reste à vivre très faible ('+Math.round(rav)+'€).'});
+  if(epInvPct!==null&&epInvPct<10&&rev>0) alerts.push({ico:'💡',txt:'Tu épargnes/investis seulement '+epInvPct+'% de tes revenus. Vise au moins 10%.'});
+  if(enviesPct>30) alerts.push({ico:'✨',txt:'Tes envies représentent '+Math.round(enviesPct)+'% de tes revenus (seuil conseillé : 30%).'});
+  return alerts;
+}
 
+// Bannière in-app — fallback visuel quand les notifications navigateur sont absentes/refusées
+function renderBudgetAlertBanner(){
+  var el=document.getElementById('budgetAlertBanner');
+  if(!el) return;
+  var alerts=computeBudgetAlerts();
+  if(!alerts.length){ el.style.display='none'; el.innerHTML=''; return; }
+  var key=today()+'|'+alerts.map(function(a){return a.txt;}).join('§');
+  var dismissed=localStorage.getItem('cf_alertDismiss')||'';
+  if(dismissed===key){ el.style.display='none'; el.innerHTML=''; return; }
+  el.style.display='block';
+  el.innerHTML='<div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.28);border-radius:14px;padding:12px 14px">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
+      +'<span style="font-size:12px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.4px">Alertes budget</span>'
+      +'<button onclick="dismissBudgetAlerts(\''+key.replace(/'/g,"\\'")+'\')" style="background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;line-height:1;padding:2px 4px">&#215;</button>'
+    +'</div>'
+    +alerts.map(function(a){
+      return '<div style="display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:var(--text2);padding:4px 0;line-height:1.4">'
+        +'<span>'+a.ico+'</span><span>'+a.txt+'</span></div>';
+    }).join('')
+  +'</div>';
+}
+function dismissBudgetAlerts(key){
+  localStorage.setItem('cf_alertDismiss',key);
+  var el=document.getElementById('budgetAlertBanner');
+  if(el){ el.style.display='none'; el.innerHTML=''; }
+}
+
+function checkBudgetAlerts(){
+  renderBudgetAlertBanner();
+  if(!('Notification' in window)) return;
+  var alerts=computeBudgetAlerts().map(function(a){return a.ico+' '+a.txt;});
   if(!alerts.length) return;
 
   function sendNotifs(){
@@ -5490,10 +5559,4 @@ doRegister = function(){
 
 <!-- Tooltip info global — hors de toute .page pour ne pas hériter de display:none -->
 <div id="infoTip" style="display:none;position:fixed;z-index:9000">
-  <button class="info-tip-close" onclick="closeInfoTip()">✕</button>
-  <div class="info-tip-title" id="infoTipTitle"></div>
-  <div id="infoTipBody"></div>
-</div>
-
-</body>
-</html>                                                                                                                         
+  <button class="info-tip-close" onclick="closeInfoTip()">✕</b
