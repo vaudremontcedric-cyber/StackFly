@@ -79,8 +79,8 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
   transform:translate(-50%,-50%);width:16%;height:60%;background:#fff;border-radius:2px}
 .rb-logo-text{display:flex;flex-direction:row;align-items:baseline;gap:5px}
 .rb-logo-rescue{font-size:clamp(20px,5.8vw,38px);font-weight:600;color:#f8fafc;letter-spacing:-.2px;line-height:1;
-  -webkit-text-stroke:.6px rgba(0,0,0,.65);
-  text-shadow:-1px -1px 0 rgba(0,0,0,.55),1px -1px 0 rgba(0,0,0,.55),-1px 1px 0 rgba(0,0,0,.55),1px 1px 0 rgba(0,0,0,.55)}
+  -webkit-text-stroke:.4px rgba(15,23,42,.5);
+  text-shadow:0 1px 1px rgba(15,23,42,.55),0 2px 5px rgba(15,23,42,.28),0 0 12px rgba(15,23,42,.15)}
 .rb-logo-budget{font-size:clamp(20px,5.8vw,38px);font-weight:800;color:#ef4444;letter-spacing:-.2px}
 .rb-urgency-tag{display:inline-flex;align-items:center;gap:5px;
   background:rgba(239,68,68,.12);border:0.5px solid rgba(239,68,68,.35);
@@ -943,7 +943,7 @@ body.light .analyse-card{
 // ══ SERVICE WORKER OFFLINE ══
 (function(){
   if(!('serviceWorker' in navigator)) return;
-  var SW_VERSION = '5.22';
+  var SW_VERSION = '5.23';
   var CACHE = 'rb-cache-v'+SW_VERSION;
   var swCode = [
     'var CACHE="rb-cache-v'+SW_VERSION+'";',
@@ -1632,12 +1632,12 @@ body.light .analyse-card{
       4&#46; Colle-les ici → tes donn&#233;es se synchronisent sur tous tes appareils automatiquement &#128526;
     </div>
     <div class="profil-sect">&#8505;&#65039; &#192; propos</div>
-    <div class="setting-row" onclick="toast('RescueBudget v5.22 — Coach IA L&#233;o &#129302;','#0d9488')">
+    <div class="setting-row" onclick="toast('RescueBudget v5.23 — Coach IA L&#233;o &#129302;','#0d9488')">
       <div class="s-row-left">
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" style="font-size:13px;color:var(--accent2);font-weight:700">v5.22</span>
+      <span class="s-row-arr" style="font-size:13px;color:var(--accent2);font-weight:700">v5.23</span>
     </div>
     <div class="setting-row" onclick="openPrivacyModal()">
       <div class="s-row-left">
