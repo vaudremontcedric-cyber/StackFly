@@ -940,10 +940,17 @@ body.light .analyse-card{
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
+// Source unique du numéro de version — lu par le Service Worker ET par
+// l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
+// le numéro de version ailleurs : ça se désynchronise à chaque release
+// (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
+window.APP_VERSION = '5.25';
+</script>
+<script>
 // ══ SERVICE WORKER OFFLINE ══
 (function(){
   if(!('serviceWorker' in navigator)) return;
-  var SW_VERSION = '5.24';
+  var SW_VERSION = window.APP_VERSION;
   var CACHE = 'rb-cache-v'+SW_VERSION;
   var swCode = [
     'var CACHE="rb-cache-v'+SW_VERSION+'";',
@@ -1635,13 +1642,14 @@ body.light .analyse-card{
       4&#46; Colle-les ici → tes donn&#233;es se synchronisent sur tous tes appareils automatiquement &#128526;
     </div>
     <div class="profil-sect">&#8505;&#65039; &#192; propos</div>
-    <div class="setting-row" onclick="toast('RescueBudget v5.23 — Coach IA L&#233;o &#129302;','#0d9488')">
+    <div class="setting-row" onclick="toast('RescueBudget v'+window.APP_VERSION+' — Coach IA L&#233;o &#129302;','#0d9488')">
       <div class="s-row-left">
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" style="font-size:13px;color:var(--accent2);font-weight:700">v5.23</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.25</span>
     </div>
+    <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
       <div class="s-row-left">
         <span class="s-row-ico">&#128274;</span>
@@ -2483,7 +2491,7 @@ function closeEditProfileModal(){
   var m = document.getElementById('editProfileModal');
   if(m) m.style.display='none';
 }
-function saveProfileEdit(){
+async function saveProfileEdit(){
   var auth = getStoredAuth();
   if(!auth){ toast('Erreur auth','#e53e3e'); return; }
 
@@ -2505,11 +2513,16 @@ function saveProfileEdit(){
   // -- Change mot de passe --
   if(newPass || oldPass){
     if(!oldPass){ toast('Mot de passe actuel requis','#e53e3e'); return; }
-    if(hashPass(oldPass) !== auth.pass){ toast('Mot de passe actuel incorrect','#e53e3e'); return; }
+    // hashPass() est asynchrone (Web Crypto) — sans await, la comparaison se
+    // faisait contre une Promise (toujours fausse) et auth.pass finissait
+    // écrasé par un objet Promise → mot de passe stocké corrompu, connexion
+    // impossible ensuite ("Identifiants incorrects" même avec le bon mdp).
+    var oldHash = await hashPass(oldPass);
+    if(oldHash!==auth.pass && legacyHash(oldPass)!==auth.pass){ toast('Mot de passe actuel incorrect','#e53e3e'); return; }
     if(!newPass){ toast('Nouveau mot de passe vide','#e53e3e'); return; }
     if(newPass !== confPass){ toast('Les mots de passe ne correspondent pas','#e53e3e'); return; }
     if(newPass.length < 4){ toast('Mot de passe trop court (min 4 car.)','#e53e3e'); return; }
-    auth.pass = hashPass(newPass);
+    auth.pass = await hashPass(newPass);
     changed = true;
   }
 
