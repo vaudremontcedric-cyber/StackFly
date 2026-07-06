@@ -944,7 +944,7 @@ body.light .analyse-card{
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.25';
+window.APP_VERSION = '5.26';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1647,7 +1647,7 @@ window.APP_VERSION = '5.25';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.25</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.26</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -1724,26 +1724,6 @@ window.APP_VERSION = '5.25';
   </nav>
 </div>
 
-<!-- Modal Actif -->
-<div class="ov" id="actifModal" style="display:none" onclick="if(event.target===this)closeActifModal()">
-  <div class="modal">
-    <div class="modal-drag"></div>
-    <div class="modal-title" id="actifModalTitle">Actif</div>
-    <div style="font-size:13px;color:var(--text2);margin-bottom:16px" id="actifModalSub"></div>
-    <!-- Vue sélecteur (liste des catégories) -->
-    <div id="actifSelectorView" style="display:none"></div>
-    <!-- Vue édition (montant) -->
-    <div id="actifEditView">
-      <div class="actif-modal-lbl">Montant (€)</div>
-      <input class="actif-modal-in" id="actifModalIn" type="number" inputmode="decimal" placeholder="0" min="0" step="0.01"/>
-      <div style="font-size:12px;color:var(--text3);margin-top:8px;margin-bottom:20px">Saisis la valeur actuelle estimée de cet actif.</div>
-      <button class="login-btn" onclick="saveActif()">Enregistrer ✓</button>
-      <div style="text-align:center;margin-top:10px">
-        <span style="font-size:13px;color:var(--text2);cursor:pointer" onclick="closeActifModal()">Annuler</span>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- Modal Confirm personnalisé (centré) -->
 <div id="confirmModal" style="display:none;position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);align-items:center;justify-content:center" onclick="if(event.target===this)_closeConfirm()">
@@ -2625,7 +2605,7 @@ function doLogout(){
     // Sauvegarde automatique avant déconnexion
     try{
       var backup = {};
-      ['cf_auth','cf_fin','cf_subs','cf_txns','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile'].forEach(function(k){
+      ['cf_auth','cf_fin','cf_subs','cf_txns','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile','cf_badges','cf_streak','cf_actions','cf_start','cf_greet','cf_anal','cf_hist','cf_monthRates'].forEach(function(k){
         var v=localStorage.getItem(k); if(v!==null) backup[k]=v;
       });
       backup._exported=new Date().toISOString(); backup._version='1';
@@ -3078,11 +3058,8 @@ function renderActifs(){
 }
 
 function openActifModal(key){ toggleActifAcc(key||'epargne'); }
-function saveActif(){ /* remplacé par saveActifItem */ }
-function closeActifModal(){
-  var m = document.getElementById('actifModal');
-  if(m) m.style.display = 'none';
-}
+// (saveActif()/closeActifModal()/#actifModal retirés — modal mort depuis le
+// passage à l'accordéon inline en v5.12, jamais ouvert par aucun code)
 
 // ── Confirm modal personnalisé (remplace confirm() natif) ──
 var _confirmCb = null;
@@ -4906,7 +4883,7 @@ function validateReceipt(){
 // ═══════════════════════════════════════════════════
 function exportBackup(){
   var backup = {};
-  var keys = ['cf_auth','cf_fin','cf_subs','cf_txns','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile'];
+  var keys = ['cf_auth','cf_fin','cf_subs','cf_txns','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile','cf_badges','cf_streak','cf_actions','cf_start','cf_greet','cf_anal','cf_hist','cf_monthRates'];
   keys.forEach(function(k){
     var v = localStorage.getItem(k);
     if(v !== null) backup[k] = v;
@@ -4934,7 +4911,7 @@ function importBackup(event){
         toast('Fichier invalide ou vide','#ef4444'); return;
       }
       showConfirm('Restaurer cette sauvegarde ? Tes données actuelles seront remplacées.', function(){
-        var keys = ['cf_auth','cf_fin','cf_subs','cf_txns','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile'];
+        var keys = ['cf_auth','cf_fin','cf_subs','cf_txns','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile','cf_badges','cf_streak','cf_actions','cf_start','cf_greet','cf_anal','cf_hist','cf_monthRates'];
         keys.forEach(function(k){
           if(backup[k] !== undefined) localStorage.setItem(k, backup[k]);
         });
@@ -5541,7 +5518,7 @@ function syncToCloud(){
   setSyncDot('syncing');
   var keys=['cf_auth','cf_fin','cf_subs','cf_txns','cf_goals','cf_actifs','cf_snaps',
             'cf_key','cf_theme','cf_profile','cf_hist','cf_badges','cf_streak',
-            'cf_actions','cf_start','cf_greet','cf_anal'];
+            'cf_actions','cf_start','cf_greet','cf_anal','cf_monthRates'];
   var backup={};
   keys.forEach(function(k){ var v=localStorage.getItem(k); if(v) backup[k]=v; });
   backup['_synced']=new Date().toISOString();
@@ -5567,7 +5544,7 @@ function loadFromCloud(manual){
     var backup=JSON.parse(doc.fields.data.stringValue);
     var keys=['cf_fin','cf_subs','cf_txns','cf_goals','cf_actifs','cf_snaps',
               'cf_key','cf_theme','cf_profile','cf_hist','cf_badges','cf_streak',
-              'cf_actions','cf_start','cf_greet','cf_anal'];
+              'cf_actions','cf_start','cf_greet','cf_anal','cf_monthRates'];
     keys.forEach(function(k){ if(backup[k]!==undefined) localStorage.setItem(k,backup[k]); });
     setSyncDot('ok');
     if(manual){
