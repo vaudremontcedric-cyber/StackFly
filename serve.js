@@ -54,7 +54,10 @@ var server = http.createServer(function(req, res) {
     var params  = parseQuery(req.url);
     var model   = params['model']  || 'gemini-1.5-flash';
     var apiVer  = params['apiver'] || 'v1beta';
-    var key     = params['key']    || '';
+    // SÉCURITÉ : priorité à la clé serveur (variable d'environnement Render : GEMINI_API_KEY).
+    // À défaut, clé perso de l'utilisateur via l'en-tête x-api-key (jamais dans l'URL).
+    // Le paramètre ?key= reste accepté uniquement pour compatibilité avec d'anciennes versions.
+    var key = process.env.GEMINI_API_KEY || req.headers['x-api-key'] || params['key'] || '';
 
     if (!key) {
       res.writeHead(400, { 'Content-Type': 'application/json' });

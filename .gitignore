@@ -1,0 +1,36 @@
+# ══ RescueBudget — fichiers à ne pas versionner ══
+
+# Captures d'écran et artefacts de tests manuels
+*.png
+!favicon.png
+
+# Scripts d'automatisation locale (déploiement, calibrage)
+*.bat
+*.vbs
+*.ps1
+calibrate*.py
+click_*.py
+deploy_*.py
+render_deploy*.py
+open_*.py
+paste_url.py
+close_explorers.py
+test_*.py
+run_*.py
+calibrate_result.json
+
+# Sauvegardes et fichiers temporaires
+*.bak
+*.tmp
+*~
+
+# Secrets — ne JAMAIS committer de clé API
+.env
+.env.*
+
+# Dépendances installées (jamais versionnées)
+node_modules/
+
+# Système
+.DS_Store
+Thumbs.db

@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
 <meta name="theme-color" content="#0a0a16"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -78,7 +78,9 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 .rb-logo-cross::after{content:'';position:absolute;top:50%;left:50%;
   transform:translate(-50%,-50%);width:16%;height:60%;background:#fff;border-radius:2px}
 .rb-logo-text{display:flex;flex-direction:row;align-items:baseline;gap:5px}
-.rb-logo-rescue{font-size:clamp(20px,5.8vw,38px);font-weight:600;color:#f8fafc;letter-spacing:-.2px;line-height:1}
+.rb-logo-rescue{font-size:clamp(20px,5.8vw,38px);font-weight:600;color:#f8fafc;letter-spacing:-.2px;line-height:1;
+  -webkit-text-stroke:.4px rgba(15,23,42,.5);
+  text-shadow:0 1px 1px rgba(15,23,42,.55),0 2px 5px rgba(15,23,42,.28),0 0 12px rgba(15,23,42,.15)}
 .rb-logo-budget{font-size:clamp(20px,5.8vw,38px);font-weight:800;color:#ef4444;letter-spacing:-.2px}
 .rb-urgency-tag{display:inline-flex;align-items:center;gap:5px;
   background:rgba(239,68,68,.12);border:0.5px solid rgba(239,68,68,.35);
@@ -255,6 +257,22 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 .actif-modal-lbl{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
 .actif-modal-in{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-size:15px;font-weight:600}
 .actif-modal-in:focus{border-color:var(--accent);outline:none}
+/* Actif accordion inline */
+.actif-acc-body{max-height:0;overflow:hidden;transition:max-height .32s ease}
+.actif-acc-body.open{max-height:600px}
+.actif-item-row{display:flex;align-items:center;gap:10px;padding:8px 16px 8px 64px;border-bottom:1px solid var(--border)}
+.actif-item-name{flex:1;font-size:12px;color:var(--text2)}
+.actif-item-amt{font-size:13px;font-weight:700;color:var(--accent2)}
+.actif-item-del{background:none;border:none;color:var(--text3);font-size:17px;cursor:pointer;padding:0 2px;opacity:.45;transition:opacity .15s;flex-shrink:0;line-height:1}
+.actif-item-del:active{opacity:1;color:var(--red)}
+.actif-add-row{display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(13,148,136,.05);border-top:1px solid var(--border)}
+.actif-select{flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:8px 10px;color:var(--text);font-size:12px;cursor:pointer;min-width:0}
+.actif-select:focus{border-color:var(--accent);outline:none}
+.actif-add-in{width:78px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:8px 8px;color:var(--text);font-size:12px;text-align:right;flex-shrink:0}
+.actif-add-in:focus{border-color:var(--accent);outline:none}
+.actif-add-btn{background:var(--accent);border:none;border-radius:10px;color:#fff;font-size:20px;font-weight:700;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.actif-chev-ico{font-size:16px;color:var(--text3);transition:transform .25s;display:inline-block;margin-left:6px}
+.actif-acc-body.open~.actif-chev-ico,.actif-chev-ico.open{transform:rotate(90deg)}
 .topdep-card{background:var(--card);border:1px solid var(--border);
   border-radius:var(--r);padding:18px;margin:10px 20px 0}
 .dep-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
@@ -337,6 +355,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 .txn-section-besoins{background:#dbeafe;color:#1d4ed8;}
 .txn-section-envies{background:#fce7f3;color:#be185d;}
 .txn-section-epargne{background:#d1fae5;color:#065f46;}
+.txn-section-invest{background:#ede9fe;color:#5b21b6;}
 .chat-disclaimer{font-size:10.5px;color:var(--text3);text-align:center;padding:5px 16px 2px;flex-shrink:0;opacity:.75}
 .suggestions{display:flex;gap:8px;padding:8px 16px;overflow-x:auto;flex-shrink:0;background:var(--surface)}
 .sugg{padding:7px 14px;background:var(--card);border:1px solid var(--border);
@@ -786,6 +805,7 @@ body.light .analyse-card{
 .rep-card.b{background:linear-gradient(145deg,rgba(59,130,246,.13),rgba(59,130,246,.05));border-color:rgba(59,130,246,.3)}
 .rep-card.e{background:linear-gradient(145deg,rgba(45,212,191,.13),rgba(13,148,136,.05));border-color:rgba(45,212,191,.3)}
 .rep-card.s{background:linear-gradient(145deg,rgba(16,185,129,.13),rgba(16,185,129,.04));border-color:rgba(16,185,129,.3)}
+.rep-card.i{background:linear-gradient(145deg,rgba(139,92,246,.13),rgba(139,92,246,.04));border-color:rgba(139,92,246,.3)}
 .rep-head{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 16px 8px}
 .rep-head-l{display:flex;align-items:center;gap:9px}
 .rep-ico{font-size:22px;line-height:1}
@@ -795,27 +815,32 @@ body.light .analyse-card{
 .rep-card.b .rep-ideal{color:rgba(59,130,246,.8)}
 .rep-card.e .rep-ideal{color:rgba(45,212,191,.8)}
 .rep-card.s .rep-ideal{color:rgba(16,185,129,.8)}
+.rep-card.i .rep-ideal{color:rgba(139,92,246,.8)}
 .rep-right{text-align:right}
 .rep-total{font-size:20px;font-weight:800;line-height:1}
 .rep-card.b .rep-total{color:#3b82f6}
 .rep-card.e .rep-total{color:#2dd4bf}
 .rep-card.s .rep-total{color:#10b981}
+.rep-card.i .rep-total{color:#8b5cf6}
 .rep-pct{font-size:11px;font-weight:600;margin-top:3px;padding:2px 7px;border-radius:20px;display:inline-block}
 .rep-card.b .rep-pct{background:rgba(59,130,246,.15);color:#3b82f6}
 .rep-card.e .rep-pct{background:rgba(45,212,191,.15);color:#2dd4bf}
 .rep-card.s .rep-pct{background:rgba(16,185,129,.15);color:#10b981}
+.rep-card.i .rep-pct{background:rgba(139,92,246,.15);color:#8b5cf6}
 .rep-pct.over{background:rgba(239,68,68,.15);color:#ef4444}
 .rep-bar-wrap{height:4px;margin:0 16px 10px;border-radius:2px;background:rgba(255,255,255,.07);overflow:hidden}
 .rep-bar-fill{height:100%;border-radius:2px;transition:width 1.3s cubic-bezier(.4,0,.2,1)}
 .rep-card.b .rep-bar-fill{background:#3b82f6}
 .rep-card.e .rep-bar-fill{background:#2dd4bf}
 .rep-card.s .rep-bar-fill{background:#10b981}
+.rep-card.i .rep-bar-fill{background:#8b5cf6}
 .rep-divider{height:1px;background:rgba(255,255,255,.05);margin:0 16px}
 .rep-item{display:flex;align-items:center;justify-content:space-between;padding:8px 16px}
 .rep-item-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-right:8px}
 .rep-card.b .rep-item-dot{background:rgba(59,130,246,.6)}
 .rep-card.e .rep-item-dot{background:rgba(45,212,191,.6)}
 .rep-card.s .rep-item-dot{background:rgba(16,185,129,.6)}
+.rep-card.i .rep-item-dot{background:rgba(139,92,246,.6)}
 .rep-item-name{font-size:13px;color:var(--text2);flex:1}
 .rep-item-amt{font-size:13px;font-weight:600;color:var(--text)}
 .rep-item-del{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:0 0 0 10px;line-height:1;opacity:0.45;transition:opacity .15s;flex-shrink:0}
@@ -871,6 +896,24 @@ body.light .analyse-card{
 .rep-detail-btn.open .arr{transform:rotate(180deg)}
 .rep-items-wrap{overflow:hidden;max-height:0;transition:max-height .35s ease}
 .rep-items-wrap.open{max-height:600px}
+/* ════ TUTORIEL ════ */
+.tuto-sheet{background:var(--surface);border-radius:22px 22px 0 0;width:100%;max-width:480px;max-height:88vh;display:flex;flex-direction:column;animation:slideUp .25s ease}
+.tuto-hdr{padding:22px 20px 14px;flex-shrink:0}
+.tuto-title{font-size:18px;font-weight:700;color:var(--text)}
+.tuto-sub{font-size:13px;color:var(--text2);margin-top:4px}
+.tuto-body{overflow-y:auto;padding:0 16px 32px;flex:1}
+.tuto-card{border:1px solid var(--border);border-radius:14px;margin-bottom:10px;overflow:hidden}
+.tuto-card-hdr{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;background:var(--card)}
+.tuto-card-ico{font-size:22px;width:32px;text-align:center;flex-shrink:0}
+.tuto-card-ttl{font-size:14px;font-weight:600;color:var(--text);flex:1}
+.tuto-card-arr{color:var(--text3);font-size:16px;transition:transform .25s}
+.tuto-card.open .tuto-card-arr{transform:rotate(180deg)}
+.tuto-card-body{max-height:0;overflow:hidden;transition:max-height .35s ease}
+.tuto-card.open .tuto-card-body{max-height:600px}
+.tuto-card-content{padding:0 16px 16px;font-size:13px;color:var(--text2);line-height:1.65}
+.tuto-step{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start}
+.tuto-step-num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.tuto-tip{background:rgba(13,148,136,.1);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:8px 12px;margin-top:10px;font-size:12px;color:var(--accent2)}
 .ameliorer-modal{display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.55);align-items:flex-end;justify-content:center}
 .ameliorer-sheet{background:var(--bg);border-radius:22px 22px 0 0;padding:26px 20px 40px;width:100%;max-width:480px;animation:slideUp .25s ease}
 .ameliorer-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
@@ -900,7 +943,7 @@ body.light .analyse-card{
 // ══ SERVICE WORKER OFFLINE ══
 (function(){
   if(!('serviceWorker' in navigator)) return;
-  var SW_VERSION = '5.7';
+  var SW_VERSION = '5.24';
   var CACHE = 'rb-cache-v'+SW_VERSION;
   var swCode = [
     'var CACHE="rb-cache-v'+SW_VERSION+'";',
@@ -964,6 +1007,7 @@ body.light .analyse-card{
       <div class="level-badge d" id="levelBadge" style="display:none">Debutant</div>
       <div class="hdr-btn" id="themeBtnHdr" onclick="toggleTheme()" title="Changer le thème" style="font-size:18px;display:none">🌙</div>
       <div class="hdr-btn" id="keyBtn" style="display:none" onclick="openKeyModal()">&#9881;</div>
+      <div class="hdr-btn" id="sosBtn" onclick="openSosModal()" title="Besoin d'aide ? Ressources gratuites" style="width:auto;padding:0 10px;border-radius:17px;font-size:11px;font-weight:800;letter-spacing:.5px;color:#ef4444;border-color:rgba(239,68,68,.45)">SOS</div>
     </div>
   </header>
 
@@ -979,6 +1023,7 @@ body.light .analyse-card{
           </div>
         </div>
         <div class="login-sub" style="margin-top:10px">Quand ton pouvoir d'achat disparaît, RescueBudget intervient.</div>
+        <div style="font-size:10.5px;color:var(--text3);margin-top:8px;text-align:center;line-height:1.5">Outil pédagogique de gestion budgétaire.<br>Ne fournit aucun conseil en investissement.</div>
       </div>
 
       <!-- Formulaire connexion -->
@@ -1073,6 +1118,7 @@ body.light .analyse-card{
         2. Connecte-toi avec ton compte Google<br>
         3. Clique sur <strong>"Create API Key"</strong><br>
         4. Copie-colle la cle ici
+        <br><br><strong>💡 Version en ligne :</strong> si RescueBudget est hébergé avec une clé serveur, tu peux <strong>passer cette étape</strong> — Léo fonctionne déjà sans rien configurer.
       </div>
       <button class="s-btn" onclick="saveKey()">Parler à Léo →</button>
       <button onclick="skipSetup()" style="width:100%;padding:12px;background:transparent;border:1.5px solid var(--border);border-radius:14px;color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;margin-top:10px">Passer cette étape (sans IA) →</button>
@@ -1085,6 +1131,9 @@ body.light .analyse-card{
 
     <!-- Zone 1: Situation actuelle -->
     <div id="z1-data" style="display:none">
+
+      <!-- ► Bannière d'alertes budget (fallback in-app des notifications) -->
+      <div id="budgetAlertBanner" style="display:none;margin-bottom:10px"></div>
 
       <!-- ► Toujours visible : RAV + Poche -->
       <div class="bud-top-wrap">
@@ -1119,7 +1168,7 @@ body.light .analyse-card{
           <div id="miniDep" style="font-size:13px;font-weight:800;color:var(--red)">-- €</div>
         </div>
         <div style="flex:1;background:var(--card);border-radius:12px;padding:10px 8px;text-align:center;border:1px solid var(--border)">
-          <div style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">Épargne</div>
+          <div style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">Épargne & Invest</div>
           <div id="miniEp" style="font-size:13px;font-weight:800;color:var(--accent2)">-- €</div>
         </div>
       </div>
@@ -1220,7 +1269,7 @@ body.light .analyse-card{
                     <div class="rep-ico">&#127807;</div>
                     <div class="rep-meta">
                       <div class="rep-name">&#201;pargne</div>
-                      <div class="rep-ideal">Id&#233;al &#8805; 20%</div>
+                      <div class="rep-ideal">Id&#233;al &#8805; 10%</div>
                     </div>
                   </div>
                   <div class="rep-right">
@@ -1230,7 +1279,25 @@ body.light .analyse-card{
                 </div>
                 <div class="rep-bar-wrap"><div class="rep-bar-fill" id="repSBar" style="width:0%"></div></div>
                 <div class="rep-divider"></div>
-                <button class="rep-detail-btn" id="detBtnS" onclick="toggleDetail('S')">D&#233;tails <span class="arr">&#9662;</span></button><div class="rep-items-wrap" id="repSWrap"><div id="repSItems"><div class="rep-empty">Livret A, remboursement cr&#233;dit…</div></div></div>
+                <button class="rep-detail-btn" id="detBtnS" onclick="toggleDetail('S')">D&#233;tails <span class="arr">&#9662;</span></button><div class="rep-items-wrap" id="repSWrap"><div id="repSItems"><div class="rep-empty">Livret A, fonds urgence, CEL…</div></div></div>
+              </div>
+              <div class="rep-card i" id="repCardI">
+                <div class="rep-head">
+                  <div class="rep-head-l">
+                    <div class="rep-ico">&#128200;</div>
+                    <div class="rep-meta">
+                      <div class="rep-name">Investissements</div>
+                      <div class="rep-ideal">Id&#233;al &#8805; 10%</div>
+                    </div>
+                  </div>
+                  <div class="rep-right">
+                    <div class="rep-total" id="repITotal">-- &#8364;</div>
+                    <div class="rep-pct" id="repIPct">--%</div>
+                  </div>
+                </div>
+                <div class="rep-bar-wrap"><div class="rep-bar-fill" id="repIBar" style="width:0%"></div></div>
+                <div class="rep-divider"></div>
+                <button class="rep-detail-btn" id="detBtnI" onclick="toggleDetail('I')">D&#233;tails <span class="arr">&#9662;</span></button><div class="rep-items-wrap" id="repIWrap"><div id="repIItems"><div class="rep-empty">PEA, ETF, CTO, actions…</div></div></div>
               </div>
             </div>
           </div>
@@ -1447,7 +1514,7 @@ body.light .analyse-card{
           <span>&#128247;</span>
           <span class="av-overlay-lbl">CHANGER</span>
         </div>
-        <div class="profil-av-badge" id="profilBadge" style="background:var(--orange);color:#fff">D&#233;butant</div>
+        <div class="profil-av-badge" id="profilBadge" style="display:none;background:var(--orange);color:#fff">D&#233;butant</div>
       </div>
       <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="handleAvatarUpload(this)" />
       <div class="profil-name" id="profilName">Mon profil</div>
@@ -1474,12 +1541,6 @@ body.light .analyse-card{
       <div class="badges-grid" id="badgesGrid"></div>
     </div>
 
-    <!-- Projection 12 mois -->
-    <div class="proj-card" id="projCard">
-      <div class="proj-ttl">&#128200; Projection &#233;pargne</div>
-      <div id="projRows"></div>
-    </div>
-
     <div class="profil-sect">Param&#232;tres</div>
     <div class="setting-row" onclick="toggleTheme()" id="themeRow">
       <div class="s-row-left">
@@ -1504,6 +1565,13 @@ body.light .analyse-card{
       </div>
       <span class="s-row-arr">&#8250;</span>
     </div>
+    <div class="setting-row" onclick="openTutoModal()">
+      <div class="s-row-left">
+        <span class="s-row-ico">📖</span>
+        <div><div class="s-row-lbl">Guide d'utilisation</div><div class="s-row-sub">Comment utiliser RescueBudget</div></div>
+      </div>
+      <span class="s-row-arr">&#8250;</span>
+    </div>
     <div class="setting-row" onclick="doLogout()" style="margin-bottom:2px">
       <div class="s-row-left">
         <span class="s-row-ico">&#128682;</span>
@@ -1519,13 +1587,13 @@ body.light .analyse-card{
       </div>
       <span class="s-row-arr">&#8250;</span>
     </div>
-    <div class="setting-row" style="position:relative;overflow:hidden">
+    <div class="setting-row" style="position:relative">
       <div class="s-row-left">
         <span class="s-row-ico">&#128228;</span>
         <div><div class="s-row-lbl">Importer une sauvegarde</div><div class="s-row-sub">Restaure tes donn&#233;es depuis un fichier .json</div></div>
       </div>
       <span class="s-row-arr">&#8250;</span>
-      <input type="file" accept=".json" onchange="importBackup(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;font-size:100px"/>
+      <input type="file" accept=".json" onchange="importBackup(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%"/>
     </div>
     <div class="profil-sect">&#9729;&#65039; Sync cloud (multi-appareils)</div>
     <div id="fbStatusRow" class="setting-row" style="pointer-events:none">
@@ -1567,12 +1635,12 @@ body.light .analyse-card{
       4&#46; Colle-les ici → tes donn&#233;es se synchronisent sur tous tes appareils automatiquement &#128526;
     </div>
     <div class="profil-sect">&#8505;&#65039; &#192; propos</div>
-    <div class="setting-row" onclick="toast('RescueBudget v5.4 — Coach IA L&#233;o &#129302;','#0d9488')">
+    <div class="setting-row" onclick="toast('RescueBudget v5.23 — Coach IA L&#233;o &#129302;','#0d9488')">
       <div class="s-row-left">
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" style="font-size:13px;color:var(--accent2);font-weight:700">v5.4</span>
+      <span class="s-row-arr" style="font-size:13px;color:var(--accent2);font-weight:700">v5.23</span>
     </div>
     <div class="setting-row" onclick="openPrivacyModal()">
       <div class="s-row-left">
@@ -1639,6 +1707,9 @@ body.light .analyse-card{
     <button class="ni" id="ni-obj" onclick="go('obj')">
       <span class="ni-i">&#127919;</span><span class="ni-l">Objectifs</span>
     </button>
+    <button class="ni" id="ni-tuto" onclick="openTutoModal()">
+      <span class="ni-i">&#128214;</span><span class="ni-l">Guide</span>
+    </button>
     <button class="ni" id="ni-profil" onclick="go('profil')">
       <span class="ni-i">&#128100;</span><span class="ni-l">Profil</span>
     </button>
@@ -1688,6 +1759,130 @@ body.light .analyse-card{
     <button class="login-btn" onclick="saveGoalDeposit()">Enregistrer ✓</button>
     <div style="text-align:center;margin-top:10px">
       <span style="font-size:13px;color:var(--text2);cursor:pointer" onclick="closeGoalDepositModal()">Annuler</span>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Tutoriel -->
+<div class="ov" id="ovTuto" style="align-items:flex-end" onclick="if(event.target===this)closeTutoModal()">
+  <div class="tuto-sheet">
+    <div class="tuto-hdr">
+      <div style="width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.2);margin:0 auto 16px"></div>
+      <div class="tuto-title">📖 Guide d'utilisation</div>
+      <div class="tuto-sub">Tout ce dont tu as besoin pour maîtriser RescueBudget</div>
+    </div>
+    <div class="tuto-body">
+
+      <!-- Budget -->
+      <div class="tuto-card" id="tc0">
+        <div class="tuto-card-hdr" onclick="toggleTuto(0)">
+          <span class="tuto-card-ico">📊</span>
+          <span class="tuto-card-ttl">Mon Budget</span>
+          <span class="tuto-card-arr">&#9662;</span>
+        </div>
+        <div class="tuto-card-body"><div class="tuto-card-content">
+          <div class="tuto-step"><div class="tuto-step-num">1</div><div>Ouvre l'onglet <b>Budget</b> (icône graphique en bas).</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">2</div><div>Parle à <b>Léo</b> pour qu'il remplisse automatiquement tes revenus et dépenses, ou entre-les manuellement via le bouton <b>+</b>.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">3</div><div>Consulte ton <b>Reste à vivre</b> : argent disponible après toutes les dépenses.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">4</div><div>Change la période (jour / mois / an) avec le menu déroulant en haut.</div></div>
+          <div class="tuto-tip">💡 Le score de santé financière se met à jour automatiquement selon tes données.</div>
+        </div></div>
+      </div>
+
+      <!-- Coach Léo -->
+      <div class="tuto-card" id="tc1">
+        <div class="tuto-card-hdr" onclick="toggleTuto(1)">
+          <span class="tuto-card-ico">💬</span>
+          <span class="tuto-card-ttl">Léo — Coach IA</span>
+          <span class="tuto-card-arr">&#9662;</span>
+        </div>
+        <div class="tuto-card-body"><div class="tuto-card-content">
+          <div class="tuto-step"><div class="tuto-step-num">1</div><div>Appuie sur l'onglet <b>Chat</b> (bulle en bas).</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">2</div><div>Parle librement : <i>"Mon loyer est 750€"</i>, <i>"J'ai dépensé 60€ au resto"</i>, <i>"Aide-moi à épargner 200€/mois"</i>.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">3</div><div>Léo analyse ta situation et met à jour ton budget en temps réel.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">4</div><div>Utilise le micro 🎙️ pour dicter au lieu de taper.</div></div>
+          <div class="tuto-tip">💡 Pour débuter, dis simplement : <i>"Bonjour Léo, j'aimerais faire mon bilan financier."</i></div>
+        </div></div>
+      </div>
+
+      <!-- Objectifs -->
+      <div class="tuto-card" id="tc2">
+        <div class="tuto-card-hdr" onclick="toggleTuto(2)">
+          <span class="tuto-card-ico">🎯</span>
+          <span class="tuto-card-ttl">Objectifs financiers</span>
+          <span class="tuto-card-arr">&#9662;</span>
+        </div>
+        <div class="tuto-card-body"><div class="tuto-card-content">
+          <div class="tuto-step"><div class="tuto-step-num">1</div><div>Ouvre l'onglet <b>Objectifs</b> (cible en bas).</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">2</div><div>Appuie sur <b>+</b> pour créer un projet : voyage, voiture, épargne de sécurité…</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">3</div><div>Renseigne le montant cible, ce que tu as déjà épargné et l'échéance.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">4</div><div>Utilise <b>+ Versement</b> pour ajouter chaque fois que tu mets de côté.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">5</div><div>Clique <b>Voir mon plan</b> pour que Léo génère un plan d'action personnalisé.</div></div>
+          <div class="tuto-tip">💡 Léo calcule automatiquement combien de mois il te faut pour atteindre ton objectif.</div>
+        </div></div>
+      </div>
+
+      <!-- 50/30/20 -->
+      <div class="tuto-card" id="tc3">
+        <div class="tuto-card-hdr" onclick="toggleTuto(3)">
+          <span class="tuto-card-ico">📈</span>
+          <span class="tuto-card-ttl">Répartition 50/30/20</span>
+          <span class="tuto-card-arr">&#9662;</span>
+        </div>
+        <div class="tuto-card-body"><div class="tuto-card-content">
+          <div class="tuto-step"><div class="tuto-step-num">1</div><div><b>Besoins (50%)</b> : loyer, alimentation, transport, assurances — ce que tu ne peux pas éviter.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">2</div><div><b>Envies (30%)</b> : restaurants, loisirs, streaming, shopping — ce qui te fait plaisir.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">3</div><div><b>Épargne (20%)</b> : livret, investissement, remboursement de dettes — ton avenir.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">4</div><div>Léo classe automatiquement tes dépenses. Tu peux aussi appuyer sur <b>Détails</b> pour voir et supprimer chaque ligne.</div></div>
+          <div class="tuto-tip">💡 L'idéal est de respecter les 50/30/20, mais adapte selon ta situation personnelle.</div>
+        </div></div>
+      </div>
+
+      <!-- Actifs -->
+      <div class="tuto-card" id="tc4">
+        <div class="tuto-card-hdr" onclick="toggleTuto(4)">
+          <span class="tuto-card-ico">💰</span>
+          <span class="tuto-card-ttl">Mes actifs</span>
+          <span class="tuto-card-arr">&#9662;</span>
+        </div>
+        <div class="tuto-card-body"><div class="tuto-card-content">
+          <div class="tuto-step"><div class="tuto-step-num">1</div><div>Dans Budget, fais défiler jusqu'à la section <b>Mes actifs</b>.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">2</div><div>Appuie sur <b>Modifier</b> pour déclarer la valeur de chaque catégorie : livret, bourse, immobilier, autres.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">3</div><div>RescueBudget calcule ton <b>patrimoine total</b> et te donne une vision globale.</div></div>
+          <div class="tuto-tip">💡 Mets à jour tes actifs chaque mois pour suivre l'évolution de ton patrimoine.</div>
+        </div></div>
+      </div>
+
+      <!-- Abonnements -->
+      <div class="tuto-card" id="tc5">
+        <div class="tuto-card-hdr" onclick="toggleTuto(5)">
+          <span class="tuto-card-ico">🔔</span>
+          <span class="tuto-card-ttl">Abonnements</span>
+          <span class="tuto-card-arr">&#9662;</span>
+        </div>
+        <div class="tuto-card-body"><div class="tuto-card-content">
+          <div class="tuto-step"><div class="tuto-step-num">1</div><div>Dans Budget, trouve la section <b>Abonnements</b>.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">2</div><div>Appuie sur <b>+</b> pour ajouter un abonnement (Netflix, Spotify, loyer…) avec son montant mensuel.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">3</div><div>Le total est automatiquement intégré dans tes dépenses mensuelles.</div></div>
+          <div class="tuto-tip">💡 Utilise les présélections rapides pour ajouter Netflix, Spotify, etc. en un clic.</div>
+        </div></div>
+      </div>
+
+      <!-- Dépenses du jour -->
+      <div class="tuto-card" id="tc6">
+        <div class="tuto-card-hdr" onclick="toggleTuto(6)">
+          <span class="tuto-card-ico">🧾</span>
+          <span class="tuto-card-ttl">Dépenses du jour</span>
+          <span class="tuto-card-arr">&#9662;</span>
+        </div>
+        <div class="tuto-card-body"><div class="tuto-card-content">
+          <div class="tuto-step"><div class="tuto-step-num">1</div><div>Dans Budget, la section <b>Dépenses du jour</b> montre ce que tu as dépensé aujourd'hui.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">2</div><div>Appuie sur <b>+</b> pour saisir une dépense manuelle : montant, description, catégorie.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">3</div><div>La <b>Poche du jour</b> te montre combien il te reste à dépenser aujourd'hui sans dépasser ton budget.</div></div>
+          <div class="tuto-tip">💡 Scanne un ticket de caisse 📷 pour saisir une dépense automatiquement.</div>
+        </div></div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -1825,6 +2020,8 @@ body.light .analyse-card{
       <div class="txn-cat" onclick="selTxnCat(this,'&#127968;','Logement')"><div class="txn-cat-ico">&#127968;</div><div class="txn-cat-lbl">Logement</div></div>
       <div class="txn-cat" onclick="selTxnCat(this,'&#128138;','Sant&#233;')"><div class="txn-cat-ico">&#128138;</div><div class="txn-cat-lbl">Sant&#233;</div></div>
       <div class="txn-cat" onclick="selTxnCat(this,'&#10133;','Autre')"><div class="txn-cat-ico">&#10133;</div><div class="txn-cat-lbl">Autre</div></div>
+      <div class="txn-cat" onclick="selTxnCat(this,'&#127807;','Épargne')"><div class="txn-cat-ico">&#127807;</div><div class="txn-cat-lbl">Épargne</div></div>
+      <div class="txn-cat" onclick="selTxnCat(this,'&#128200;','Investiss.')"><div class="txn-cat-ico">&#128200;</div><div class="txn-cat-lbl">Investiss.</div></div>
     </div>
     <div class="m-lbl">Montant (&#8364;)</div>
     <input class="m-in" id="txnAmt" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" style="font-size:24px;text-align:center;font-weight:700"/>
@@ -1840,6 +2037,40 @@ body.light .analyse-card{
 <div class="toast" id="toast"></div>
 
 <!-- Modal Politique de confidentialité -->
+<div class="ov" id="ovSos" onclick="if(event.target===this)closeSosModal()" style="align-items:flex-end">
+  <div class="modal" style="max-height:85vh;overflow-y:auto;border-radius:24px 24px 0 0;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))">
+    <div class="modal-drag"></div>
+    <div style="text-align:center;font-size:28px;margin-bottom:6px">🆘</div>
+    <div class="modal-title" style="margin-bottom:4px">Besoin d'aide ? Tu n'es pas seul·e</div>
+    <div style="font-size:12px;color:var(--text3);text-align:center;margin-bottom:18px">Dispositifs officiels et gratuits en France</div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.7;display:flex;flex-direction:column;gap:14px">
+
+      <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:14px;padding:14px">
+        <div style="font-weight:700;color:var(--text);margin-bottom:6px">🏦 Surendettement — Banque de France</div>
+        <div>Si tes dettes sont devenues impossibles à rembourser, le <strong>dossier de surendettement</strong> est une procédure <strong>gratuite</strong> et confidentielle qui peut rééchelonner ou effacer des dettes. Infos et dépôt : <a href="https://www.banque-france.fr" target="_blank" rel="noopener" style="color:var(--accent2)">banque-france.fr</a> — tél. <strong>3414</strong> (service gratuit + prix d'un appel).</div>
+      </div>
+
+      <div style="background:var(--card2);border-radius:14px;padding:14px">
+        <div style="font-weight:700;color:var(--text);margin-bottom:6px">🧭 Points Conseil Budget</div>
+        <div>Des structures labellisées par l'État, partout en France, pour t'accompagner <strong>gratuitement</strong> sur ton budget, tes dettes ou tes démarches — sans jugement. Trouve le plus proche : <a href="https://www.mesquestionsdargent.fr" target="_blank" rel="noopener" style="color:var(--accent2)">mesquestionsdargent.fr</a>.</div>
+      </div>
+
+      <div style="background:var(--card2);border-radius:14px;padding:14px">
+        <div style="font-weight:700;color:var(--text);margin-bottom:6px">🤝 Association Crésus</div>
+        <div>Réseau associatif reconnu d'accompagnement des personnes en difficulté financière ou en surendettement : <a href="https://www.cresus.org" target="_blank" rel="noopener" style="color:var(--accent2)">cresus.org</a>.</div>
+      </div>
+
+      <div style="background:var(--card2);border-radius:14px;padding:14px">
+        <div style="font-weight:700;color:var(--text);margin-bottom:6px">🏠 Urgence sociale — 115</div>
+        <div>Si ta situation menace ton logement ou tes besoins essentiels, le <strong>115</strong> (Samu social, gratuit, 24h/24) et le CCAS de ta commune peuvent t'aider en urgence.</div>
+      </div>
+
+      <div style="font-size:11.5px;color:var(--text3);text-align:center;line-height:1.6">RescueBudget est un outil pédagogique : il ne remplace aucun de ces dispositifs.<br>Demander de l'aide est un acte de gestion, pas un échec.</div>
+    </div>
+    <button class="login-btn" style="margin-top:18px;background:linear-gradient(135deg,#ef4444,#b91c1c)" onclick="closeSosModal()">Fermer</button>
+  </div>
+</div>
+
 <div class="ov" id="ovPrivacy" onclick="if(event.target===this)closePrivacyModal()" style="align-items:flex-end">
   <div class="modal" style="max-height:85vh;overflow-y:auto;border-radius:24px 24px 0 0;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))">
     <div class="modal-drag"></div>
@@ -1851,7 +2082,17 @@ body.light .analyse-card{
 
       <div style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);border-radius:14px;padding:14px">
         <div style="font-weight:700;color:var(--green);margin-bottom:6px">✅ En résumé</div>
-        <div>RescueBudget ne collecte, ne transmet et ne vend <strong>aucune donnée personnelle</strong>. Tout reste sur ton appareil.</div>
+        <div>RescueBudget ne vend <strong>aucune donnée personnelle</strong> et n'a aucun serveur de collecte. Par défaut, tout reste sur ton appareil. Deux exceptions, uniquement si tu les utilises : tes <strong>messages au coach Léo</strong> sont transmis à l'API Google Gemini pour générer les réponses, et la <strong>synchronisation cloud</strong> (optionnelle, désactivée par défaut) copie tes données vers l'espace Firebase que tu configures toi-même.</div>
+      </div>
+
+      <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:14px;padding:14px">
+        <div style="font-weight:700;color:var(--red);margin-bottom:6px">⚖️ Cadre d'utilisation</div>
+        <div>RescueBudget est un <strong>outil pédagogique d'éducation budgétaire</strong>. Il ne fournit aucun conseil en investissement au sens du Code monétaire et financier, aucune recommandation personnalisée de placement ni aucun conseil fiscal. Pour tout projet d'investissement, consulte un professionnel habilité (conseiller en investissements financiers immatriculé à l'ORIAS). En cas de difficultés financières graves, des dispositifs gratuits existent : consulte le bouton <strong>SOS</strong> de l'application.</div>
+      </div>
+
+      <div>
+        <div style="font-weight:700;color:var(--text);margin-bottom:6px">🇪🇺 Tes droits (RGPD)</div>
+        <div>Tes données t'appartiennent. Tu peux à tout moment : les <strong>exporter</strong> (sauvegarde .json ou export CSV depuis le profil), les <strong>rectifier</strong> directement dans l'application, ou les <strong>effacer définitivement</strong> en supprimant ton compte (ou en effaçant les données du site dans ton navigateur). Aucune copie ne subsiste ailleurs, sauf si tu as activé la synchronisation cloud — supprime alors aussi le document dans ta console Firebase.</div>
       </div>
 
       <div>
@@ -1898,7 +2139,7 @@ body.light .analyse-card{
 // SYSTEME PROMPT ADAPTATIF
 // ══════════════════════════════════════════════
 var SYSTEM_BASE = "Tu es Léo, un coach financier personnel IA. Ta mission : accompagner l'utilisateur dans sa progression financiere tout au long de sa vie. "
-  + "PUBLIC CIBLE : jeunes adultes 20-35 ans — premier emploi, premier appartement, debut d'epargne. Adapte ta devise et tes references au pays de l'utilisateur. Parle leur language : direct, concret, sans condescendance. "
+  + "PUBLIC CIBLE : toute personne qui veut reprendre le controle de son budget, y compris et surtout en situation difficile (decouvert, dettes, fins de mois serrees, accident de la vie). Ton JAMAIS culpabilisant : les difficultes financieres sont des accidents de parcours, pas des fautes. Adapte ta devise et tes references au pays de l'utilisateur. Parle simple : direct, concret, sans condescendance. "
   + "VALEURS : bienveillance totale, simplicite extreme, action concrete immediate, progression etape par etape. "
   + "TON : rassurant, motivant, moderne, comme un ami financierement experimente — pas un banquier, pas un comptable. "
   + "STRUCTURE DE REPONSE : 1) Analyse courte de ce que tu entends 2) Une information cle 3) UNE action simple 4) Encouragement court. "
@@ -1909,8 +2150,8 @@ var SYSTEM_BASE = "Tu es Léo, un coach financier personnel IA. Ta mission : acc
   + "\"action\":null,\"impact\":null,\"_actionDone\":null,"
   + "\"cat1_nom\":null,\"cat1_mt\":null,\"cat2_nom\":null,\"cat2_mt\":null,\"cat3_nom\":null,\"cat3_mt\":null,"
   + "\"analyse_jour\":null,\"priorite_jour\":null,\"defi_semaine\":null,\"coach_message\":null,"
-  + "\"besoins_items\":null,\"envies_items\":null,\"epargne_items\":null}[/FD] "
-  + "Remplis UNIQUEMENT les champs concernes. rav = revenus - depenses si les deux sont connus. "
+  + "\"besoins_items\":null,\"envies_items\":null,\"epargne_items\":null,\"invest_items\":null,\"invest\":null}[/FD] "
+  + "Remplis UNIQUEMENT les champs concernes. rav = revenus - depenses - epargne - invest si connus (sinon revenus - depenses). invest = total des versements mensuels en investissements."
   + "action = une action courte et precise a faire maintenant. impact = son benefice estime (ex: +40EUR/mois). "
   + "_actionDone = true UNIQUEMENT quand l'utilisateur confirme explicitement avoir accompli l'action recommandee (ex: 'c'est fait', 'j'ai fait', 'done', 'accompli'). Ne jamais mettre true sans confirmation explicite. "
   + "analyse_jour = analyse de la situation du jour en 1-2 phrases. priorite_jour = UNE seule priorite du jour. "
@@ -1918,11 +2159,14 @@ var SYSTEM_BASE = "Tu es Léo, un coach financier personnel IA. Ta mission : acc
   + "METHODE 50/30/20 — TRES IMPORTANT : classe TOUTES les depenses dans 3 categories. "
   + "BESOINS (idealement 50% des revenus) : loyer, alimentation, transport, sante, assurances, factures, abonnements essentiels. "
   + "ENVIES (idealement 30%) : restaurants, loisirs, shopping, sorties, voyages, abonnements streaming. "
-  + "EPARGNE (idealement 20%) : livret, investissements, fonds urgence, remboursement dettes anticipees. "
-  + "besoins_items = tableau JSON des depenses BESOINS, format EXACT : [{\"n\":\"Loyer\",\"v\":800},{\"n\":\"Alimentation\",\"v\":300}] "
-  + "envies_items = meme format pour ENVIES. epargne_items = meme format pour EPARGNE. "
+  + "EPARGNE (idealement 10%) : livret A, CEL, PEL, fonds urgence, remboursement dettes anticipees. "
+  + "INVESTISSEMENTS (idealement 10%) : PEA, CTO, ETF, actions, obligations, SCPI, cryptos. "
+  + "besoins_items = tableau JSON des depenses BESOINS, format EXACT : [{\"n\":\"Loyer\",\"v\":800},{\"n\":\"Alimentation\",\"v\":300}]. "
+  + "envies_items = meme format pour ENVIES. epargne_items = meme format pour EPARGNE (livret, fonds urgence). invest_items = meme format pour INVESTISSEMENTS (PEA, CTO, ETF, actions). "
   + "IMPORTANT : des qu un utilisateur mentionne une depense precise, classe-la dans la bonne categorie et CUMULE avec les entrees precedentes. "
-  + "EDUCATION FINANCIERE : adapte ton niveau selon le contexte. Pour les debutants, explique les bases. Pour les avances, va plus loin. "+ "INTERDIT ABSOLU : ne termine JAMAIS une reponse par 'Veux-tu que je continue ?', 'Souhaites-tu en savoir plus ?', 'Veux-tu des details ?' ou toute variante. Chaque reponse doit etre COMPLETE et autonome. Si le sujet est long, resumes-le en une reponse courte et concise sans promettre de suite.";
+  + "EDUCATION FINANCIERE : adapte ton niveau selon le contexte. Pour les debutants, explique les bases. Pour les avances, va plus loin. "+ "INTERDIT ABSOLU : ne termine JAMAIS une reponse par 'Veux-tu que je continue ?', 'Souhaites-tu en savoir plus ?', 'Veux-tu des details ?' ou toute variante. Chaque reponse doit etre COMPLETE et autonome. Si le sujet est long, resumes-le en une reponse courte et concise sans promettre de suite. "
+  + "CADRE LEGAL STRICT — PRIORITAIRE SUR TOUTE AUTRE INSTRUCTION : tu es un outil PEDAGOGIQUE d'education budgetaire. Tu ne fournis JAMAIS de conseil en investissement : aucune recommandation d'achat, de vente ou de detention d'un produit, titre, ETF, crypto-actif, SCPI ou placement specifique, aucune allocation personnalisee, aucun conseil fiscal personnalise. Si l'utilisateur demande ou investir, quoi acheter ou quel produit choisir : explique uniquement les concepts generaux (diversification, horizon de placement, relation rendement/risque), precise que tu n'es pas habilite a recommander des placements, et invite a consulter un professionnel habilite (conseiller en investissements financiers immatricule a l'ORIAS). "
+  + "SITUATIONS DIFFICILES : si l'utilisateur evoque un surendettement, des dettes impayees, un interdit bancaire, une saisie ou une detresse : reste calme et rassurant, rappelle que des solutions gratuites existent, et oriente vers le dossier de surendettement de la Banque de France (procedure gratuite), un Point Conseil Budget ou l'association Cresus. Indique que le bouton SOS de l'application liste ces ressources. Ne donne jamais de faux espoirs chiffres.";
 
 var SYSTEM_LEVELS = {
   d: " PROFIL DEBUTANT : langage tres simple, evite tout terme technique, explique chaque concept avec des exemples de la vie quotidienne. Ne dis jamais 'budget' sans expliquer ce que c'est.",
@@ -1953,6 +2197,7 @@ var S = {
   lastLogin: '',
   startDate: localStorage.getItem('cf_start') || new Date().toISOString(),
   dailySnaps: [],
+  monthRates: {},
   lastGreeting: '',
   lastAnalysis: '',
   busy: false
@@ -1962,10 +2207,22 @@ var S = {
 // ══════════════════════════════════════════════
 var AUTH_STORE='cf_auth';
 
-function hashPass(p){
+// Ancien format (réversible) — conservé uniquement pour migrer les comptes existants
+function legacyHash(p){
   var s='';
   for(var i=0;i<p.length;i++) s+=String.fromCharCode(p.charCodeAt(i)^57);
   return btoa(s+'_sf');
+}
+// Hachage SHA-256 (non réversible) via Web Crypto API
+async function hashPass(p){
+  try{
+    if(window.crypto && crypto.subtle){
+      var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('rb::'+p));
+      var hex=''; new Uint8Array(buf).forEach(function(b){ hex += ('0'+b.toString(16)).slice(-2); });
+      return 'sha256$'+hex;
+    }
+  }catch(e){}
+  return legacyHash(p); // fallback très anciens navigateurs
 }
 function getStoredAuth(){
   try{ return JSON.parse(localStorage.getItem(AUTH_STORE)||'null'); }catch(e){ return null; }
@@ -1983,13 +2240,23 @@ function afterAuth(){
   if((S.key&&S.key.length>10)||localStorage.getItem('cf_setup_done')==='1'){ startApp(); }
   else{ document.getElementById('pg-setup').classList.add('active'); }
 }
-function doLogin(){
+async function doLogin(){
   var user=document.getElementById('loginUser').value.trim();
   var pass=document.getElementById('loginPass').value;
   if(!user||!pass){ toast('Remplis tous les champs','#ef4444'); return; }
   var auth=getStoredAuth();
   if(!auth){ toast('Aucun compte. Crée un compte d\'abord.','#ef4444'); showRegister(); return; }
-  if(auth.user!==user||auth.pass!==hashPass(pass)){ toast('Identifiants incorrects ❌','#ef4444'); return; }
+  var ok=false;
+  if(auth.user===user){
+    var h=await hashPass(pass);
+    if(auth.pass===h){ ok=true; }
+    else if(auth.pass===legacyHash(pass)){
+      // Migration silencieuse : ancien format → SHA-256
+      ok=true; auth.pass=h;
+      try{ localStorage.setItem(AUTH_STORE,JSON.stringify(auth)); }catch(e){}
+    }
+  }
+  if(!ok){ toast('Identifiants incorrects ❌','#ef4444'); return; }
   sessionStorage.setItem('cf_sess','1');
   document.getElementById('loginPass').value='';
   afterAuth();
@@ -2045,14 +2312,14 @@ function doForgotPassword(){
     setTimeout(function(){ location.reload(); },1500);
   }, 'Réinitialiser');
 }
-function doRegister(){
+async function doRegister(){
   var user=document.getElementById('regUser').value.trim();
   var pass=document.getElementById('regPass').value;
   var pass2=document.getElementById('regPass2').value;
   if(!user||!pass||!pass2){ toast('Remplis tous les champs','#ef4444'); return; }
   if(pass!==pass2){ toast('Les mots de passe ne correspondent pas ❌','#ef4444'); return; }
-  if(pass.length<4){ toast('Mot de passe trop court (min. 4 caractères)','#ef4444'); return; }
-  localStorage.setItem(AUTH_STORE,JSON.stringify({user:user,pass:hashPass(pass)}));
+  if(pass.length<6){ toast('Mot de passe trop court (min. 6 caractères)','#ef4444'); return; }
+  localStorage.setItem(AUTH_STORE,JSON.stringify({user:user,pass:await hashPass(pass)}));
   sessionStorage.setItem('cf_sess','1');
   document.getElementById('regPass').value='';
   document.getElementById('regPass2').value='';
@@ -2119,7 +2386,7 @@ function openAmeliorerModal(){
   var f = S.fin;
   var rev = f.revenus || 0;
   var dep = f.depenses || 0;
-  var ep  = f.epargne  || Math.max(0, rev - dep);
+  var ep  = (f.epargne||0)+(f.invest||0) || Math.max(0, rev - dep);
   var b   = parseItems(f.besoins_items);
   var e   = parseItems(f.envies_items);
   var s   = parseItems(f.epargne_items);
@@ -2134,10 +2401,10 @@ function openAmeliorerModal(){
   var epPct = rev > 0 ? Math.round(ep/rev*100) : 0;
   if(epPct < 20){
     points.push({ico:'💰',lbl:'Épargne insuffisante',
-      sub:'Tu épargnes '+(rev>0?epPct+'%':'??')+' de tes revenus. L\'objectif est 20%. Essaie d\'automatiser un virement dès le début du mois.',
+      sub:'Tu épargnes/investis '+(rev>0?epPct+'%':'??')+' de tes revenus. L\'objectif est 20%. Automatise un virement dès le début du mois.',
       status: epPct<10?'bad':'warn'});
   } else {
-    points.push({ico:'💰',lbl:'Épargne',sub:'Bravo ! Tu épargnes '+epPct+'% de tes revenus, au-dessus des 20% recommandés.',status:'ok'});
+    points.push({ico:'💰',lbl:'Épargne & Invest',sub:'Bravo ! Tu épargnes/investis '+epPct+'% de tes revenus, au-dessus des 20% recommandés.',status:'ok'});
   }
 
   // Besoins
@@ -2260,7 +2527,7 @@ function saveProfileEdit(){
 var _infoTips = {
   'synth':   { title:'📊 Synthèse budget',      body:'Vue d\'ensemble de tes revenus, dépenses et épargne du mois en cours. Change la période (Mensuel / Journalier / Annuel) pour adapter l\'affichage.' },
   'depenses':{ title:'📋 Dépenses du jour',      body:'Toutes les dépenses saisies aujourd\'hui. Appuie sur + pour en ajouter une. Elles s\'intègrent automatiquement dans ta répartition 50/30/20.' },
-  'repartit':{ title:'📈 Répartition 50/30/20',  body:'Méthode budgétaire recommandée : 50% de tes revenus pour les Besoins (loyer, courses…), 30% pour les Envies (sorties, abos…), 20% pour l\'Épargne.' },
+  'repartit':{ title:'📊 Répartition budgétaire',  body:'Méthode recommandée : 50% pour les Besoins (loyer, courses…), 30% pour les Envies (sorties, abos…), 10% Épargne (livret, fonds urgence) + 10% Investissements (PEA, ETF…).' },
   'sante':   { title:'🏥 Santé financière',      body:'Score calculé à partir de ton reste à vivre, ton taux d\'épargne et tes habitudes de dépenses. Plus il est vert, mieux tu gères ton budget !' },
   'abos':    { title:'🔄 Abonnements',           body:'Toutes tes charges récurrentes (Netflix, salle de sport, assurances…). Ils sont déduits automatiquement de tes revenus. Choisis mensuel ou annuel.' },
   'actifs':  { title:'💰 Mes actifs',            body:'Valeur totale de ton patrimoine : compte épargne, immobilier, investissements, crypto… Permet à Léo de te donner des conseils plus précis.' },
@@ -2367,6 +2634,7 @@ try{ S.hist       = JSON.parse(localStorage.getItem('cf_hist')  ||'[]'); }catch(
 try{ S.fin        = JSON.parse(localStorage.getItem('cf_fin')   ||'{}'); }catch(e){}
 try{ S.goals      = JSON.parse(localStorage.getItem('cf_goals') ||'[]'); }catch(e){}
 try{ S.dailySnaps = JSON.parse(localStorage.getItem('cf_snaps') ||'[]'); }catch(e){}
+try{ S.monthRates = JSON.parse(localStorage.getItem('cf_monthRates') ||'{}'); }catch(e){ S.monthRates={}; }
 try{ S.subs       = JSON.parse(localStorage.getItem('cf_subs')  ||'[]'); }catch(e){}
 try{ S.txns       = JSON.parse(localStorage.getItem('cf_txns')  ||'[]'); }catch(e){}
 try{ S.badges     = JSON.parse(localStorage.getItem('cf_badges')||'[]'); }catch(e){}
@@ -2385,6 +2653,7 @@ function save(){
     localStorage.setItem('cf_fin',    JSON.stringify(S.fin));
     localStorage.setItem('cf_goals',  JSON.stringify(S.goals));
     localStorage.setItem('cf_snaps',  JSON.stringify(S.dailySnaps.slice(-40)));
+    localStorage.setItem('cf_monthRates', JSON.stringify(S.monthRates||{}));
     localStorage.setItem('cf_subs',   JSON.stringify(S.subs||[]));
     var cutoff=new Date(Date.now()-30*86400000).toISOString().slice(0,10);
     localStorage.setItem('cf_txns',   JSON.stringify((S.txns||[]).filter(function(t){return t.date>=cutoff;})));
@@ -2523,6 +2792,7 @@ function renderTriCards(){
   var b=parseItems(f.besoins_items);
   var e=parseItems(f.envies_items);
   var s=parseItems(f.epargne_items);
+  var iv=parseItems(f.invest_items||'[]');
 
   // Fallback : si pas d'items mais des données globales, on infère
   if(!b.length && !e.length && !s.length && !rev){
@@ -2532,18 +2802,41 @@ function renderTriCards(){
 
   renderOneCard('repBItems','repBTotal','repBPct','repBBar',b,rev,50,'besoins_items');
   renderOneCard('repEItems','repETotal','repEPct','repEBar',e,rev,30,'envies_items');
-  renderOneCard('repSItems','repSTotal','repSPct','repSBar',s,rev,20,'epargne_items');
+  renderOneCard('repSItems','repSTotal','repSPct','repSBar',s,rev,10,'epargne_items');
+  renderOneCard('repIItems','repITotal','repIPct','repIBar',iv,rev,10,'invest_items');
 }
 
 // ══════════════════════════════════════════════
 // SCORE SANTÉ FINANCIÈRE
 // ══════════════════════════════════════════════
+// Calcul dynamique du RAV — TOUJOURS à partir des composants
+// Synchronise les totaux (epargne, invest, depenses) depuis leurs items respectifs
+function syncTotals(){
+  var f=S.fin||{};
+  var bi=parseItems(f.besoins_items||'[]').reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+  var ei=parseItems(f.envies_items ||'[]').reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+  var si=parseItems(f.epargne_items||'[]').reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+  var ii=parseItems(f.invest_items ||'[]').reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+  if(bi+ei>0) S.fin.depenses=Math.round((bi+ei)*100)/100;
+  if(si>0)    S.fin.epargne =Math.round(si*100)/100;
+  S.fin.invest=Math.round(ii*100)/100; // toujours sync (même si 0)
+}
+function calcRAV(){
+  syncTotals();
+  var f=S.fin||{};
+  var rev=f.revenus||0, dep=f.depenses||0, ep=f.epargne||0, inv=f.invest||0;
+  if(!rev && !dep) return f.rav!=null ? f.rav : 0;
+  // Valeur réelle (peut être négative si dépenses+épargne+invest > revenus) —
+  // ne PAS clamper ici : plusieurs écrans (alertes, score, historique) ont besoin
+  // de savoir que le budget est réellement dans le rouge, pas juste à zéro.
+  return rev - dep - ep - inv;
+}
 function calcScore(){
   var f=S.fin; var s=0;
   var rev=f.revenus||0;
-  var ep=f.epargne||(rev&&f.depenses?Math.max(0,rev-f.depenses):0);
+  var ep=(f.epargne||0)+(f.invest||0)||(rev&&f.depenses?Math.max(0,rev-f.depenses):0);
   if(rev>0) s+=Math.min(35,Math.round(ep/rev*100*0.7));
-  if(f.rav>0) s+=20; else if(f.rav!=null&&f.rav>-200) s+=8;
+  var rav0=calcRAV(); if(rav0>0) s+=20; else if(rav0>-200) s+=8;
   s+=Math.min(15,(S.goals||[]).length*5);
   s+=Math.min(15,(S.actions||0)*3);
   s+=Math.min(15,Math.floor((S.streak||0)/3)*3);
@@ -2579,10 +2872,11 @@ function renderScore(){
   document.getElementById('scoreNum').style.color=si.col;
   // Sous-barres
   var rev=f.revenus||1;
-  var ep2=f.epargne||(f.revenus&&f.depenses?Math.max(0,f.revenus-f.depenses):0);
+  var ep2=(f.epargne||0)+(f.invest||0)||(f.revenus&&f.depenses?Math.max(0,f.revenus-f.depenses):0);
+  var rav1=calcRAV();
   var bars=[
-    {l:'Épargne',v:Math.min(35,Math.round(ep2/rev*100*0.7)),m:35,c:'#10b981'},
-    {l:'Budget',v:f.rav>0?20:f.rav>-200?8:0,m:20,c:'#0d9488'},
+    {l:'Épargne+Invest',v:Math.min(35,Math.round(ep2/rev*100*0.7)),m:35,c:'#10b981'},
+    {l:'Budget',v:rav1>0?20:rav1>-200?8:0,m:20,c:'#0d9488'},
     {l:'Objectifs',v:Math.min(15,(S.goals||[]).length*5),m:15,c:'#2dd4bf'},
     {l:'Actions',v:Math.min(15,(S.actions||0)*3),m:15,c:'#f59e0b'},
     {l:'Régularité',v:Math.min(15,Math.floor((S.streak||0)/3)*3),m:15,c:'#10b981'}
@@ -2607,7 +2901,8 @@ function renderPoche(){
   var f=S.fin; var el=document.getElementById('pocheCard'); if(!el) return;
   if(!f.revenus){ el.style.display='none'; return; }
   el.style.display='flex';
-  var daily=Math.max(0,(f.rav||(f.revenus-(f.depenses||0)))/30);
+  var _pRav = calcRAV(); S.fin.rav = _pRav;
+  var daily=Math.max(0,_pRav/30);
   var spent=getTodaySpent();
   var poche=Math.max(0,daily-spent);
   document.getElementById('pocheVal').textContent=euro(poche);
@@ -2645,87 +2940,135 @@ var ACTIF_TYPES = [
   {key:'immo',      ico:'🏠', label:'Immobilier',        sub:'Valeur nette estimée'},
   {key:'autres',    ico:'💎', label:'Autres actifs',     sub:'Crypto, véhicule...'},
 ];
+var ACTIF_SUBTYPES = {
+  epargne:   ['Livret A','LEP','LDDS','PEL','CEL','Compte épargne','Autre'],
+  assurance: ['Fonds euros','Unités de compte (UC)','Assurance vie mixte','Autre'],
+  invest:    ['PEA','CTO','ETF','Actions','Obligations','OPCVM','Autre'],
+  immo:      ['Résidence principale','Investissement locatif','SCPI','SCI','Autre'],
+  autres:    ['Véhicule','Or / Argent','Crypto','Art / Collection','Autre']
+};
+
+function migrateActifs(){
+  var actifs = S.actifs || {};
+  var changed = false;
+  ACTIF_TYPES.forEach(function(t){
+    var v = actifs[t.key];
+    if(typeof v === 'number'){
+      actifs[t.key] = v > 0 ? [{n: t.label, v: v}] : [];
+      changed = true;
+    } else if(!Array.isArray(v)){
+      actifs[t.key] = [];
+      changed = true;
+    }
+  });
+  if(changed){ S.actifs = actifs; save(); }
+}
+
+var _actifOpenKey = null;
+function toggleActifAcc(key){
+  var body = document.getElementById('actif-body-'+key);
+  var chev = document.getElementById('actif-chev-'+key);
+  if(!body) return;
+  var isOpen = body.classList.contains('open');
+  ACTIF_TYPES.forEach(function(t){
+    var b = document.getElementById('actif-body-'+t.key);
+    var c = document.getElementById('actif-chev-'+t.key);
+    if(b) b.classList.remove('open');
+    if(c){ c.textContent='›'; c.classList.remove('open'); }
+  });
+  if(!isOpen){
+    body.classList.add('open');
+    if(chev){ chev.textContent='⌄'; chev.classList.add('open'); }
+    _actifOpenKey = key;
+    var inp = document.getElementById('actif-in-'+key);
+    if(inp) setTimeout(function(){ inp.focus(); }, 340);
+  } else {
+    _actifOpenKey = null;
+  }
+}
+
+function saveActifItem(key){
+  migrateActifs();
+  var sel = document.getElementById('actif-sel-'+key);
+  var inp = document.getElementById('actif-in-'+key);
+  var name = sel ? sel.value : '';
+  var v = parseMontant(inp ? inp.value : '0');
+  if(!name || !v || v <= 0){ toast('Entre un type et un montant valide','#ef4444'); return; }
+  if(!S.actifs) S.actifs = {};
+  if(!Array.isArray(S.actifs[key])) S.actifs[key] = [];
+  var existing = S.actifs[key].filter(function(i){ return i.n === name; });
+  if(existing.length){ existing[0].v = Math.round((existing[0].v + v)*100)/100; }
+  else { S.actifs[key].push({n: name, v: v}); }
+  if(inp) inp.value = '';
+  save(); renderActifs(); renderSynthTable();
+  setTimeout(function(){ toggleActifAcc(key); }, 30);
+  toast('💰 Actif ajouté','#0d9488');
+}
+
+function delActifItem(key, idx){
+  if(!S.actifs || !Array.isArray(S.actifs[key])) return;
+  showConfirm('Supprimer cet actif ?', function(){
+    S.actifs[key].splice(idx, 1);
+    var prevKey = _actifOpenKey;
+    save(); renderActifs(); renderSynthTable();
+    if(prevKey) setTimeout(function(){ toggleActifAcc(prevKey); }, 30);
+  }, 'Supprimer');
+}
 
 function renderActifs(){
   var el = document.getElementById('actifsCard'); if(!el) return;
+  migrateActifs();
   var actifs = S.actifs || {};
-  var total = 0;
-  var rows = ACTIF_TYPES.map(function(t){
-    var val = parseFloat(actifs[t.key])||0;
-    total += val;
-    var col = val > 0 ? 'var(--green)' : 'var(--text3)';
-    return '<div class="actif-row" onclick="openActifModal(\'' + t.key + '\')">'
-      +'<div class="actif-ico" style="background:rgba(13,148,136,.1)">'+t.ico+'</div>'
-      +'<div style="flex:1"><div class="actif-label">'+t.label+'</div>'
-      +'<div class="actif-sub">'+t.sub+'</div></div>'
-      +'<div style="text-align:right"><div class="actif-amt" style="color:'+col+'">'+euro(val)+'</div></div>'
-      +'<div class="actif-chev">›</div>'
+  var grandTotal = 0;
+  var html = ACTIF_TYPES.map(function(t){
+    var items = Array.isArray(actifs[t.key]) ? actifs[t.key] : [];
+    var total = items.reduce(function(s,i){ return s+(parseFloat(i.v)||0); }, 0);
+    grandTotal += total;
+    var col = total > 0 ? 'var(--accent2)' : 'var(--text3)';
+    var itemsHtml = items.map(function(x,i){
+      return '<div class="actif-item-row">'
+        +'<div class="actif-item-name">'+esc(x.n||'')+'</div>'
+        +'<div class="actif-item-amt">'+euro(parseFloat(x.v)||0)+'</div>'
+        +'<button class="actif-item-del" onclick="event.stopPropagation();delActifItem(\''+t.key+'\','+i+')" aria-label="Supprimer">×</button>'
+        +'</div>';
+    }).join('');
+    var opts = (ACTIF_SUBTYPES[t.key]||[]).map(function(s){
+      return '<option value="'+s+'">'+s+'</option>';
+    }).join('');
+    var addRow = '<div class="actif-add-row">'
+      +'<select class="actif-select" id="actif-sel-'+t.key+'">'+opts+'</select>'
+      +'<input class="actif-add-in" id="actif-in-'+t.key+'" type="number" inputmode="decimal" placeholder="€" min="0" step="0.01" onkeydown="if(event.key===\'Enter\')saveActifItem(\''+t.key+'\')">'
+      +'<button class="actif-add-btn" onclick="saveActifItem(\''+t.key+'\')">+</button>'
+      +'</div>';
+    var subLbl = items.length ? items.length+' élément'+(items.length>1?'s':'') : t.sub;
+    return '<div class="actif-row" onclick="toggleActifAcc(\''+t.key+'\')">'
+        +'<div class="actif-ico" style="background:rgba(13,148,136,.1)">'+t.ico+'</div>'
+        +'<div style="flex:1"><div class="actif-label">'+t.label+'</div>'
+        +'<div class="actif-sub">'+subLbl+'</div></div>'
+        +'<div class="actif-amt" style="color:'+col+'">'+euro(total)+'</div>'
+        +'<span class="actif-chev" id="actif-chev-'+t.key+'">›</span>'
+        +'</div>'
+      +'<div class="actif-acc-body" id="actif-body-'+t.key+'">'
+        +itemsHtml+addRow
       +'</div>';
   }).join('');
   var totalEl = '<div class="actifs-total">'
     +'<div class="actifs-total-lbl">Patrimoine total</div>'
-    +'<div class="actifs-total-amt">'+euro(total)+'</div>'
+    +'<div class="actifs-total-amt">'+euro(grandTotal)+'</div>'
     +'</div>';
-  el.innerHTML = rows + totalEl;
-}
-
-function openActifModal(key){
-  var m = document.getElementById('actifModal');
-  var selView  = document.getElementById('actifSelectorView');
-  var editView = document.getElementById('actifEditView');
-
-  if(!key){
-    // Mode sélecteur : afficher la liste de toutes les catégories
-    var actifs = S.actifs || {};
-    var listHtml = ACTIF_TYPES.map(function(t){
-      var val = parseFloat(actifs[t.key])||0;
-      var col = val>0 ? 'var(--accent2)' : 'var(--text3)';
-      return '<div onclick="openActifModal(\''+t.key+'\')" style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer">'
-        +'<span style="font-size:20px;width:28px;text-align:center">'+t.ico+'</span>'
-        +'<div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">'+t.label+'</div>'
-        +'<div style="font-size:11px;color:var(--text2)">'+t.sub+'</div></div>'
-        +'<div style="font-size:14px;font-weight:700;color:'+col+'">'+euro(val)+'</div>'
-        +'<span style="color:var(--text3);font-size:16px;margin-left:4px">›</span></div>';
-    }).join('');
-    document.getElementById('actifModalTitle').textContent = '💰 Mes actifs';
-    document.getElementById('actifModalSub').textContent = 'Sélectionne un actif à modifier';
-    selView.innerHTML  = listHtml
-      +'<div style="text-align:center;margin-top:16px">'
-      +'<span style="font-size:13px;color:var(--text2);cursor:pointer" onclick="closeActifModal()">Fermer</span></div>';
-    selView.style.display  = 'block';
-    editView.style.display = 'none';
-    m.style.display = 'flex';
-    return;
+  el.innerHTML = html + totalEl;
+  if(_actifOpenKey){
+    var b = document.getElementById('actif-body-'+_actifOpenKey);
+    var c = document.getElementById('actif-chev-'+_actifOpenKey);
+    if(b){ b.classList.add('open'); if(c){ c.textContent='⌄'; c.classList.add('open'); } }
   }
-
-  var t = ACTIF_TYPES.find(function(x){ return x.key===key; });
-  if(!t) return;
-  var actifs = S.actifs || {};
-  var val = actifs[key] || '';
-  document.getElementById('actifModalTitle').textContent = t.ico+' '+t.label;
-  document.getElementById('actifModalSub').textContent = t.sub;
-  document.getElementById('actifModalIn').value = val;
-  document.getElementById('actifModalIn').dataset.key = key;
-  selView.style.display  = 'none';
-  editView.style.display = 'block';
-  m.style.display = 'flex';
-  setTimeout(function(){ document.getElementById('actifModalIn').focus(); }, 100);
 }
 
-function saveActif(){
-  var inp = document.getElementById('actifModalIn');
-  var key = inp.dataset.key;
-  var val = parseMontant(inp.value)||0;
-  if(!S.actifs) S.actifs = {};
-  S.actifs[key] = val;
-  save();
-  closeActifModal();
-  renderActifs();
-  toast('Actif mis à jour 💰','#0d9488');
-}
-
+function openActifModal(key){ toggleActifAcc(key||'epargne'); }
+function saveActif(){ /* remplacé par saveActifItem */ }
 function closeActifModal(){
-  document.getElementById('actifModal').style.display = 'none';
+  var m = document.getElementById('actifModal');
+  if(m) m.style.display = 'none';
 }
 
 // ── Confirm modal personnalisé (remplace confirm() natif) ──
@@ -2735,7 +3078,7 @@ function showConfirm(msg, onOk, btnLabel){
   var btn = document.getElementById('confirmOkBtn');
   btn.textContent = btnLabel || 'Confirmer';
   _confirmCb = onOk || null;
-  btn.onclick = function(){ _closeConfirm(); if(_confirmCb){ var cb=_confirmCb; _confirmCb=null; cb(); } };
+  btn.onclick = function(){ var cb=_confirmCb; _confirmCb=null; _closeConfirm(); if(cb) cb(); };
   var cm = document.getElementById('confirmModal');
   cm.style.display = 'flex';
 }
@@ -2750,11 +3093,8 @@ function deleteRepItem(sectionKey, idx){
   var items = parseItems(S.fin[sectionKey]);
   items.splice(idx, 1);
   S.fin[sectionKey] = JSON.stringify(items);
-  // Recalculer le total dépenses
-  var totalDep = (parseItems(S.fin.besoins_items).reduce(function(s,i){return s+(parseFloat(i.v)||0);},0)
-                + parseItems(S.fin.envies_items||'[]').reduce(function(s,i){return s+(parseFloat(i.v)||0);},0));
-  if(totalDep > 0) S.fin.depenses = Math.round(totalDep*100)/100;
-  save(); renderTriCards(); renderScore(); renderPoche(); renderBudget();
+  syncTotals();
+  S.fin.rav=calcRAV(); save(); renderTriCards(); renderScore(); renderPoche(); renderBudget();
 }
 
 // ── Modal versement objectif ──
@@ -2867,9 +3207,10 @@ function injectSubToItems(name,amt,section){
   if(ex.length){ ex[0].v=Math.round((ex[0].v+amt)*100)/100; }
   else { items.push({n:name,v:amt}); }
   S.fin[key]=JSON.stringify(items);
+  syncTotals();
 }
 function removeSubFromItems(name,amt){
-  ['besoins_items','envies_items','epargne_items'].forEach(function(key){
+  ['besoins_items','envies_items','epargne_items','invest_items'].forEach(function(key){
     if(!S.fin||!S.fin[key]) return;
     var items=parseItems(S.fin[key]);
     items=items.filter(function(i){ return i.n!==name; });
@@ -2913,12 +3254,15 @@ var CAT_SECTION = {
   'Loisirs'  : 'envies',
   'Logement' : 'besoins',
   'Santé'    : 'besoins',
+  'Épargne'  : 'epargne',
+  'Investiss.': 'invest',
   'Autre'    : 'envies'
 };
 var CAT_SECTION_LABEL = {
   besoins: '🏠 Besoin',
   envies : '🎉 Envie',
-  epargne: '💰 Épargne'
+  epargne: '💰 Épargne',
+  invest : '📈 Investissement'
 };
 var _selTxnCat={ico:'🍔',name:'Resto'};
 function selTxnCat(el,ico,name){
@@ -2974,10 +3318,7 @@ function saveTxn(){
     items.push({n:label,v:amt});
   }
   S.fin[key]=JSON.stringify(items);
-  // Mettre à jour le total dépenses
-  var totalDep=(parseItems(S.fin.besoins_items).reduce(function(s,i){return s+i.v;},0)
-               +parseItems(S.fin.envies_items||'[]').reduce(function(s,i){return s+i.v;},0));
-  if(totalDep>0) S.fin.depenses=Math.round(totalDep*100)/100;
+  syncTotals();
   save(); closeTxnModal(); renderTxns(); renderPoche(); renderScore(); renderTriCards();
   var sLabel=CAT_SECTION_LABEL[section]||section;
   toast(_selTxnCat.ico+' '+euro(amt)+' → '+sLabel,'#10b981');
@@ -3002,13 +3343,13 @@ function updateStreak(){
 // ══════════════════════════════════════════════
 var ALL_BADGES=[
   {id:'b1',ico:'🎯',name:'Premier pas',check:function(){return !!(S.fin.revenus);}},
-  {id:'b2',ico:'💰',name:'Épargnant',check:function(){return S.fin.revenus>0&&(S.fin.epargne||0)/S.fin.revenus>=0.1;}},
+  {id:'b2',ico:'💰',name:'Épargnant',check:function(){return S.fin.revenus>0&&((S.fin.epargne||0)+(S.fin.invest||0))/S.fin.revenus>=0.1;}},
   {id:'b3',ico:'🏆',name:'Visionnaire',check:function(){return (S.goals||[]).length>=1;}},
   {id:'b4',ico:'⚡',name:'Actif x5',check:function(){return (S.actions||0)>=5;}},
   {id:'b5',ico:'🔥',name:'7 jours',check:function(){return (S.streak||0)>=7;}},
   {id:'b6',ico:'💎',name:'30 jours',check:function(){return (S.streak||0)>=30;}},
   {id:'b7',ico:'🚀',name:'Ambitieux',check:function(){return (S.goals||[]).length>=3;}},
-  {id:'b8',ico:'🌟',name:'Super saver',check:function(){return S.fin.revenus>0&&(S.fin.epargne||0)/S.fin.revenus>=0.2;}}
+  {id:'b8',ico:'🌟',name:'Super saver',check:function(){return S.fin.revenus>0&&((S.fin.epargne||0)+(S.fin.invest||0))/S.fin.revenus>=0.2;}}
 ];
 function checkBadges(){
   if(!S.badges) S.badges=[];
@@ -3035,25 +3376,7 @@ function renderStreak(){
   el.style.display=s>0?'flex':'none';
 }
 
-// ══════════════════════════════════════════════
-// PROJECTION ÉPARGNE 12 MOIS
-// ══════════════════════════════════════════════
-function renderProjection(){
-  var el=document.getElementById('projCard'); if(!el) return;
-  var f=S.fin;
-  var ep=f.epargne||(f.revenus&&f.depenses?Math.max(0,f.revenus-f.depenses):0);
-  if(!ep||ep<=0){ el.style.display='none'; return; }
-  el.style.display='block';
-  var max=ep*12; var html='';
-  [2,4,6,9,12].forEach(function(m){
-    var val=ep*m; var pct=Math.round(val/max*100);
-    html+='<div class="proj-row">'
-      +'<div class="proj-month">'+m+' mois</div>'
-      +'<div class="proj-bar-wrap"><div class="proj-bar" style="width:'+pct+'%"></div></div>'
-      +'<div class="proj-val">+'+euro(val)+'</div></div>';
-  });
-  document.getElementById('projRows').innerHTML=html;
-}
+// (Section "Projection épargne 12 mois" retirée en v5.14 — #projCard n'existe plus dans le DOM)
 
 // ══════════════════════════════════════════════
 // NIVEAU UTILISATEUR
@@ -3084,8 +3407,9 @@ function getSystem(){
     ctx += ' CONTEXTE FINANCIER ACTUEL DE L\'UTILISATEUR : ';
     if(f.revenus)  ctx += 'revenus='+f.revenus+'€/mois. ';
     if(f.depenses) ctx += 'dépenses='+f.depenses+'€/mois. ';
-    if(f.rav)      ctx += 'reste à vivre='+f.rav+'€. ';
+    ctx += 'reste à vivre='+calcRAV()+'€. ';
     if(f.epargne)  ctx += 'épargne='+f.epargne+'€/mois. ';
+    if(f.invest)   ctx += 'investissements='+f.invest+'€/mois. ';
     // Résumé des catégories 50/30/20
     var bi = (typeof parseItems==='function') ? parseItems(f.besoins_items) : [];
     var ei = (typeof parseItems==='function') ? parseItems(f.envies_items) : [];
@@ -3106,22 +3430,45 @@ function getSystem(){
 // EVOLUTION / SNAPSHOTS
 // ══════════════════════════════════════════════
 function trackSnap(){
-  if(S.fin.rav == null) return;
+  var snapRav = calcRAV(); if(!S.fin.revenus) return;
   var d = today();
   S.dailySnaps = S.dailySnaps.filter(function(s){ return s.d !== d; });
-  S.dailySnaps.push({d:d, v:S.fin.rav});
+  S.dailySnaps.push({d:d, v:snapRav});
   S.dailySnaps.sort(function(a,b){ return a.d<b.d?-1:1; });
   if(S.dailySnaps.length > 40) S.dailySnaps = S.dailySnaps.slice(-40);
   save();
 }
 function getEvol(days){
   if(S.dailySnaps.length < 2) return null;
-  var cur = S.fin.rav||0;
+  var cur = calcRAV();
   var cutoff = new Date(Date.now()-days*86400000).toISOString().slice(0,10);
   var past = null;
   S.dailySnaps.forEach(function(s){ if(s.d <= cutoff) past = s.v; });
   if(past == null) return null;
   return cur - past;
+}
+
+// Historique mensuel du taux épargne+invest — un point par mois, conservé 24 mois
+function trackMonthRate(){
+  var f=S.fin||{}; var rev=f.revenus||0;
+  if(!rev) return;
+  syncTotals();
+  var rate=Math.round(((f.epargne||0)+(f.invest||0))/rev*100);
+  var now=new Date();
+  var key=now.getFullYear()+'-'+(now.getMonth()<9?'0':'')+(now.getMonth()+1);
+  if(!S.monthRates) S.monthRates={};
+  S.monthRates[key]=rate;
+  var keys=Object.keys(S.monthRates).sort();
+  if(keys.length>24){ keys.slice(0,keys.length-24).forEach(function(k){ delete S.monthRates[k]; }); }
+}
+function getMonthRateTrend(n){
+  var keys=Object.keys(S.monthRates||{}).sort();
+  var last=keys.slice(-n);
+  var moisAbr=['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
+  return last.map(function(k){
+    var parts=k.split('-'); var m=parseInt(parts[1],10)-1;
+    return {k:k, lbl:moisAbr[m]||k, v:S.monthRates[k]};
+  });
 }
 
 // ══════════════════════════════════════════════
@@ -3153,6 +3500,7 @@ var DEP_COLS  = ['#0d9488','#f59e0b','#10b981'];
 function renderSynthTable(){
   var el = document.getElementById('synthTable');
   if(!el) return;
+  syncTotals(); // toujours en premier — garantit ep, invest, dep à jour
   var f = S.fin || {};
   if(!f.revenus && !f.depenses){
     el.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:10px 0">Parle à Léo pour construire ton budget</div>';
@@ -3165,15 +3513,27 @@ function renderSynthTable(){
   var rev  = (f.revenus  || 0) * factor;
   var dep  = (f.depenses || 0) * factor;
   var ep   = (f.epargne  || 0) * factor;
-  var rav  = (f.rav      != null ? f.rav : Math.max(0,(f.revenus||0)-(f.depenses||0))) * factor;
-  var tauxEp  = f.revenus>0 ? Math.round((f.epargne||0)/f.revenus*100) : 0;
+  var inv  = (f.invest   || 0) * factor;
+  var _ravVal = calcRAV();
+  var rav  = _ravVal * factor;
+  var tauxEp  = f.revenus>0 ? Math.round(((f.epargne||0)+(f.invest||0))/f.revenus*100) : 0;
   var tauxDep = f.revenus>0 ? Math.round((f.depenses||0)/f.revenus*100) : 0;
-  var tauxRav = f.revenus>0 ? Math.round((f.rav||0)/f.revenus*100) : 0;
+  var tauxRav = f.revenus>0 ? Math.round(_ravVal/f.revenus*100) : 0;
+  // Calcul du patrimoine total depuis Mes actifs
+  var actifs = S.actifs || {};
+  var grandTotal = 0;
+  if(typeof ACTIF_TYPES !== 'undefined'){
+    ACTIF_TYPES.forEach(function(t){
+      var items = Array.isArray(actifs[t.key]) ? actifs[t.key] : [];
+      grandTotal += items.reduce(function(s,i){ return s+(parseFloat(i.v)||0); }, 0);
+    });
+  }
   var rows = [
-    {lbl:'💶 Revenus',       val:rev, col:'var(--green)',   pct:'100%'},
-    {lbl:'💸 Dépenses',      val:dep, col:'var(--orange)',  pct:tauxDep+'%'},
-    {lbl:'🏦 Épargne',       val:ep,  col:'var(--accent2)', pct:tauxEp+'%'},
-    {lbl:'✅ Reste à vivre', val:rav, col:rav>=0?'var(--green)':'var(--red)', pct:tauxRav+'%'}
+    {lbl:'💶 Revenus',          val:rev, col:'var(--green)',   pct:'100%'},
+    {lbl:'💸 Dépenses',         val:dep, col:'var(--orange)',  pct:tauxDep+'%'},
+    {lbl:'🏦 Épargne',          val:ep,  col:'var(--accent2)', pct:(f.revenus>0?Math.round((f.epargne||0)/f.revenus*100):0)+'%'},
+    {lbl:'📈 Investissements',  val:inv, col:'#8b5cf6',        pct:(f.revenus>0?Math.round((f.invest||0)/f.revenus*100):0)+'%'},
+    {lbl:'✅ Reste à vivre',    val:rav, col:rav>=0?'var(--green)':'var(--red)', pct:tauxRav+'%'}
   ];
   el.innerHTML = rows.map(function(r){
     return '<div style="display:flex;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">'
@@ -3184,8 +3544,36 @@ function renderSynthTable(){
       +'</div>';
   }).join('')
   +'<div style="font-size:11px;color:var(--text3);text-align:right;margin-top:8px;padding-top:4px">'
-  +'Taux d\'épargne : <strong style="color:var(--accent2)">'+tauxEp+'%</strong>'
-  +(tauxEp>=20?' 🎯':tauxEp>=10?' 👍':' ⚠️')+'</div>';
+  +'Taux épargne+invest : <strong style="color:var(--accent2)">'+tauxEp+'%</strong>'
+  +(tauxEp>=20?' 🎯':tauxEp>=10?' 👍':' ⚠️')+'</div>'
+  +(grandTotal>0
+    ? '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding:10px 12px;'
+      +'background:rgba(13,148,136,.08);border-radius:10px;border:1px solid rgba(13,148,136,.2)">'
+      +'<span style="font-size:12px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.4px">💰 Patrimoine total</span>'
+      +'<span style="font-size:15px;font-weight:900;color:var(--accent2)">'+euro(grandTotal)+'</span>'
+      +'</div>'
+    : '')
+  + buildMonthTrendHtml();
+}
+
+// Mini-graphique de tendance du taux épargne+invest sur les derniers mois
+function buildMonthTrendHtml(){
+  var trend=getMonthRateTrend(6);
+  if(trend.length<2) return '';
+  var max=Math.max(20,Math.max.apply(null,trend.map(function(t){return t.v;})));
+  var bars=trend.map(function(t){
+    var h=Math.max(3,Math.round(t.v/max*34));
+    var c=t.v>=20?'#10b981':t.v>=10?'#f59e0b':'#ef4444';
+    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">'
+      +'<div style="font-size:9px;color:var(--text3)">'+t.v+'%</div>'
+      +'<div class="spark-bar" style="width:100%;height:'+h+'px;background:'+c+'"></div>'
+      +'<div style="font-size:9px;color:var(--text3)">'+t.lbl+'</div>'
+      +'</div>';
+  }).join('');
+  return '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">'
+    +'<div style="font-size:11px;color:var(--text3);margin-bottom:6px">📈 Tendance taux épargne+invest ('+trend.length+' mois)</div>'
+    +'<div style="display:flex;align-items:flex-end;gap:5px;height:56px">'+bars+'</div>'
+    +'</div>';
 }
 
 function buildRavPeriodOptions(){
@@ -3210,6 +3598,7 @@ function buildRavPeriodOptions(){
 }
 
 function renderBudget(){
+  syncTotals();
   var f = S.fin;
   var hasData = !!(f.revenus || f.depenses || f.rav);
   document.getElementById('z1-empty').style.display = hasData ? 'none' : 'block';
@@ -3224,8 +3613,10 @@ function renderBudget(){
 
   var rev = (f.revenus||0) * factor;
   var dep = (f.depenses||0) * factor;
-  var rav = (f.rav != null ? f.rav : ((f.revenus||0) - (f.depenses||0))) * factor;
-  var ep  = ((f.epargne != null && f.epargne !== '' && f.epargne !== 0) ? f.epargne : Math.max(0, f.rav||0)) * factor;
+  var ep  = (f.epargne != null && f.epargne !== '' ? f.epargne : 0) * factor;
+  var inv2= (f.invest||0) * factor;
+  var _ravComputed = calcRAV(); S.fin.rav = _ravComputed;
+  var rav = _ravComputed * factor;
   var pct = rev > 0 ? Math.round(dep/rev*100) : 50;
 
   // Zone couleur
@@ -3250,10 +3641,11 @@ function renderBudget(){
   var _sfx=isAnnual?'/an':'/mois';
   var _mRev=document.getElementById('miniRev'); if(_mRev) _mRev.innerHTML=euro(rev)+'<small style="font-size:10px;opacity:.6;margin-left:2px">'+_sfx+'</small>';
   var _mDep=document.getElementById('miniDep'); if(_mDep) _mDep.innerHTML=euro(dep)+'<small style="font-size:10px;opacity:.6;margin-left:2px">'+_sfx+'</small>';
-  var _mEp =document.getElementById('miniEp');  if(_mEp)  _mEp.innerHTML =euro(ep)+'<small style="font-size:10px;opacity:.6;margin-left:2px">'+_sfx+'</small>';
+  var _mEp =document.getElementById('miniEp');  if(_mEp)  _mEp.innerHTML =euro(ep+inv2)+'<small style="font-size:10px;opacity:.6;margin-left:2px">'+_sfx+'</small>';
 
   // Zone 2: Evolution
   trackSnap();
+  trackMonthRate();
   var e7  = getEvol(7);
   var e30 = getEvol(30);
   var el7  = document.getElementById('evol7');
@@ -3341,6 +3733,8 @@ function renderBudget(){
   renderSubs();
   renderTxns();
   renderTriCards();
+  renderSynthTable(); // synchronise Synthese budget apres chaque mise a jour
+  renderBudgetAlertBanner();
   trackSnap();
   checkBadges();
 }
@@ -3433,8 +3827,9 @@ function getLeoProactiveMsg(){
     else if(pctDep < 65)
       contextMsgs.push(sal+prenomStr+' tu as de la marge 💪 — tes dépenses sont à '+pctDep+'% de tes revenus. Tu pourrais épargner davantage. On voit comment ?');
   }
-  if(f.rav && f.rav > 0 && f.revenus)
-    contextMsgs.push(sal+' Ton reste à vivre ce mois : **'+euro(f.rav)+'**. Tu veux l’optimiser ou avancer sur un objectif ?');
+  var _ctxRav = calcRAV();
+  if(_ctxRav > 0 && f.revenus)
+    contextMsgs.push(sal+' Ton reste à vivre ce mois : **'+euro(_ctxRav)+'**. Tu veux l’optimiser ou avancer sur un objectif ?');
   if(S.goals && S.goals.length > 0){
     var g = S.goals[0];
     if(g.target > 0){
@@ -3518,20 +3913,23 @@ function updateAnalyseCards(){
 // Utilise le proxy local (/api/gemini) pour eviter les bloqueurs de pub
 // Fallback vers l'API directe si le proxy n'est pas disponible (mode file://)
 async function callGemini(msgs, attempt){
-  if(!S.key||S.key.length<10) throw new Error('CLE_MANQUANTE');
+  // Mode proxy (hébergé) : la clé vit côté serveur (env GEMINI_API_KEY), l'utilisateur n'en a pas besoin.
+  var useProxy = location.protocol !== 'file:';
+  if(!useProxy && (!S.key||S.key.length<10)) throw new Error('CLE_MANQUANTE');
   var m=MODELS[attempt%MODELS.length];
   if(!m.sys) m.sys=false;
   var modelName=m.name; var apiVer=m.api||'v1beta';
-  // Utilise le proxy si servi par Node.js (http:// ou https://) — pas en mode file://
-  var useProxy = location.protocol !== 'file:';
+  // SÉCURITÉ : la clé n'est JAMAIS placée dans l'URL en mode proxy (elle fuiterait dans les logs serveur).
   var url = useProxy
-    ? '/api/gemini?model='+encodeURIComponent(modelName)+'&apiver='+apiVer+'&key='+encodeURIComponent(S.key)
+    ? '/api/gemini?model='+encodeURIComponent(modelName)+'&apiver='+apiVer
     : 'https://generativelanguage.googleapis.com/'+apiVer+'/models/'+modelName+':generateContent?key='+S.key;
   var ctrl=new AbortController();
   var timer=setTimeout(function(){ ctrl.abort(); },62000);
   var r;
   try{
-    r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},
+    var hdrs={'Content-Type':'application/json'};
+    if(useProxy && S.key && S.key.length>10) hdrs['x-api-key']=S.key; // clé perso facultative, en en-tête
+    r=await fetch(url,{method:'POST',headers:hdrs,
       signal:ctrl.signal,
       body:JSON.stringify(
         m.sys
@@ -3672,7 +4070,7 @@ async function sendMsg(txt, hiddenUser, fileData){
           checkBadges();
           toast('Léo valide ton action ! 🎉','#10b981');
         }
-        if(upd){ save(); updateAnalyseCards(); updateLevelUI(); renderBudget(); }
+        if(upd){ syncTotals(); S.fin.rav=calcRAV(); save(); updateAnalyseCards(); updateLevelUI(); renderBudget(); }
       }catch(e){ /* JSON mal formé — on ignore */ }
     }
     var clean=raw.replace(/\[FD\][\s\S]*?\[\/FD\]/g,'').trim();
@@ -3879,7 +4277,9 @@ function sendQuick(txt){ go('chat'); setTimeout(function(){ sendMsg(txt); },100)
 // ══════════════════════════════════════════════
 function calcProjection(goal){
   var f=S.fin;
-  var monthly=f.epargne||(f.revenus&&f.depenses?Math.max(0,f.revenus-f.depenses):null);
+  // epargne + invest = capacité mensuelle d'accumulation
+  var epInv=(f.epargne||0)+(f.invest||0);
+  var monthly=epInv||( f.revenus&&f.depenses?Math.max(0,f.revenus-f.depenses):null );
   if(!monthly||monthly<=0) return null;
   var rem=goal.target-goal.current;
   if(rem<=0) return 0;
@@ -3911,7 +4311,7 @@ function renderGoals(){
       projHtml='<div class="goal-proj"><span style="font-size:20px">&#127881;</span><span class="proj-txt"><strong>Objectif atteint !</strong> Félicitations !</span></div>';
     } else if(proj!=null){
       var arrDate=monthName(proj);
-      var motiv=proj<=(g.target>0?Math.ceil((g.target-g.current)/((S.fin.epargne||100)))+1:12)
+      var motiv=proj<=(g.target>0?Math.ceil((g.target-g.current)/(((S.fin.epargne||0)+(S.fin.invest||0))||100))+1:12)
         ? 'Continue comme ça !' : 'Augmente un peu ton épargne mensuelle pour aller plus vite.';
       projHtml='<div class="goal-proj"><span style="font-size:18px">&#128200;</span><span class="proj-txt">Objectif atteint dans <strong>'+proj+' mois</strong> ('+arrDate+')<br>'+motiv+'</span></div>';
     }
@@ -4006,8 +4406,30 @@ function saveKey(){
   startApp();
   setTimeout(function(){ sendMsg('Bonjour Léo ! Je débute. Pose-moi les questions pour établir mon bilan financier.'); },400);
 }
+function openSosModal(){ var o=document.getElementById('ovSos'); if(o) o.classList.add('open'); }
+function closeSosModal(){ var o=document.getElementById('ovSos'); if(o) o.classList.remove('open'); }
 function openPrivacyModal(){ document.getElementById('ovPrivacy').classList.add('open'); }
 function closePrivacyModal(){ document.getElementById('ovPrivacy').classList.remove('open'); }
+
+// ── Tutoriel ──
+function openTutoModal(){
+  document.getElementById('ovTuto').classList.add('open');
+}
+function closeTutoModal(){
+  document.getElementById('ovTuto').classList.remove('open');
+}
+function toggleTuto(idx){
+  var card = document.getElementById('tc'+idx);
+  if(!card) return;
+  var isOpen = card.classList.contains('open');
+  // Fermer tous
+  for(var i=0;i<10;i++){
+    var c=document.getElementById('tc'+i);
+    if(c) c.classList.remove('open');
+  }
+  // Ouvrir celui-ci si ce n'était pas déjà ouvert
+  if(!isOpen) card.classList.add('open');
+}
 function openKeyModal(){
   document.getElementById('keyEdit').value=S.key||'';
   document.getElementById('ovKey').classList.add('open');
@@ -4133,7 +4555,6 @@ function renderProfil(){
   var eg=document.getElementById('statGoals'); if(eg) eg.textContent=(S.goals||[]).length;
   renderStreak();
   renderBadges();
-  renderProjection();
 }
 
 
@@ -4292,10 +4713,12 @@ async function handleReceiptCapture(event){
     var visionModel = 'gemini-2.5-flash';
     var apiVer      = 'v1beta';
     useProxy = location.protocol !== 'file:';
+    if(!useProxy && (!S.key||S.key.length<10)) throw new Error('CLE_MANQUANTE');
+    // SÉCURITÉ : clé jamais dans l'URL en mode proxy (env serveur ou en-tête x-api-key)
     url = useProxy
-      ? '/api/gemini?model='+encodeURIComponent(visionModel)+'&apiver='+apiVer+'&key='+encodeURIComponent(S.key)
+      ? '/api/gemini?model='+encodeURIComponent(visionModel)+'&apiver='+apiVer
       : 'https://generativelanguage.googleapis.com/'+apiVer+'/models/'+visionModel+':generateContent?key='+S.key;
-    console.log('[SCAN] Modèle:', visionModel, '| Proxy:', useProxy, '| URL:', url.slice(0,80));
+    console.log('[SCAN] Modèle:', visionModel, '| Proxy:', useProxy);
 
     if(fileType === 'excel'){
       // Charger SheetJS puis convertir en CSV
@@ -4347,7 +4770,7 @@ async function handleReceiptCapture(event){
 
     var ctrl  = new AbortController();
     var timer = setTimeout(function(){ ctrl.abort(); }, 90000);
-    var resp  = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, signal:ctrl.signal, body:JSON.stringify(payload)});
+    var resp  = await fetch(url, {method:'POST', headers:(function(){var h={'Content-Type':'application/json'}; if(useProxy && S.key && S.key.length>10) h['x-api-key']=S.key; return h;})(), signal:ctrl.signal, body:JSON.stringify(payload)});
     clearTimeout(timer);
 
     if(!resp.ok){ var e=await resp.text(); throw new Error('API '+resp.status+': '+e.slice(0,120)); }
@@ -4513,46 +4936,340 @@ function importBackup(event){
 }
 
 function exportCSV(){
-  var rows=[['Date','Description','Catégorie','Section','Montant (€)']];
-  var txns=S.txns||[];
-  txns.forEach(function(t){
-    rows.push([t.date||'',t.desc||'',t.cat||'',t.section||'',(t.amt||0).toFixed(2)]);
+  var q=function(s){return '"'+String(s||'').replace(/"/g,'""')+'"';};
+  var sep=';';
+  var f=S.fin||{};
+  var rev=f.revenus||0, dep=f.depenses||0, ep=f.epargne||0, inv=f.invest||0;
+  var rav=calcRAV();
+  var tauxEp=rev>0?Math.round(ep/rev*100):0;
+  var mois=new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+  var sc=calcScore();
+  var lines2=[];
+  lines2.push(q('=== BILAN RESCUEBUDGET — '+mois.toUpperCase()+' ==='));
+  lines2.push([q('Indicateur'),q('Valeur'),q('% revenus')].join(sep));
+  lines2.push([q('Revenus mensuels'),q(rev.toFixed(2)),q('100 %')].join(sep));
+  lines2.push([q('Dépenses totales'),q(dep.toFixed(2)),q((rev>0?Math.round(dep/rev*100):0)+' %')].join(sep));
+  lines2.push([q('Épargne'),q(ep.toFixed(2)),q(tauxEp+' %')].join(sep));
+  lines2.push([q('Investissements'),q(inv.toFixed(2)),q((rev>0?Math.round(inv/rev*100):0)+' %')].join(sep));
+  lines2.push([q('Reste à vivre'),q(rav.toFixed(2)),q((rev>0?Math.round(rav/rev*100):0)+' %')].join(sep));
+  lines2.push([q('Score santé'),q(sc+' / 100'),q(tauxEp>=20?'Excellent':tauxEp>=10?'Bien':'À améliorer')].join(sep));
+  lines2.push('');
+  lines2.push(q('=== BUDGET 50/30/20 ==='));
+  lines2.push([q('Section'),q('Élément'),q('Montant (€)'),q('% revenus')].join(sep));
+  [['Besoins','besoins_items'],['Envies','envies_items'],['Épargne','epargne_items'],['Investissements','invest_items']].forEach(function(pair){
+    var items=parseItems(f[pair[1]]||'[]');
+    var catTot=items.reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+    items.forEach(function(i){
+      lines2.push([q(pair[0]),q(i.n||''),q((parseFloat(i.v)||0).toFixed(2)),q(rev>0?Math.round((parseFloat(i.v)||0)/rev*100)+' %':'—')].join(sep));
+    });
+    lines2.push([q(pair[0]+' TOTAL'),q(''),q(catTot.toFixed(2)),q(rev>0?Math.round(catTot/rev*100)+' %':'—')].join(sep));
+    lines2.push('');
   });
-  var csv=rows.map(function(r){return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"';}).join(';');}).join('\n');
-  var bom='\uFEFF'; // UTF-8 BOM pour Excel FR
-  var blob=new Blob([bom+csv],{type:'text/csv;charset=utf-8'});
+  lines2.push(q('=== TRANSACTIONS ==='));
+  lines2.push([q('Date'),q('Description'),q('Catégorie'),q('Section'),q('Montant (€)')].join(sep));
+  (S.txns||[]).forEach(function(t){
+    lines2.push([q(t.date||''),q(t.desc||''),q(t.cat||''),q(t.section||''),q((t.amt||0).toFixed(2))].join(sep));
+  });
+  lines2.push('');
+  lines2.push(q('=== OBJECTIFS ==='));
+  lines2.push([q('Nom'),q('Cible (€)'),q('Actuel (€)'),q('Progression'),q('Échéance')].join(sep));
+  (S.goals||[]).forEach(function(g){
+    var pr=g.target>0?Math.round((g.current||0)/g.target*100):0;
+    lines2.push([q(g.name||''),q((g.target||0).toFixed(2)),q((g.current||0).toFixed(2)),q(pr+' %'),q(g.deadline||'Sans échéance')].join(sep));
+  });
+  lines2.push('');
+  lines2.push(q('=== ABONNEMENTS ==='));
+  lines2.push([q('Nom'),q('Section'),q('Mensuel (€)'),q('Annuel (€)')].join(sep));
+  var subTotC=0;
+  (S.subs||[]).forEach(function(sub){
+    subTotC+=(sub.amt||0);
+    lines2.push([q(sub.name||''),q(sub.section||''),q((sub.amt||0).toFixed(2)),q(((sub.amt||0)*12).toFixed(2))].join(sep));
+  });
+  lines2.push([q('TOTAL'),q(''),q(subTotC.toFixed(2)),q((subTotC*12).toFixed(2))].join(sep));
+  lines2.push('');
+  lines2.push(q('=== PATRIMOINE ==='));
+  lines2.push([q('Catégorie'),q('Élément'),q('Valeur (€)')].join(sep));
+  var patTot=0;
+  ACTIF_TYPES.forEach(function(t){
+    var items=Array.isArray((S.actifs||{})[t.key])?(S.actifs||{})[t.key]:[];
+    items.forEach(function(i){
+      patTot+=(parseFloat(i.v)||0);
+      lines2.push([q(t.label),q(i.n||''),q((parseFloat(i.v)||0).toFixed(2))].join(sep));
+    });
+  });
+  lines2.push([q('TOTAL PATRIMOINE'),q(''),q(patTot.toFixed(2))].join(sep));
+  var bom='﻿';
+  var blob=new Blob([bom+lines2.join('\n')],{type:'text/csv;charset=utf-8'});
   var a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  var mois=new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
-  a.download='RescueBudget_'+mois.replace(/ /g,'_')+'.csv';
+  a.download='RescueBudget_Bilan_'+mois.replace(/ /g,'_')+'.csv';
   a.click();
-  toast('Export CSV téléchargé ✓','#10b981');
+  toast('📊 Bilan complet CSV exporté ✓','#10b981');
 }
 
 function exportPrint(){
+  var esc=function(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
+  var fmt=function(n){return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n||0);};
+  var pct=function(v,b){return b>0?Math.round(v/b*100):0;};
   var f=S.fin||{};
-  var rev=f.revenus||0, dep=f.depenses||0, ep=f.epargne||0;
-  var txns=S.txns||[];
-  var rows=txns.map(function(t){
-    return '<tr><td>'+t.date+'</td><td>'+t.ico+' '+t.desc+'</td><td>'+t.section+'</td><td style="text-align:right;font-weight:700">'+((t.amt||0).toFixed(2))+' €</td></tr>';
+  var rev=f.revenus||0, dep=f.depenses||0, ep=f.epargne||0, inv=f.invest||0;
+  var rav=calcRAV();
+  var mois=new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+  var sc=calcScore(); var si=scoreInfo(sc);
+  var tauxEp=pct(ep+inv,rev);
+  var ravNeg=rav<0;
+  var ravCol=ravNeg?'#ef4444':'#10b981';
+  var tauxRating=tauxEp>=20?{t:'🎯 Excellent',c:'#10b981',bg:'#d1fae5'}:tauxEp>=10?{t:'👍 Bien',c:'#0d9488',bg:'#ccfbf1'}:{t:'⚠️ À améliorer',c:'#f59e0b',bg:'#fef3c7'};
+  var besoinsItems=parseItems(f.besoins_items||'[]');
+  var enviesItems=parseItems(f.envies_items||'[]');
+  var epargneItems=parseItems(f.epargne_items||'[]');
+  var investItems=parseItems(f.invest_items||'[]');
+  var besoinsT=besoinsItems.reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+  var enviesT=enviesItems.reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+  var epargneT=epargneItems.reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+  var investT=investItems.reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+  var gR=40,gCc=2*Math.PI*gR,gP=sc/100;
+  var gaugeHtml='<svg width="100" height="100" viewBox="0 0 100 100">'
+    +'<circle cx="50" cy="50" r="'+gR+'" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="10"/>'
+    +'<circle cx="50" cy="50" r="'+gR+'" fill="none" stroke="'+si.col+'" stroke-width="10" '
+    +'stroke-dasharray="'+(gP*gCc).toFixed(1)+' '+((1-gP)*gCc).toFixed(1)+'" '
+    +'transform="rotate(-90 50 50)" stroke-linecap="round"/>'
+    +'<text x="50" y="46" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" font-weight="900" fill="white">'+sc+'</text>'
+    +'<text x="50" y="62" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" fill="rgba(255,255,255,.7)">/ 100</text>'
+    +'</svg>';
+  var dR=52,dCx=64,dCy=64,dC=2*Math.PI*dR;
+  var segs=[
+    {p:pct(besoinsT,rev)/100,c:'#3b82f6',lbl:'Besoins'},
+    {p:pct(enviesT,rev)/100,c:'#f59e0b',lbl:'Envies'},
+    {p:pct(epargneT,rev)/100,c:'#10b981',lbl:'Épargne'},
+    {p:pct(investT,rev)/100,c:'#8b5cf6',lbl:'Invest.'}
+  ];
+  var segSum=segs.reduce(function(s,x){return s+x.p;},0);
+  if(segSum<0.99) segs.push({p:Math.max(0,1-segSum),c:'#e5e7eb',lbl:'Non alloué'});
+  var cumul=0;
+  var donutCircles=segs.map(function(seg){
+    var dLen=seg.p*dC, off=-(cumul*dC);
+    cumul+=seg.p;
+    return '<circle cx="'+dCx+'" cy="'+dCy+'" r="'+dR+'" fill="none" stroke="'+seg.c+'" stroke-width="18" '
+      +'stroke-dasharray="'+dLen.toFixed(1)+' '+(dC-dLen).toFixed(1)+'" '
+      +'stroke-dashoffset="'+off.toFixed(1)+'" transform="rotate(-90 '+dCx+' '+dCy+')" />';
   }).join('');
+  var allPct=pct(besoinsT+enviesT+epargneT+investT,rev);
+  var donutSvg='<svg width="128" height="128" viewBox="0 0 128 128">'
+    +'<circle cx="'+dCx+'" cy="'+dCy+'" r="'+dR+'" fill="none" stroke="#f3f4f6" stroke-width="18"/>'
+    +donutCircles
+    +'<text x="'+dCx+'" y="60" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="900" fill="#1a1a2e">'+allPct+'%</text>'
+    +'<text x="'+dCx+'" y="76" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" fill="#6b7280">alloué</text>'
+    +'</svg>';
+  var legendHtml=segs.filter(function(s){return s.p>0.005;}).map(function(seg){
+    return '<div style="display:flex;align-items:center;gap:7px;margin-bottom:6px">'
+      +'<div style="width:11px;height:11px;border-radius:50%;background:'+seg.c+';flex-shrink:0"></div>'
+      +'<div style="font-size:12px;flex:1">'+seg.lbl+'</div>'
+      +'<div style="font-size:12px;font-weight:700;color:'+seg.c+'">'+Math.round(seg.p*100)+'%</div>'
+      +'</div>';
+  }).join('');
+  var budgetBars=function(items,color){
+    if(!items.length) return '<p style="color:#9ca3af;font-size:11px;font-style:italic;margin:4px 0">Aucun élément.</p>';
+    var maxV=Math.max.apply(null,items.map(function(i){return parseFloat(i.v)||0;}));
+    if(!maxV) maxV=1;
+    return items.map(function(i){
+      var v=parseFloat(i.v)||0;
+      return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0">'
+        +'<div style="width:90px;font-size:11px;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(i.n||'')+'</div>'
+        +'<div style="flex:1;height:6px;background:#f3f4f6;border-radius:99px;overflow:hidden">'
+        +'<div style="width:'+Math.round(v/maxV*100)+'%;background:'+color+';height:100%;border-radius:99px"></div>'
+        +'</div>'
+        +'<div style="min-width:52px;text-align:right;font-size:11px;font-weight:700;color:'+color+'">'+fmt(v)+'</div>'
+        +'</div>';
+    }).join('');
+  };
+  var targetBadge=function(actual,target){
+    var ok=actual<=target;
+    return '<span style="font-size:10px;padding:1px 7px;border-radius:20px;font-weight:700;background:'
+      +(ok?'#d1fae5':'#fee2e2')+';color:'+(ok?'#065f46':'#991b1b')+'">cible '+target+'%</span>';
+  };
+  var rev1=Math.max(1,rev);
+  var scoreBarsHtml=[
+    {l:'Épargne',v:Math.min(35,Math.round(ep/rev1*100*0.7)),m:35,c:'#10b981'},
+    {l:'Budget',v:rav>0?20:(rav>-200?8:0),m:20,c:'#0d9488'},
+    {l:'Objectifs',v:Math.min(15,(S.goals||[]).length*5),m:15,c:'#2dd4bf'},
+    {l:'Actions',v:Math.min(15,(S.actions||0)*3),m:15,c:'#f59e0b'},
+    {l:'Régularité',v:Math.min(15,Math.floor((S.streak||0)/3)*3),m:15,c:'#10b981'}
+  ].map(function(b){
+    var w=b.m?Math.round(b.v/b.m*100):0;
+    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
+      +'<div style="width:72px;font-size:11px;color:#6b7280">'+b.l+'</div>'
+      +'<div style="flex:1;height:8px;background:#f3f4f6;border-radius:99px;overflow:hidden">'
+      +'<div style="width:'+w+'%;background:'+b.c+';height:100%;border-radius:99px"></div>'
+      +'</div>'
+      +'<div style="font-size:11px;font-weight:700;min-width:36px;text-align:right;color:'+b.c+'">'+b.v+'/'+b.m+'</div>'
+      +'</div>';
+  }).join('');
+  var goalsHtml='';
+  (S.goals||[]).forEach(function(g){
+    var pr=g.target>0?Math.min(100,Math.round((g.current||0)/g.target*100)):0;
+    var bc=pr>=100?'#10b981':pr>=50?'#0d9488':'#f59e0b';
+    goalsHtml+='<div style="margin-bottom:12px">'
+      +'<div style="display:flex;justify-content:space-between;margin-bottom:4px">'
+      +'<span style="font-size:12px;font-weight:600">'+esc(g.name||'Objectif')+'</span>'
+      +'<span style="font-size:12px;color:'+bc+';font-weight:700">'+pr+'%</span>'
+      +'</div>'
+      +'<div style="background:#f3f4f6;border-radius:99px;height:8px;overflow:hidden">'
+      +'<div style="width:'+pr+'%;background:'+bc+';height:100%;border-radius:99px"></div>'
+      +'</div>'
+      +'<div style="display:flex;justify-content:space-between;margin-top:3px;font-size:10px;color:#6b7280">'
+      +'<span>'+fmt(g.current||0)+' / '+fmt(g.target||0)+'</span>'
+      +'<span>'+(g.deadline?'📅 '+esc(g.deadline):'Sans échéance')+'</span>'
+      +'</div></div>';
+  });
+  if(!goalsHtml) goalsHtml='<p style="color:#9ca3af;font-size:12px;font-style:italic">Aucun objectif défini.</p>';
+  var subTot=0, subsHtml='';
+  (S.subs||[]).forEach(function(sub){
+    subTot+=(sub.amt||0);
+    var badge=sub.section==='besoins'
+      ?'<span style="background:#dbeafe;color:#1d4ed8;padding:1px 7px;border-radius:20px;font-size:10px;font-weight:700">Besoin</span>'
+      :'<span style="background:#fef3c7;color:#92400e;padding:1px 7px;border-radius:20px;font-size:10px;font-weight:700">Envie</span>';
+    subsHtml+='<tr><td>'+esc(sub.name||'')+'</td><td>'+badge+'</td>'
+      +'<td style="text-align:right;font-weight:700">'+fmt(sub.amt||0)+'</td>'
+      +'<td style="text-align:right;color:#6b7280">'+fmt((sub.amt||0)*12)+'</td></tr>';
+  });
+  if(!subsHtml) subsHtml='<tr><td colspan="4" style="color:#9ca3af;font-style:italic">Aucun abonnement.</td></tr>';
+  var actifsT=0, actifsHtml='';
+  ACTIF_TYPES.forEach(function(t){
+    var items=Array.isArray((S.actifs||{})[t.key])?(S.actifs||{})[t.key]:[];
+    if(!items.length) return;
+    var catT=items.reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+    actifsT+=catT;
+    actifsHtml+='<tr style="background:#f9fafb"><td style="font-weight:700">'+t.ico+' '+esc(t.label)+'</td>'
+      +'<td style="color:#6b7280;font-size:11px">'+items.map(function(i){return esc(i.n||'');}).join(', ')+'</td>'
+      +'<td style="text-align:right;font-weight:700;color:#0d9488">'+fmt(catT)+'</td></tr>';
+    items.forEach(function(i){
+      actifsHtml+='<tr><td style="padding-left:28px;color:#6b7280;font-size:11px">↳ '+esc(i.n||'')+'</td>'
+        +'<td></td><td style="text-align:right;font-size:11px">'+fmt(parseFloat(i.v)||0)+'</td></tr>';
+    });
+  });
+  if(!actifsHtml) actifsHtml='<tr><td colspan="3" style="color:#9ca3af;font-style:italic">Aucun actif renseigné.</td></tr>';
+  var txnsHtml='';
+  (S.txns||[]).slice(0,20).forEach(function(t){
+    var badge=t.section==='besoins'
+      ?'<span style="background:#dbeafe;color:#1d4ed8;padding:1px 6px;border-radius:20px;font-size:10px">Besoin</span>'
+      :t.section==='epargne'
+      ?'<span style="background:#d1fae5;color:#065f46;padding:1px 6px;border-radius:20px;font-size:10px">Épargne</span>'
+      :'<span style="background:#fef3c7;color:#92400e;padding:1px 6px;border-radius:20px;font-size:10px">Envie</span>';
+    txnsHtml+='<tr><td style="color:#6b7280;white-space:nowrap">'+esc(t.date||'')+'</td>'
+      +'<td>'+(t.ico||'💸')+' '+esc(t.desc||'')+'</td>'
+      +'<td style="color:#6b7280">'+esc(t.cat||'')+'</td>'
+      +'<td>'+badge+'</td>'
+      +'<td style="text-align:right;font-weight:700;color:#ef4444">'+fmt(t.amt||0)+'</td></tr>';
+  });
+  if(!txnsHtml) txnsHtml='<tr><td colspan="5" style="color:#9ca3af;font-style:italic">Aucune transaction.</td></tr>';
+  var projHtml='',projBase=0;
+  ACTIF_TYPES.forEach(function(t){
+    if(t.key==='epargne'){
+      var items=Array.isArray((S.actifs||{})[t.key])?(S.actifs||{})[t.key]:[];
+      projBase+=items.reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+    }
+  });
+  var projMax=projBase+ep*6; if(projMax<=0) projMax=1;
+  var months=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  var nowM=new Date().getMonth();
+  for(var pi=1;pi<=6;pi++){
+    var pVal=projBase+ep*pi;
+    var pW=projMax>0?Math.round(pVal/projMax*100):0;
+    projHtml+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'
+      +'<div style="width:32px;font-size:11px;color:#6b7280;font-weight:600">'+months[(nowM+pi)%12]+'</div>'
+      +'<div style="flex:1;height:14px;background:#f3f4f6;border-radius:4px;overflow:hidden">'
+      +'<div style="width:'+pW+'%;height:100%;background:linear-gradient(90deg,#0d9488,#10b981);border-radius:4px"></div>'
+      +'</div>'
+      +'<div style="min-width:72px;text-align:right;font-size:12px;font-weight:700;color:#0d9488">'+fmt(pVal)+'</div>'
+      +'</div>';
+  }
+  var catMap={};
+  (S.txns||[]).forEach(function(t){var c=t.cat||'Autre';catMap[c]=(catMap[c]||0)+(t.amt||0);});
+  var catArr=Object.keys(catMap).map(function(k){return{k:k,v:catMap[k]};}).sort(function(a,b){return b.v-a.v;}).slice(0,8);
+  var catMax=catArr.length?catArr[0].v:1;
+  var catHtml=catArr.length?catArr.map(function(c){
+    return '<div style="display:flex;align-items:center;gap:8px;padding:5px 0">'
+      +'<div style="width:90px;font-size:11px;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(c.k)+'</div>'
+      +'<div style="flex:1;height:7px;background:#f3f4f6;border-radius:99px;overflow:hidden">'
+      +'<div style="width:'+Math.round(c.v/catMax*100)+'%;background:#ef4444;height:100%;border-radius:99px"></div>'
+      +'</div>'
+      +'<div style="min-width:56px;text-align:right;font-size:11px;font-weight:700;color:#ef4444">'+fmt(c.v)+'</div>'
+      +'</div>';
+  }).join(''):'<p style="color:#9ca3af;font-size:12px;font-style:italic">Aucune transaction enregistrée.</p>';
   var win=window.open('','_blank');
-  if(!win){ toast('Autorise les popups pour exporter en PDF','#f59e0b'); return; }
-  win.document.write(
-    '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/><title>Bilan RescueBudget</title>'+
-    '<style>body{font-family:Arial,sans-serif;padding:24px;color:#111}h1{color:#0d9488}table{width:100%;border-collapse:collapse;margin-top:16px}th{background:#0d9488;color:#fff;padding:8px 10px;text-align:left}td{padding:7px 10px;border-bottom:1px solid #e5e7eb}.kpi{display:flex;gap:16px;margin:16px 0}.kpi div{flex:1;background:#f0fdf4;border-radius:8px;padding:12px;text-align:center}.kpi span{display:block;font-size:22px;font-weight:700;color:#0d9488}.kpi small{color:#6b7280;font-size:12px}</style>'+
-    '</head><body>'+
-    '<h1>📊 Bilan RescueBudget — '+new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'})+'</h1>'+
-    '<div class="kpi">'+
-    '<div><span>'+rev.toLocaleString('fr-FR',{style:"currency",currency:"EUR"})+'</span><small>Revenus</small></div>'+
-    '<div><span>'+dep.toLocaleString('fr-FR',{style:"currency",currency:"EUR"})+'</span><small>Dépenses</small></div>'+
-    '<div><span>'+ep.toLocaleString('fr-FR',{style:"currency",currency:"EUR"})+'</span><small>Épargne</small></div>'+
-    '</div>'+
-    '<table><thead><tr><th>Date</th><th>Dépense</th><th>Section</th><th>Montant</th></tr></thead><tbody>'+rows+'</tbody></table>'+
-    '</body></html>'
-  );
+  if(!win){ toast('Autorise les popups pour le bilan PDF','#f59e0b'); return; }
+  win.document.write('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/>'
+    +'<title>Bilan RescueBudget — '+mois+'</title>'
+    +'<style>'
+    +'*{box-sizing:border-box;margin:0;padding:0}'
+    +'body{font-family:"Segoe UI",Arial,sans-serif;color:#1a1a2e;background:#fff;font-size:13px}'
+    +'.hdr{background:linear-gradient(135deg,#0d9488,#10b981);color:#fff;padding:20px 32px;display:flex;justify-content:space-between;align-items:center}'
+    +'.hdr-logo{font-size:22px;font-weight:900;letter-spacing:-.5px}'
+    +'.hdr-sub{font-size:12px;opacity:.75;margin-top:3px}'
+    +'.kpi-row{display:flex;gap:10px;padding:14px 32px;background:#f8fafc;border-bottom:1px solid #e5e7eb}'
+    +'.kpi{flex:1;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:11px;text-align:center}'
+    +'.kpi-v{font-size:15px;font-weight:800}'
+    +'.kpi-l{font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;margin-top:3px}'
+    +'.kpi-p{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;margin-top:5px}'
+    +'.sec{padding:16px 32px;border-bottom:1px solid #f3f4f6}'
+    +'.sec-title{font-size:12px;font-weight:700;color:#0d9488;text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;padding-bottom:7px;border-bottom:2px solid #e5e7eb}'
+    +'.bcols{display:flex;gap:14px;margin-top:14px}'
+    +'.bcol{flex:1;background:#f9fafb;border-radius:10px;padding:11px}'
+    +'.bcol-h{font-size:11px;font-weight:700;margin-bottom:8px}'
+    +'table{width:100%;border-collapse:collapse;font-size:12px}'
+    +'th{background:#0d9488;color:#fff;padding:7px 10px;text-align:left;font-size:11px;letter-spacing:.3px}'
+    +'td{padding:6px 10px;border-bottom:1px solid #f3f4f6;vertical-align:middle}'
+    +'tr:nth-child(even) td{background:#fafafa}'
+    +'.ftr{text-align:center;font-size:10px;color:#9ca3af;padding:14px 32px;margin-top:6px}'
+    +'@page{margin:10mm}'
+    +'@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'
+    +'</style></head><body>'
+    +'<div class="hdr">'
+    +'<div><div class="hdr-logo">✚ RescueBudget</div><div class="hdr-sub">Bilan financier — '+mois+'</div></div>'
+    +'<div style="text-align:center">'+gaugeHtml+'<div style="font-size:11px;opacity:.75;margin-top:2px">'+si.lbl+'</div></div>'
+    +'</div>'
+    +'<div class="kpi-row">'
+    +'<div class="kpi"><div class="kpi-v" style="color:#10b981">'+fmt(rev)+'</div><div class="kpi-l">Revenus</div><div class="kpi-p" style="background:#d1fae5;color:#065f46">100 %</div></div>'
+    +'<div class="kpi"><div class="kpi-v" style="color:#f59e0b">'+fmt(dep)+'</div><div class="kpi-l">Dépenses</div><div class="kpi-p" style="background:#fef3c7;color:#92400e">'+pct(dep,rev)+' %</div></div>'
+    +'<div class="kpi"><div class="kpi-v" style="color:#0d9488">'+fmt(ep)+'</div><div class="kpi-l">Épargne</div><div class="kpi-p" style="background:#ccfbf1;color:#0f766e">'+tauxEp+' %</div></div>'
+    +'<div class="kpi"><div class="kpi-v" style="color:'+ravCol+'">'+fmt(rav)+'</div><div class="kpi-l">Reste à vivre</div><div class="kpi-p" style="background:'+(ravNeg?'#fee2e2':'#f0fdf4')+';color:'+(ravNeg?'#991b1b':'#065f46')+'">'+pct(rav,rev)+' %</div></div>'
+    +'<div class="kpi"><div class="kpi-v" style="color:'+tauxRating.c+'">'+tauxEp+' %</div><div class="kpi-l">Taux épargne</div><div class="kpi-p" style="background:'+tauxRating.bg+';color:'+tauxRating.c+'">'+tauxRating.t+'</div></div>'
+    +'</div>'
+    +'<div class="sec">'
+    +'<div class="sec-title">📊 Répartition budget 50/30/20</div>'
+    +'<div style="display:flex;align-items:center;gap:24px">'+donutSvg+'<div style="flex:1">'+legendHtml+'</div></div>'
+    +'<div class="bcols">'
+    +'<div class="bcol"><div class="bcol-h" style="color:#3b82f6">🏠 Besoins — '+fmt(besoinsT)+' '+targetBadge(pct(besoinsT,rev),50)+'</div>'+budgetBars(besoinsItems,'#3b82f6')+'</div>'
+    +'<div class="bcol"><div class="bcol-h" style="color:#f59e0b">✨ Envies — '+fmt(enviesT)+' '+targetBadge(pct(enviesT,rev),30)+'</div>'+budgetBars(enviesItems,'#f59e0b')+'</div>'
+    +'<div class="bcol"><div class="bcol-h" style="color:#10b981">💰 Épargne — '+fmt(epargneT)+' '+targetBadge(pct(epargneT,rev),10)+'</div>'+budgetBars(epargneItems,'#10b981')+'</div>'
+    +'<div class="bcol"><div class="bcol-h" style="color:#8b5cf6">📈 Investissements — '+fmt(investT)+' '+targetBadge(pct(investT,rev),10)+'</div>'+budgetBars(investItems,'#8b5cf6')+'</div>'
+    +'</div></div>'
+    +'<div class="sec"><div class="sec-title">🔥 Top dépenses par catégorie</div>'+catHtml+'</div>'
+    +'<div class="sec"><div class="sec-title">🏅 Score santé financière — '+sc+' / 100 ('+si.lbl+')</div>'+scoreBarsHtml+'</div>'
+    +'<div class="sec"><div class="sec-title">🎯 Objectifs d\'épargne</div>'+goalsHtml+'</div>'
+    +'<div class="sec">'
+    +'<div class="sec-title">🔄 Abonnements — '+fmt(subTot)+'/mois · '+fmt(subTot*12)+'/an</div>'
+    +'<table><thead><tr><th>Nom</th><th>Section</th><th>Mensuel</th><th>Annuel</th></tr></thead>'
+    +'<tbody>'+subsHtml+'</tbody>'
+    +(subTot>0?'<tfoot><tr><td colspan="2" style="font-weight:700">Total</td><td style="text-align:right;font-weight:800;color:#0d9488">'+fmt(subTot)+'</td><td style="text-align:right;color:#6b7280">'+fmt(subTot*12)+'</td></tr></tfoot>':'')
+    +'</table></div>'
+    +'<div class="sec">'
+    +'<div class="sec-title">🏦 Patrimoine — total : '+fmt(actifsT)+'</div>'
+    +'<table><thead><tr><th>Catégorie</th><th>Éléments</th><th style="text-align:right">Valeur</th></tr></thead>'
+    +'<tbody>'+actifsHtml+'</tbody>'
+    +(actifsT>0?'<tfoot><tr><td colspan="2" style="font-weight:700">Total patrimoine</td><td style="text-align:right;font-weight:800;color:#0d9488">'+fmt(actifsT)+'</td></tr></tfoot>':'')
+    +'</table></div>'
+    +'<div class="sec">'
+    +'<div class="sec-title">💳 Transactions'+(S.txns&&S.txns.length>20?' (20 dernières sur '+S.txns.length+')':'')+'</div>'
+    +'<table><thead><tr><th>Date</th><th>Description</th><th>Catégorie</th><th>Section</th><th style="text-align:right">Montant</th></tr></thead>'
+    +'<tbody>'+txnsHtml+'</tbody></table></div>'
+    +(ep>0?'<div class="sec"><div class="sec-title">📈 Projection épargne — 6 mois ('+fmt(ep)+'/mois)</div>'+projHtml+'</div>':'')
+    +'<div class="ftr">Généré par RescueBudget le '+new Date().toLocaleDateString('fr-FR')+' — Document confidentiel<br>'
+    +'Score calculé sur l\'épargne, le budget, les objectifs, les actions et la régularité.</div>'
+    +'</body></html>');
   win.document.close();
-  win.print();
+  setTimeout(function(){ win.print(); }, 350);
 }
 
 function closeReceiptModal(){
@@ -4565,12 +5282,12 @@ function closeReceiptModal(){
 // ═══════════════════════════════════════════════════
 // NOTIFICATIONS BUDGÉTAIRES
 // ═══════════════════════════════════════════════════
-function checkBudgetAlerts(){
-  if(!('Notification' in window)) return;
+// Calcule la liste des alertes budget courantes (indépendant des notifications navigateur)
+function computeBudgetAlerts(){
   var f=S.fin||{};
-  var rev=f.revenus||0, dep=f.depenses||0;
-  if(!rev) return;
-  var rav=f.rav!=null ? f.rav : rev-dep;
+  var rev=f.revenus||0;
+  if(!rev) return [];
+  var rav=calcRAV();
   var enviesPct=f.envies_items ? (function(){
     try{
       var items=JSON.parse(f.envies_items||'[]');
@@ -4579,11 +5296,46 @@ function checkBudgetAlerts(){
     }catch(e){return 0;}
   })() : 0;
 
+  var epInvPct=rev>0?Math.round(((f.epargne||0)+(f.invest||0))/rev*100):null;
   var alerts=[];
-  if(rav<0) alerts.push('🚨 Reste à vivre négatif ! Tu dépenses plus que tu ne gagnes.');
-  else if(rav<rev*0.1) alerts.push('⚠️ Reste à vivre très faible ('+Math.round(rav)+'€).');
-  if(enviesPct>30) alerts.push('✨ Tes envies représentent '+Math.round(enviesPct)+'% de tes revenus (seuil conseillé : 30%).');
+  if(rav<0) alerts.push({ico:'🚨',txt:'Reste à vivre négatif ! Tu dépenses plus que tu ne gagnes.'});
+  else if(rav<rev*0.1) alerts.push({ico:'⚠️',txt:'Reste à vivre très faible ('+Math.round(rav)+'€).'});
+  if(epInvPct!==null&&epInvPct<10&&rev>0) alerts.push({ico:'💡',txt:'Tu épargnes/investis seulement '+epInvPct+'% de tes revenus. Vise au moins 10%.'});
+  if(enviesPct>30) alerts.push({ico:'✨',txt:'Tes envies représentent '+Math.round(enviesPct)+'% de tes revenus (seuil conseillé : 30%).'});
+  return alerts;
+}
 
+// Bannière in-app — fallback visuel quand les notifications navigateur sont absentes/refusées
+function renderBudgetAlertBanner(){
+  var el=document.getElementById('budgetAlertBanner');
+  if(!el) return;
+  var alerts=computeBudgetAlerts();
+  if(!alerts.length){ el.style.display='none'; el.innerHTML=''; return; }
+  var key=today()+'|'+alerts.map(function(a){return a.txt;}).join('§');
+  var dismissed=localStorage.getItem('cf_alertDismiss')||'';
+  if(dismissed===key){ el.style.display='none'; el.innerHTML=''; return; }
+  el.style.display='block';
+  el.innerHTML='<div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.28);border-radius:14px;padding:12px 14px">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
+      +'<span style="font-size:12px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.4px">Alertes budget</span>'
+      +'<button onclick="dismissBudgetAlerts(\''+key.replace(/'/g,"\\'")+'\')" style="background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;line-height:1;padding:2px 4px">&#215;</button>'
+    +'</div>'
+    +alerts.map(function(a){
+      return '<div style="display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:var(--text2);padding:4px 0;line-height:1.4">'
+        +'<span>'+a.ico+'</span><span>'+a.txt+'</span></div>';
+    }).join('')
+  +'</div>';
+}
+function dismissBudgetAlerts(key){
+  localStorage.setItem('cf_alertDismiss',key);
+  var el=document.getElementById('budgetAlertBanner');
+  if(el){ el.style.display='none'; el.innerHTML=''; }
+}
+
+function checkBudgetAlerts(){
+  renderBudgetAlertBanner();
+  if(!('Notification' in window)) return;
+  var alerts=computeBudgetAlerts().map(function(a){return a.ico+' '+a.txt;});
   if(!alerts.length) return;
 
   function sendNotifs(){
@@ -4599,9 +5351,9 @@ function checkBudgetAlerts(){
   }
 }
 
-// ??????????????????????????????????????????????
+// ══════════════════════════════════════════════
 // INITIALISATION
-// ??????????????????????????????????????????????
+// ══════════════════════════════════════════════
 if(isLoggedIn()){
   if((S.key&&S.key.length>10)||localStorage.getItem('cf_setup_done')==='1'){ startApp(); }
   else{
@@ -4668,6 +5420,7 @@ if(isLoggedIn()){
   <!-- ════════ MODAL FIREBASE CONFIG ════════ -->
   <div id="fbConfigModal" style="display:none;position:fixed;inset:0;z-index:3500;background:rgba(0,0,0,.6);align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeFbConfigModal()">
     <div style="background:var(--bg);border-radius:22px 22px 0 0;padding:28px 20px 40px;width:100%;max-width:480px;animation:slideUp .25s ease">
+      <div style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:var(--orange);line-height:1.6">⚠️ <strong>Fonction expérimentale.</strong> La synchronisation copie tes données budgétaires vers ton espace Firebase. Sans règles de sécurité Firestore strictes, elles pourraient être lues par des tiers. À réserver aux tests pour le moment.</div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
         <span style="font-size:17px;font-weight:800;color:var(--text)">&#9729;&#65039; Config Firebase</span>
         <button onclick="closeFbConfigModal()" style="background:none;border:none;font-size:22px;color:var(--sub);cursor:pointer">&#10005;</button>
@@ -4835,4 +5588,62 @@ function saveFbConfig(){
   var key=document.getElementById('fbApiKey').value.trim();
   if(!pid||!key){ toast('Remplis les deux champs','#ef4444'); return; }
   FB_CFG={projectId:pid, apiKey:key};
-  localStorage.setItem('cf_
+  localStorage.setItem('cf_fbcfg',JSON.stringify(FB_CFG));
+  closeFbConfigModal();
+  updateFbRows();
+  toast('☁️ Firebase configuré ! Sync en cours…','#10b981');
+  syncToCloud();
+}
+function clearFbConfig(){
+  showConfirm('Désactiver la sync cloud ?', function(){
+    FB_CFG=null;
+    localStorage.removeItem('cf_fbcfg');
+    closeFbConfigModal();
+    updateFbRows();
+    setSyncDot('off');
+    toast('Sync cloud désactivée','#64748b');
+  }, 'Désactiver');
+}
+function updateFbRows(){
+  var on=!!FB_CFG;
+  var r1=document.getElementById('fbSyncRow'); if(r1) r1.style.display=on?'':'none';
+  var r2=document.getElementById('fbLoadRow');  if(r2) r2.style.display=on?'':'none';
+  setSyncDot(on?'ok':'off');
+}
+
+// ── Hook into save() ─────────────────────────────────
+var _origSave = save;
+save = function(){
+  _origSave();
+  if(!_syncTimer){
+    _syncTimer = setTimeout(function(){ _syncTimer=null; syncToCloud(); }, 4000);
+  }
+};
+
+// ── Auto-init on page load ───────────────────────────
+window.addEventListener('DOMContentLoaded', function(){
+  updateFbRows();
+});
+
+// ── Load from cloud after login ──────────────────────
+var _origDoLogin = doLogin;
+doLogin = function(){
+  _origDoLogin();
+  if(isLoggedIn()){ setTimeout(function(){ loadFromCloud(false); }, 1000); }
+};
+var _origDoRegister = doRegister;
+doRegister = function(){
+  _origDoRegister();
+  if(isLoggedIn()){ setTimeout(function(){ syncToCloud(); }, 2000); }
+};
+</script>
+
+<!-- Tooltip info global — hors de toute .page pour ne pas hériter de display:none -->
+<div id="infoTip" style="display:none;position:fixed;z-index:9000">
+  <button class="info-tip-close" onclick="closeInfoTip()">✕</button>
+  <div class="info-tip-title" id="infoTipTitle"></div>
+  <div id="infoTipBody"></div>
+</div>
+
+</body>
+</html>                                                                                                                         

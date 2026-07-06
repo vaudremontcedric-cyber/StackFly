@@ -1,7 +1,7 @@
 {
-  "name": "stackfly",
-  "version": "1.0.0",
-  "description": "StackFly - Coach financier IA par Milo",
+  "name": "rescuebudget",
+  "version": "5.24.0",
+  "description": "RescueBudget — Outil pédagogique de gestion budgétaire avec coach IA. Ne fournit aucun conseil en investissement.",
   "main": "serve.js",
   "scripts": {
     "start": "node serve.js"
