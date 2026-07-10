@@ -944,7 +944,7 @@ body.light .analyse-card{
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.27';
+window.APP_VERSION = '5.29';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1146,7 +1146,10 @@ window.APP_VERSION = '5.27';
       <div class="bud-top-wrap">
         <div class="rav-card g" id="ravCard">
            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-             <div class="rav-lbl" style="margin:0">Reste à vivre</div>
+             <div style="display:flex;align-items:center;gap:6px">
+               <div class="rav-lbl" style="margin:0">Reste à vivre</div>
+               <button class="info-btn" onclick="event.stopPropagation();showInfoTip(this,'rav')" title="En savoir plus">i</button>
+             </div>
              <select id="ravPeriodSel" onchange="renderBudget()" class="rav-period-sel"></select>
            </div>
            <div class="rav-val" id="ravVal">-- &#8364;</div>
@@ -1329,6 +1332,11 @@ window.APP_VERSION = '5.27';
                     <div class="score-num" id="scoreNum">0<span id="scoreLabel">--</span></div>
                   </div>
                   <div class="score-bars" id="scoreBars"></div>
+                </div>
+                <div id="scoreTrendBox" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+                  <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Tendance épargne+invest (6 derniers mois)</div>
+                  <svg id="scoreTrendSvg" width="100%" height="44" viewBox="0 0 240 44" preserveAspectRatio="none"></svg>
+                  <div id="scoreTrendLbls" style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--text3);margin-top:2px"></div>
                 </div>
               </div>
             </div>
@@ -1647,7 +1655,7 @@ window.APP_VERSION = '5.27';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.27</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.29</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -2524,7 +2532,8 @@ var _infoTips = {
   'sante':   { title:'🏥 Santé financière',      body:'Score calculé à partir de ton reste à vivre, ton taux d\'épargne et tes habitudes de dépenses. Plus il est vert, mieux tu gères ton budget !' },
   'abos':    { title:'🔄 Abonnements',           body:'Toutes tes charges récurrentes (Netflix, salle de sport, assurances…). Ils sont déduits automatiquement de tes revenus. Choisis mensuel ou annuel.' },
   'actifs':  { title:'💰 Mes actifs',            body:'Valeur totale de ton patrimoine : compte épargne, immobilier, investissements, crypto… Permet à Léo de te donner des conseils plus précis.' },
-  'leo':     { title:'💡 Léo recommande',        body:'Conseils personnalisés générés par Léo selon ta situation actuelle. Mis à jour à chaque modification de ton budget. Appuie pour en discuter avec lui.' }
+  'leo':     { title:'💡 Léo recommande',        body:'Conseils personnalisés générés par Léo selon ta situation actuelle. Mis à jour à chaque modification de ton budget. Appuie pour en discuter avec lui.' },
+  'rav':     { title:'✅ Reste à vivre',          body:'Calcul : Revenus − Dépenses (Besoins + Envies) − Épargne du mois. Les investissements (PEA, ETF, CTO…) ne sont PAS déduits : ce sont des placements, pas une charge du budget courant. Un reste à vivre négatif signifie que tes dépenses + ton épargne dépassent tes revenus.' }
 };
 function showInfoTip(btn, key){
   var tip = _infoTips[key];
@@ -2884,6 +2893,38 @@ function renderScore(){
       +'<div class="score-row-pts">'+b.v+'/'+b.m+'</div>'
       +'</div>';
   }).join('');
+  renderScoreTrend();
+}
+// Sparkline du taux d'épargne+invest sur les derniers mois (carte Santé financière)
+function renderScoreTrend(){
+  var box=document.getElementById('scoreTrendBox');
+  var svg=document.getElementById('scoreTrendSvg');
+  var lblsEl=document.getElementById('scoreTrendLbls');
+  if(!box||!svg||!lblsEl) return;
+  var trend=getMonthRateTrend(6);
+  if(trend.length<2){ box.style.display='none'; return; }
+  box.style.display='block';
+  var w=240,h=44,pad=4;
+  var vals=trend.map(function(t){return t.v;});
+  var min=Math.min(0,vals.reduce(function(a,b){return Math.min(a,b);},vals[0]));
+  var max=Math.max(vals.reduce(function(a,b){return Math.max(a,b);},vals[0]),10);
+  var span=(max-min)||1;
+  var stepX=trend.length>1?(w-pad*2)/(trend.length-1):0;
+  var pts=trend.map(function(t,i){
+    var x=pad+i*stepX;
+    var y=h-pad-((t.v-min)/span)*(h-pad*2);
+    return {x:x,y:y,v:t.v};
+  });
+  var path=pts.map(function(p,i){return (i===0?'M':'L')+p.x.toFixed(1)+','+p.y.toFixed(1);}).join(' ');
+  var last=pts[pts.length-1];
+  var lastCol=last.v>=10?'#10b981':last.v>=0?'#f59e0b':'#ef4444';
+  var svgHtml='<path d="'+path+'" fill="none" stroke="var(--accent2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
+  pts.forEach(function(p,i){
+    var isLast=i===pts.length-1;
+    svgHtml+='<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="'+(isLast?3.5:2)+'" fill="'+(isLast?lastCol:'var(--accent2)')+'"/>';
+  });
+  svg.innerHTML=svgHtml;
+  lblsEl.innerHTML=trend.map(function(t){return '<span>'+t.lbl+'</span>';}).join('');
 }
 
 // ══════════════════════════════════════════════
@@ -3342,7 +3383,11 @@ var ALL_BADGES=[
   {id:'b5',ico:'🔥',name:'7 jours',check:function(){return (S.streak||0)>=7;}},
   {id:'b6',ico:'💎',name:'30 jours',check:function(){return (S.streak||0)>=30;}},
   {id:'b7',ico:'🚀',name:'Ambitieux',check:function(){return (S.goals||[]).length>=3;}},
-  {id:'b8',ico:'🌟',name:'Super saver',check:function(){return S.fin.revenus>0&&((S.fin.epargne||0)+(S.fin.invest||0))/S.fin.revenus>=0.2;}}
+  {id:'b8',ico:'🌟',name:'Super saver',check:function(){return S.fin.revenus>0&&((S.fin.epargne||0)+(S.fin.invest||0))/S.fin.revenus>=0.2;}},
+  {id:'b9',ico:'📈',name:'Régularité',check:function(){
+    var t=getMonthRateTrend(3);
+    return t.length>=3 && t.every(function(m){return m.v>=10;});
+  }}
 ];
 function checkBadges(){
   if(!S.badges) S.badges=[];
@@ -3770,6 +3815,30 @@ function showTyping(){
 }
 function hideTyping(){ var t=document.getElementById('typing-ind'); if(t) t.remove(); }
 
+// Indicateur visuel de retry (serveurs Gemini surchargés) : réutilise le style
+// .typing existant (bulle + 3 points) avec un compte à rebours en secondes,
+// au lieu d'un message texte inséré dans l'historique du chat qui devait être
+// retrouvé et supprimé manuellement après coup.
+function showRetryCountdown(seconds){
+  hideTyping();
+  var d=document.createElement('div'); d.className='msg bot'; d.id='retry-ind';
+  d.innerHTML='<div class="typing" style="gap:8px"><span id="retryCountdownTxt" style="font-size:12.5px;color:var(--text2)">⏳ Serveurs Gemini surchargés, nouvelle tentative dans '+seconds+'s…</span></div>';
+  var m=document.getElementById('chatMsgs'); m.appendChild(d); scrollChat();
+  return new Promise(function(resolve){
+    var remaining=seconds;
+    var txt=document.getElementById('retryCountdownTxt');
+    var timer=setInterval(function(){
+      remaining--;
+      if(txt) txt.textContent='⏳ Serveurs Gemini surchargés, nouvelle tentative dans '+Math.max(remaining,0)+'s…';
+      if(remaining<=0){
+        clearInterval(timer);
+        var el=document.getElementById('retry-ind'); if(el) el.remove();
+        resolve();
+      }
+    },1000);
+  });
+}
+
 // Greeting quotidien
 // ══════════════════════════════════════════════
 // TIPS FINANCIERS ROTATIFS (12 conseils)
@@ -3992,11 +4061,10 @@ async function sendMsg(txt, hiddenUser, fileData){
     catch(e1){
       var msg1=e1.message||'';
       if(msg1.indexOf('demand')>-1||msg1.indexOf('EXHAUSTED')>-1||msg1.indexOf('429')>-1||msg1.indexOf('503')>-1){
-        // Retry après 4 secondes avec flash-lite
-        appendMsg('leo','⏳ Serveurs Gemini surchargés, nouvelle tentative dans 4s…');
-        await new Promise(function(r){ setTimeout(r,4000); });
-        var lastMsg=document.getElementById('chatMsgs').lastElementChild;
-        if(lastMsg) lastMsg.remove();
+        // Retry après 4 secondes avec flash-lite — indicateur visuel avec
+        // compte à rebours (au lieu d'un message texte figé dans le fil de
+        // chat) pour que l'attente soit explicite sans polluer l'historique.
+        await showRetryCountdown(4);
         data=await callGemini(gm,1);
       } else { throw e1; }
     }
@@ -5291,11 +5359,25 @@ function computeBudgetAlerts(){
 
   var epInvPct=rev>0?Math.round(((f.epargne||0)+(f.invest||0))/rev*100):null;
   var alerts=[];
-  if(rav<0) alerts.push({ico:'🚨',txt:'Reste à vivre négatif ! Tu dépenses plus que tu ne gagnes.'});
+  // Récurrence : RAV négatif sur des jours consécutifs (pas juste l'instantané) —
+  // signal plus fort qu'un simple creux ponctuel, mérite un message distinct et plus pressant.
+  var negStreak=computeNegRavStreak();
+  if(negStreak>=3) alerts.push({ico:'🆘',txt:'Reste à vivre négatif depuis '+negStreak+' jours consécutifs. Ce n\'est plus un accident isolé — regarde tes dépenses avec Léo dès maintenant.'});
+  else if(rav<0) alerts.push({ico:'🚨',txt:'Reste à vivre négatif ! Tu dépenses plus que tu ne gagnes.'});
   else if(rav<rev*0.1) alerts.push({ico:'⚠️',txt:'Reste à vivre très faible ('+Math.round(rav)+'€).'});
   if(epInvPct!==null&&epInvPct<10&&rev>0) alerts.push({ico:'💡',txt:'Tu épargnes/investis seulement '+epInvPct+'% de tes revenus. Vise au moins 10%.'});
   if(enviesPct>30) alerts.push({ico:'✨',txt:'Tes envies représentent '+Math.round(enviesPct)+'% de tes revenus (seuil conseillé : 30%).'});
   return alerts;
+}
+// Nombre de jours consécutifs (jusqu'à aujourd'hui) avec un RAV < 0, d'après S.dailySnaps.
+// S.dailySnaps est déjà alimenté par trackSnap() à chaque renderBudget() — un point par jour.
+function computeNegRavStreak(){
+  var snaps=(S.dailySnaps||[]).slice().sort(function(a,b){ return a.d<b.d?1:-1; }); // plus récent d'abord
+  var streak=0;
+  for(var i=0;i<snaps.length;i++){
+    if(snaps[i].v<0) streak++; else break;
+  }
+  return streak;
 }
 
 // Bannière in-app — fallback visuel quand les notifications navigateur sont absentes/refusées
@@ -5619,14 +5701,17 @@ window.addEventListener('DOMContentLoaded', function(){
 });
 
 // ── Load from cloud after login ──────────────────────
+// NB : _origDoLogin/_origDoRegister sont async (hashPass utilise Web Crypto).
+// Sans await ici, isLoggedIn() était testé avant que sessionStorage ne soit
+// posé -> le chargement/sync cloud auto ne se déclenchait presque jamais.
 var _origDoLogin = doLogin;
-doLogin = function(){
-  _origDoLogin();
+doLogin = async function(){
+  await _origDoLogin();
   if(isLoggedIn()){ setTimeout(function(){ loadFromCloud(false); }, 1000); }
 };
 var _origDoRegister = doRegister;
-doRegister = function(){
-  _origDoRegister();
+doRegister = async function(){
+  await _origDoRegister();
   if(isLoggedIn()){ setTimeout(function(){ syncToCloud(); }, 2000); }
 };
 </script>
