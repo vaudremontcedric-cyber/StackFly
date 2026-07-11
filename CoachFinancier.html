@@ -63,11 +63,11 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 .hdr{display:flex;align-items:center;justify-content:space-between;
   padding:14px 20px;padding-top:calc(14px + env(safe-area-inset-top,0px));
   background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
-.hdr-left{display:flex;align-items:center;gap:10px}
+.hdr-left{display:flex;align-items:center;gap:10px;min-width:0;overflow:hidden}
 .hdr-ico{width:36px;height:36px;border-radius:10px;
   background:var(--card);border:1px solid var(--border);
   display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.hdr-title{font-size:17px;font-weight:700;letter-spacing:-.3px;display:flex;align-items:center;gap:5px}
+.hdr-title{font-size:17px;font-weight:700;letter-spacing:-.3px;display:flex;align-items:center;gap:5px;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 
 /* === RescueBudget — Style Croix Médicale Rouge === */
 .rb-cross{display:inline-flex;align-items:center;justify-content:center;
@@ -92,7 +92,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
   color:#fca5a5;font-size:10px;font-weight:600;letter-spacing:.5px;
   padding:3px 10px;border-radius:5px;margin-top:8px;text-transform:uppercase}
 .hdr-sub{font-size:11px;color:var(--text2);font-weight:400}
-.hdr-right{display:flex;align-items:center;gap:8px}
+.hdr-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
 .hdr-btn{width:34px;height:34px;border-radius:50%;background:var(--card);
   border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
   cursor:pointer;font-size:15px;color:var(--text2);transition:background .2s}
@@ -650,6 +650,15 @@ body.light .analyse-card{
   border-top:1px solid rgba(255,255,255,.08);
   box-shadow:0 -8px 40px rgba(0,0,0,.6)}
 .modal-drag{background:rgba(255,255,255,.15)}
+/* Cette règle "glass" écrasait le fond var(--surface) défini plus haut avec un
+   dégradé sombre codé en dur, sans équivalent clair -> tous les modals (dont
+   le SOS) restaient à fond quasi-noir en mode jour, avec du texte var(--text2/3)
+   devenu sombre lui aussi (prévu pour un fond clair) : texte sombre sur fond
+   sombre, quasi illisible. Contre-partie claire ci-dessous. */
+body.light .modal{background:linear-gradient(145deg,rgba(255,255,255,.97),rgba(232,237,242,.97));
+  border-top:1px solid rgba(0,0,0,.08);
+  box-shadow:0 -8px 40px rgba(0,0,0,.15)}
+body.light .modal-drag{background:rgba(0,0,0,.15)}
 
 /* Goals */
 .goal-card{box-shadow:0 2px 16px rgba(0,0,0,.2);transition:transform .2s ease}
@@ -949,7 +958,7 @@ body.light .analyse-card{
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.32';
+window.APP_VERSION = '5.34';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1660,7 +1669,7 @@ window.APP_VERSION = '5.32';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.32</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.34</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
