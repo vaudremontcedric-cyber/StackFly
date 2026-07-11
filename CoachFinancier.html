@@ -944,7 +944,7 @@ body.light .analyse-card{
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.29';
+window.APP_VERSION = '5.30';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1655,7 +1655,7 @@ window.APP_VERSION = '5.29';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.29</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.30</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -2147,7 +2147,7 @@ var SYSTEM_BASE = "Tu es Léo, un coach financier personnel IA. Ta mission : acc
   + "\"cat1_nom\":null,\"cat1_mt\":null,\"cat2_nom\":null,\"cat2_mt\":null,\"cat3_nom\":null,\"cat3_mt\":null,"
   + "\"analyse_jour\":null,\"priorite_jour\":null,\"defi_semaine\":null,\"coach_message\":null,"
   + "\"besoins_items\":null,\"envies_items\":null,\"epargne_items\":null,\"invest_items\":null,\"invest\":null}[/FD] "
-  + "Remplis UNIQUEMENT les champs concernes. rav = revenus - depenses - epargne si connus (sinon revenus - depenses). Les investissements ne sont JAMAIS deduits du reste a vivre (un investissement est un placement, pas une charge du budget courant). invest = total des versements mensuels en investissements."
+  + "Remplis UNIQUEMENT les champs concernes. rav = revenus - depenses - epargne - invest si connus (sinon revenus - depenses). L'epargne ET les investissements sont deduits du reste a vivre : ce sont des montants qui restent 'a l'utilisateur' mais qui sont diriges vers un autre poste (livret, PEA, ETF, CTO...) donc plus disponibles pour les depenses courantes. invest = total des versements mensuels en investissements."
   + "action = une action courte et precise a faire maintenant. impact = son benefice estime (ex: +40EUR/mois). "
   + "_actionDone = true UNIQUEMENT quand l'utilisateur confirme explicitement avoir accompli l'action recommandee (ex: 'c'est fait', 'j'ai fait', 'done', 'accompli'). Ne jamais mettre true sans confirmation explicite. "
   + "analyse_jour = analyse de la situation du jour en 1-2 phrases. priorite_jour = UNE seule priorite du jour. "
@@ -2533,7 +2533,7 @@ var _infoTips = {
   'abos':    { title:'🔄 Abonnements',           body:'Toutes tes charges récurrentes (Netflix, salle de sport, assurances…). Ils sont déduits automatiquement de tes revenus. Choisis mensuel ou annuel.' },
   'actifs':  { title:'💰 Mes actifs',            body:'Valeur totale de ton patrimoine : compte épargne, immobilier, investissements, crypto… Permet à Léo de te donner des conseils plus précis.' },
   'leo':     { title:'💡 Léo recommande',        body:'Conseils personnalisés générés par Léo selon ta situation actuelle. Mis à jour à chaque modification de ton budget. Appuie pour en discuter avec lui.' },
-  'rav':     { title:'✅ Reste à vivre',          body:'Calcul : Revenus − Dépenses (Besoins + Envies) − Épargne du mois. Les investissements (PEA, ETF, CTO…) ne sont PAS déduits : ce sont des placements, pas une charge du budget courant. Un reste à vivre négatif signifie que tes dépenses + ton épargne dépassent tes revenus.' }
+  'rav':     { title:'✅ Reste à vivre',          body:'Calcul : Revenus − Dépenses (Besoins + Envies) − Épargne du mois − Investissements (PEA, ETF, CTO…). Ces montants restent "à toi", mais dès que tu les diriges vers l\'épargne ou l\'investissement, ils ne sont plus disponibles pour tes dépenses courantes. Un reste à vivre négatif signifie que tes dépenses + ton épargne + tes investissements dépassent tes revenus.' }
 };
 function showInfoTip(btn, key){
   var tip = _infoTips[key];
@@ -2826,15 +2826,17 @@ function syncTotals(){
 function calcRAV(){
   syncTotals();
   var f=S.fin||{};
-  var rev=f.revenus||0, dep=f.depenses||0, ep=f.epargne||0;
+  var rev=f.revenus||0, dep=f.depenses||0, ep=f.epargne||0, inv=f.invest||0;
   if(!rev && !dep) return f.rav!=null ? f.rav : 0;
-  // Valeur réelle (peut être négative si dépenses+épargne > revenus) —
+  // Valeur réelle (peut être négative si dépenses+épargne+invest > revenus) —
   // ne PAS clamper ici : plusieurs écrans (alertes, score, historique) ont besoin
   // de savoir que le budget est réellement dans le rouge, pas juste à zéro.
-  // NB : les investissements (PEA/ETF/CTO...) ne sont PAS déduits du reste à
-  // vivre — seule l'épargne du mois (livret, fonds urgence) l'est. Un
-  // investissement est un placement à part, pas une charge du budget courant.
-  return rev - dep - ep;
+  // NB (revu suite retour utilisateur, v5.30) : l'épargne ET les investissements
+  // (PEA/ETF/CTO...) sont déduits du reste à vivre. Ce sont des montants
+  // toujours "disponibles" en théorie (récupérables), mais dirigés vers un
+  // autre poste dès le mois en cours — donc ils ne font plus partie de
+  // l'argent réellement disponible pour les dépenses courantes.
+  return rev - dep - ep - inv;
 }
 function calcScore(){
   var f=S.fin; var s=0;
