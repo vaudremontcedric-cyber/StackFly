@@ -949,7 +949,7 @@ body.light .analyse-card{
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.31';
+window.APP_VERSION = '5.32';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1660,7 +1660,7 @@ window.APP_VERSION = '5.31';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.31</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.32</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -4157,7 +4157,13 @@ async function sendMsg(txt, hiddenUser, fileData){
       : em.indexOf('API_KEY_INVALID')>-1||em.indexOf('403')>-1
       ? 'Clé API invalide. Clique sur ⚙️ en haut pour la corriger.'
       : em.indexOf('quota')>-1||em.indexOf('QUOTA')>-1||em.indexOf('exceeded')>-1||em.indexOf('billing')>-1
-      ? '⚠️ Quota API dépassé. Ta clé Gemini a atteint sa limite gratuite du jour. Solutions : attendre demain, ou activer la facturation sur aistudio.google.com (très peu cher).'
+      // Message adapté selon la clé en cause : si l'utilisateur a configuré sa
+      // propre clé (S.key), c'est la sienne qui est épuisée — sinon (cas le
+      // plus fréquent en prod) c'est la clé partagée du serveur, sur laquelle
+      // l'utilisateur n'a aucune action possible.
+      ? (S.key && S.key.length>10
+          ? '⚠️ Quota API dépassé. Ta clé Gemini a atteint sa limite gratuite du jour. Solutions : attendre demain, ou activer la facturation sur aistudio.google.com (très peu cher).'
+          : '⚠️ RescueBudget a atteint son quota IA gratuit du jour (partagé entre tous les utilisateurs). Réessaie demain, ou configure ta propre clé Gemini gratuite dans Profil ⚙️ pour ne plus en dépendre.')
       : em.indexOf('429')>-1||em.indexOf('EXHAUSTED')>-1
       ? '⏳ Trop de requêtes. Attends quelques secondes puis réessaie.'
       : em.indexOf('abort')>-1||em.indexOf('timeout')>-1||em.indexOf('Timeout')>-1||em.indexOf('illisible')>-1

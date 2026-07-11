@@ -22,6 +22,43 @@ process.on('uncaughtException', function(err) {
   console.log('[INFO] Le serveur continue de fonctionner.\n');
 });
 
+// ─── RATE LIMITING ANTI-ABUS (protege le quota Gemini gratuit partage) ───
+// Sans ca, /api/gemini est un endpoint totalement ouvert : n'importe qui
+// (script, bot, scraper) qui trouve l'URL Render peut l'appeler directement,
+// hors de l'appli, et consommer a lui seul tout le quota gratuit journalier
+// partage entre TOUS les vrais utilisateurs. En memoire (pas de DB requise
+// pour une simple protection anti-abus) ; reset naturel au redemarrage du
+// serveur, ce qui est acceptable pour cet usage.
+var RATE_LIMIT_PER_MIN = 15;   // tres au-dessus du rythme d'une vraie conversation humaine
+var RATE_LIMIT_PER_DAY = 300;  // evite qu'une seule IP ne vide le quota gratuit journalier partage
+var _rlMinute = new Map(); // ip -> {count, resetAt}
+var _rlDay    = new Map(); // ip -> {count, resetAt}
+
+function getClientIp(req) {
+  var fwd = req.headers['x-forwarded-for'];
+  if (fwd) return fwd.split(',')[0].trim(); // Render (et la plupart des PaaS) passent l'IP reelle ici
+  return (req.socket && req.socket.remoteAddress) || 'unknown';
+}
+
+function checkRateLimit(ip) {
+  var now = Date.now();
+  var min = _rlMinute.get(ip);
+  if (!min || now > min.resetAt) { min = { count: 0, resetAt: now + 60000 }; _rlMinute.set(ip, min); }
+  var day = _rlDay.get(ip);
+  if (!day || now > day.resetAt) { day = { count: 0, resetAt: now + 86400000 }; _rlDay.set(ip, day); }
+  if (min.count >= RATE_LIMIT_PER_MIN) return { ok: false, reason: 'par minute' };
+  if (day.count >= RATE_LIMIT_PER_DAY) return { ok: false, reason: 'par jour' };
+  min.count++; day.count++;
+  return { ok: true };
+}
+
+// Nettoyage periodique pour eviter une fuite memoire sur le long terme
+setInterval(function() {
+  var now = Date.now();
+  _rlMinute.forEach(function(v, k) { if (now > v.resetAt) _rlMinute.delete(k); });
+  _rlDay.forEach(function(v, k) { if (now > v.resetAt) _rlDay.delete(k); });
+}, 5 * 60000);
+
 // Parse manuellement les query params (compatible toutes versions Node.js)
 function parseQuery(url) {
   var idx = url.indexOf('?');
@@ -51,13 +88,26 @@ var server = http.createServer(function(req, res) {
   // ─── PROXY Gemini API ────────────────────────────────────────────
   if (req.method === 'POST' && req.url.indexOf('/api/gemini') === 0) {
     console.log('[PROXY] Requete recue');
+
+    var clientIp = getClientIp(req);
+    var rl = checkRateLimit(clientIp);
+    if (!rl.ok) {
+      console.log('[PROXY] Rate limit depasse (' + rl.reason + ') pour ' + clientIp);
+      res.writeHead(429, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+      res.end(JSON.stringify({ error: { message: 'Trop de requetes depuis cette adresse (limite ' + rl.reason + '). Reessaie dans un instant. (429)' } }));
+      return;
+    }
+
     var params  = parseQuery(req.url);
     var model   = params['model']  || 'gemini-1.5-flash';
     var apiVer  = params['apiver'] || 'v1beta';
-    // SÉCURITÉ : priorité à la clé serveur (variable d'environnement Render : GEMINI_API_KEY).
-    // À défaut, clé perso de l'utilisateur via l'en-tête x-api-key (jamais dans l'URL).
-    // Le paramètre ?key= reste accepté uniquement pour compatibilité avec d'anciennes versions.
-    var key = process.env.GEMINI_API_KEY || req.headers['x-api-key'] || params['key'] || '';
+    // SÉCURITÉ + COÛT : priorité à la clé PERSO de l'utilisateur (en-tête x-api-key,
+    // jamais dans l'URL) quand il en a configuré une — ça décharge d'autant le
+    // quota gratuit partagé de la clé serveur. À défaut, clé serveur (variable
+    // d'environnement Render : GEMINI_API_KEY), pour que l'appli fonctionne sans
+    // rien configurer. Le paramètre ?key= reste accepté uniquement pour
+    // compatibilité avec d'anciennes versions.
+    var key = req.headers['x-api-key'] || process.env.GEMINI_API_KEY || params['key'] || '';
 
     if (!key) {
       res.writeHead(400, { 'Content-Type': 'application/json' });
