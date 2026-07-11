@@ -8,6 +8,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <title>RescueBudget</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23ef4444'/%3E%3Crect x='13' y='5' width='6' height='22' rx='3' fill='white'/%3E%3Crect x='5' y='13' width='22' height='6' rx='3' fill='white'/%3E%3C/svg%3E"/>
+<!-- Manifest PWA — requis par Android/Chrome pour une installation "standalone" complète
+     (icône + splash + pas de barre d'adresse). Sans lui, seul iOS Safari proposait un
+     vrai ajout à l'écran d'accueil via les balises apple-* ci-dessous. -->
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icons/icon-512.png"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -944,7 +949,7 @@ body.light .analyse-card{
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.30';
+window.APP_VERSION = '5.31';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1655,7 +1660,7 @@ window.APP_VERSION = '5.30';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.30</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.31</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -5497,7 +5502,18 @@ if(isLoggedIn()){
   <!-- ════════ MODAL FIREBASE CONFIG ════════ -->
   <div id="fbConfigModal" style="display:none;position:fixed;inset:0;z-index:3500;background:rgba(0,0,0,.6);align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeFbConfigModal()">
     <div style="background:var(--bg);border-radius:22px 22px 0 0;padding:28px 20px 40px;width:100%;max-width:480px;animation:slideUp .25s ease">
-      <div style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:var(--orange);line-height:1.6">⚠️ <strong>Fonction expérimentale.</strong> La synchronisation copie tes données budgétaires vers ton espace Firebase. Sans règles de sécurité Firestore strictes, elles pourraient être lues par des tiers. À réserver aux tests pour le moment.</div>
+      <div style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:var(--orange);line-height:1.6">⚠️ <strong>Fonction expérimentale — à faire AVANT de coller ta clé :</strong><br/>
+        Firebase démarre en général en "mode test" : n'importe qui connaissant ton Project ID peut alors lire/écrire TOUTES tes données. RescueBudget n'utilise pas l'authentification Firebase (juste une clé API REST), donc va dans Firebase Console → Firestore → Règles et colle exactement ceci (autorise seulement l'accès à un document déjà connu, bloque l'énumération de la collection) :
+        <pre style="background:rgba(0,0,0,.25);border-radius:8px;padding:8px 10px;margin:8px 0;font-size:10.5px;white-space:pre-wrap;word-break:break-all;color:var(--text2)">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /rescuebudget/{docId} {
+      allow get, write: if true;
+      allow list: if false;
+    }
+  }
+}</pre>
+        Sans ça, tes données restent exposées à quiconque devine ton Project ID. Avec ça, il faut aussi connaître l'identifiant exact du document (dérivé de ton pseudo) — bien plus difficile, mais toujours pas équivalent à un vrai compte sécurisé. À réserver aux utilisateurs à l'aise techniquement pour le moment.</div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
         <span style="font-size:17px;font-weight:800;color:var(--text)">&#9729;&#65039; Config Firebase</span>
         <button onclick="closeFbConfigModal()" style="background:none;border:none;font-size:22px;color:var(--sub);cursor:pointer">&#10005;</button>
@@ -5563,12 +5579,29 @@ function loadFbCfg(){
 }
 loadFbCfg();
 
-function getFbUrl(){
+// Hash non réversible (SHA-256, même mécanisme que hashPass()) du username
+// pour l'ID du document Firestore. Avant (v5.30 et antérieur) : simple
+// btoa(username), trivialement réversible/devinable — quiconque connaît un
+// pseudo pouvait reconstruire l'URL du document. Un attaquant qui tombe sur
+// un projet Firebase resté en "mode test" (règles ouvertes par défaut,
+// piège classique côté utilisateurs non-techniques) ne peut plus énumérer
+// les documents des autres utilisateurs juste en devinant leur pseudo.
+async function hashDocId(username){
+  try{
+    if(window.crypto && crypto.subtle){
+      var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('rbdoc::'+username));
+      var hex=''; new Uint8Array(buf).forEach(function(b){ hex += ('0'+b.toString(16)).slice(-2); });
+      return 'u_'+hex.slice(0,32);
+    }
+  }catch(e){}
+  // Fallback très anciens navigateurs sans Web Crypto (comportement historique)
+  return 'u_' + btoa(unescape(encodeURIComponent(username))).replace(/[^a-zA-Z0-9]/g,'_').slice(0,40);
+}
+async function getFbUrl(){
   if(!FB_CFG||!FB_CFG.projectId||!FB_CFG.apiKey) return null;
   var auth = getStoredAuth();
   if(!auth) return null;
-  // Doc ID = hash stable du username
-  var docId = 'u_' + btoa(unescape(encodeURIComponent(auth.user))).replace(/[^a-zA-Z0-9]/g,'_').slice(0,40);
+  var docId = await hashDocId(auth.user);
   return 'https://firestore.googleapis.com/v1/projects/'+FB_CFG.projectId+
          '/databases/(default)/documents/rescuebudget/'+docId+'?key='+FB_CFG.apiKey;
 }
@@ -5599,8 +5632,8 @@ function setSyncDot(state){
   }
 }
 
-function syncToCloud(){
-  var url = getFbUrl();
+async function syncToCloud(){
+  var url = await getFbUrl();
   if(!url) return;
   setSyncDot('syncing');
   var keys=['cf_auth','cf_fin','cf_subs','cf_txns','cf_goals','cf_actifs','cf_snaps',
@@ -5618,8 +5651,8 @@ function syncToCloud(){
   }).catch(function(){ setSyncDot('err'); });
 }
 
-function loadFromCloud(manual){
-  var url = getFbUrl();
+async function loadFromCloud(manual){
+  var url = await getFbUrl();
   if(!url){ if(manual) toast('Configure Firebase d\'abord','#f59e0b'); return; }
   setSyncDot('syncing');
   fetch(url).then(function(r){
