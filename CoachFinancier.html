@@ -958,7 +958,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.56';
+window.APP_VERSION = '5.57';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1189,7 +1189,7 @@ window.APP_VERSION = '5.56';
               <div id="argentVarBar"></div>
               <div id="argentRecent"></div>
               <button id="argDetailToggle" onclick="toggleArgentDetail()" style="width:100%;padding:10px 0;background:transparent;border:none;color:var(--accent2);font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px">
-                <span id="argDetailArr">&#9662;</span> Voir le détail par section
+                <span id="argDetailArr" style="display:inline-flex;transition:transform .15s"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span> Voir le détail par section
               </button>
               <div id="argentDetail" style="display:none"></div>
               <button id="argAddBtn" onclick="toggleArgentAddForm()" style="width:100%;margin-top:12px;padding:12px;background:transparent;border:1.5px solid var(--border);border-radius:12px;color:var(--text2);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
@@ -1197,12 +1197,12 @@ window.APP_VERSION = '5.56';
               </button>
               <div id="argAddForm" style="display:none;gap:6px;margin-top:10px;flex-wrap:wrap">
                 <div id="argTypePills" style="display:flex;gap:6px;flex-wrap:wrap;width:100%">
-                  <button type="button" class="arg-pill sel" onclick="selArgentType(this,'revenu')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--green);background:var(--green2)">💼 Revenu</button>
-                  <button type="button" class="arg-pill" onclick="selArgentType(this,'courses')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:#3b82f6;background:rgba(59,130,246,.15)">🛒 Courses</button>
-                  <button type="button" class="arg-pill" onclick="selArgentType(this,'plaisirs')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--orange);background:var(--orange2)">🎉 Plaisirs &amp; loisirs</button>
-                  <button type="button" class="arg-pill" onclick="selArgentType(this,'imprevus')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:#ef4444;background:rgba(239,68,68,.15)">⚠️ Imprévus</button>
-                  <button type="button" class="arg-pill" onclick="selArgentType(this,'epargne')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--accent2);background:rgba(13,148,136,.15)">🏦 Épargne</button>
-                  <button type="button" class="arg-pill" onclick="selArgentType(this,'invest')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:#8b5cf6;background:rgba(139,92,246,.15)">📈 Investissement</button>
+                  <button type="button" class="arg-pill sel" onclick="selArgentType(this,'revenu')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--green);background:var(--green2);display:inline-flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path></svg>Revenu</button>
+                  <button type="button" class="arg-pill" onclick="selArgentType(this,'courses')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:#3b82f6;background:rgba(59,130,246,.15);display:inline-flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>Courses</button>
+                  <button type="button" class="arg-pill" onclick="selArgentType(this,'plaisirs')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--orange);background:var(--orange2);display:inline-flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>Plaisirs &amp; loisirs</button>
+                  <button type="button" class="arg-pill" onclick="selArgentType(this,'imprevus')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:#ef4444;background:rgba(239,68,68,.15);display:inline-flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Imprévus</button>
+                  <button type="button" class="arg-pill" onclick="selArgentType(this,'epargne')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--accent2);background:rgba(13,148,136,.15);display:inline-flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>Épargne</button>
+                  <button type="button" class="arg-pill" onclick="selArgentType(this,'invest')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:#8b5cf6;background:rgba(139,92,246,.15);display:inline-flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>Investissement</button>
                 </div>
                 <input id="argJournalLbl" placeholder="Libellé (ex: Courses Carrefour)" maxlength="40" style="flex:1.6;min-width:110px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:8px"/>
                 <input id="argJournalAmt" type="text" inputmode="decimal" placeholder="Montant €" style="width:88px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:8px"/>
@@ -1564,7 +1564,7 @@ window.APP_VERSION = '5.56';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.56</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.57</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -3706,6 +3706,28 @@ function mergeItemsPreservingDates(oldRaw, newItems){
     return out;
   });
 }
+// Jeu d'icônes SVG (traits, 24x24) utilisé partout dans "Où va mon argent" à la place des emoji :
+// sur certains appareils/polices systèmes sans couverture emoji, les emoji s'affichent en carrés
+// vides ("tofu"). Les SVG en traits héritent la couleur via currentColor et rendent à l'identique
+// sur toutes les plateformes.
+var ARGENT_ICON_PATHS = {
+  revenu:   '<polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>',
+  fixe:     '<polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path>',
+  courses:  '<circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>',
+  plaisirs: '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>',
+  imprevus: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>',
+  epargne:  '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>',
+  invest:   '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline>'
+};
+function argIcon(name, size){
+  size = size || 16;
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block">'+(ARGENT_ICON_PATHS[name]||'')+'</svg>';
+}
+function argIconBadge(name, bg, col, size){
+  size = size || 32;
+  var ic = Math.round(size*0.5);
+  return '<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:'+bg+';color:'+col+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'+argIcon(name, ic)+'</div>';
+}
 // Types proposés dans le formulaire d'ajout manuel. "Fixe" n'y figure pas volontairement : une
 // dépense fixe (loyer, crédit, abonnement) se déclare une fois dans la section Abonnements, qui
 // la fait ensuite apparaître automatiquement ici — pas de double saisie chaque mois.
@@ -3759,7 +3781,7 @@ function renderArgentRows(rows, col){
 function renderArgentSection(title, icon, col, total, rowsHtml, emptyTxt){
   return '<div style="margin-bottom:14px">'
     +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">'
-      +'<span style="font-size:12.5px;font-weight:700;color:var(--text2)">'+icon+' '+title+'</span>'
+      +'<span style="font-size:12.5px;font-weight:700;color:var(--text2);display:flex;align-items:center;gap:6px"><span style="display:inline-flex;color:'+col+'">'+argIcon(icon,14)+'</span>'+title+'</span>'
       +'<span style="font-size:13px;font-weight:800;color:'+col+'">'+euro(total)+'</span>'
     +'</div>'
     +(rowsHtml || '<div style="color:var(--text3);font-size:12.5px;padding:8px 0">'+emptyTxt+'</div>')
@@ -3806,15 +3828,15 @@ function renderArgentStats(){
   var epTot=sumItems(f.epargne_items)+sumItems(f.invest_items);
   if(!revTot && !fixedTot && !varTot && !epTot){ el.innerHTML=''; return; }
   var cards=[
-    {ico:'💼', lbl:'Revenus',      v:revTot,   col:'var(--green)'},
-    {ico:'🔁', lbl:'Charges fixes',v:fixedTot, col:'var(--red)'},
-    {ico:'🛒', lbl:'Quotidien',    v:varTot,   col:'var(--text)'},
-    {ico:'🏦', lbl:'Épargne',      v:epTot,    col:'var(--accent2)'}
+    {ico:'revenu',  lbl:'Revenus',      v:revTot,   col:'var(--green)',  bg:'var(--green2)'},
+    {ico:'fixe',    lbl:'Charges fixes',v:fixedTot, col:'var(--red)',    bg:'var(--red2)'},
+    {ico:'courses', lbl:'Quotidien',    v:varTot,   col:'var(--text)',   bg:'rgba(148,163,184,.18)'},
+    {ico:'epargne', lbl:'Épargne',      v:epTot,    col:'var(--accent2)',bg:'rgba(13,148,136,.15)'}
   ];
   el.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">'
     +cards.map(function(c){
       return '<div style="background:var(--card2);border-radius:12px;padding:10px 12px">'
-        +'<div style="font-size:15px;margin-bottom:4px">'+c.ico+'</div>'
+        +'<div style="margin-bottom:6px">'+argIconBadge(c.ico, c.bg, c.col, 26)+'</div>'
         +'<div style="font-size:10.5px;color:var(--text2)">'+c.lbl+'</div>'
         +'<div style="font-size:15px;font-weight:700;color:'+c.col+'">'+euro(c.v)+'</div>'
       +'</div>';
@@ -3831,7 +3853,7 @@ function renderArgentVarBar(){
   if(!tot){ el.innerHTML=''; return; }
   var pc=Math.round(c/tot*100), pp=Math.round(p/tot*100), pi=Math.max(0,100-pc-pp);
   el.innerHTML='<div style="margin-bottom:14px">'
-    +'<div style="font-size:12.5px;font-weight:700;color:var(--text2);margin-bottom:8px">🛒 Variable au quotidien</div>'
+    +'<div style="font-size:12.5px;font-weight:700;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:6px"><span style="display:inline-flex">'+argIcon('courses',14)+'</span>Variable au quotidien</div>'
     +'<div style="display:flex;height:8px;border-radius:4px;overflow:hidden;margin-bottom:8px">'
       +(pc>0?'<div style="width:'+pc+'%;background:#3b82f6"></div>':'')
       +(pp>0?'<div style="width:'+pp+'%;background:var(--orange)"></div>':'')
@@ -3855,13 +3877,13 @@ function renderArgentRecent(){
   var f=S.fin||{};
   var split=getFixedVariableSplit();
   var all=[];
-  parseItems(f.revenus_items).forEach(function(it,i){ all.push(argentRowMeta({n:it.n,v:parseFloat(it.v)||0,d:it.d||'',key:'revenus_items',idx:i},'💼','var(--green2)','var(--green)',1)); });
-  split.fixed.forEach(function(r){ all.push(argentRowMeta(r,'🔁','var(--red2)','var(--red)',-1)); });
-  split.buckets.courses.forEach(function(r){ all.push(argentRowMeta(r,'🛒','rgba(59,130,246,.15)','#3b82f6',-1)); });
-  split.buckets.plaisirs.forEach(function(r){ all.push(argentRowMeta(r,'🎉','var(--orange2)','var(--orange)',-1)); });
-  split.buckets.imprevus.forEach(function(r){ all.push(argentRowMeta(r,'⚠️','rgba(239,68,68,.15)','#ef4444',-1)); });
-  parseItems(f.epargne_items).forEach(function(it,i){ all.push(argentRowMeta({n:it.n,v:parseFloat(it.v)||0,d:it.d||'',key:'epargne_items',idx:i},'🏦','rgba(13,148,136,.15)','var(--accent2)',-1)); });
-  parseItems(f.invest_items).forEach(function(it,i){ all.push(argentRowMeta({n:it.n,v:parseFloat(it.v)||0,d:it.d||'',key:'invest_items',idx:i},'📈','rgba(139,92,246,.15)','#8b5cf6',-1)); });
+  parseItems(f.revenus_items).forEach(function(it,i){ all.push(argentRowMeta({n:it.n,v:parseFloat(it.v)||0,d:it.d||'',key:'revenus_items',idx:i},'revenu','var(--green2)','var(--green)',1)); });
+  split.fixed.forEach(function(r){ all.push(argentRowMeta(r,'fixe','var(--red2)','var(--red)',-1)); });
+  split.buckets.courses.forEach(function(r){ all.push(argentRowMeta(r,'courses','rgba(59,130,246,.15)','#3b82f6',-1)); });
+  split.buckets.plaisirs.forEach(function(r){ all.push(argentRowMeta(r,'plaisirs','var(--orange2)','var(--orange)',-1)); });
+  split.buckets.imprevus.forEach(function(r){ all.push(argentRowMeta(r,'imprevus','rgba(239,68,68,.15)','#ef4444',-1)); });
+  parseItems(f.epargne_items).forEach(function(it,i){ all.push(argentRowMeta({n:it.n,v:parseFloat(it.v)||0,d:it.d||'',key:'epargne_items',idx:i},'epargne','rgba(13,148,136,.15)','var(--accent2)',-1)); });
+  parseItems(f.invest_items).forEach(function(it,i){ all.push(argentRowMeta({n:it.n,v:parseFloat(it.v)||0,d:it.d||'',key:'invest_items',idx:i},'invest','rgba(139,92,246,.15)','#8b5cf6',-1)); });
   if(!all.length){ el.innerHTML=''; return; }
   all.sort(function(a,b){
     if(!a.d && !b.d) return 0;
@@ -3875,7 +3897,7 @@ function renderArgentRecent(){
       var dateTxt=fmtShortDate(r.d);
       var amtTxt=(r.sign>0?'+':'-')+euro(r.v);
       return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--border)">'
-        +'<div style="width:32px;height:32px;border-radius:50%;background:'+r.bg+';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px">'+r.ico+'</div>'
+        +argIconBadge(r.ico, r.bg, r.col, 32)
         +'<div style="flex:1;min-width:0">'
           +'<div style="font-size:13.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.n)+'</div>'
           +(dateTxt?'<div style="font-size:10.5px;color:var(--text3)">'+dateTxt+'</div>':'')
@@ -3896,8 +3918,8 @@ function renderArgentDetail(){
   var epRows=parseItems(f.epargne_items).map(function(it,i){ return {n:it.n, v:parseFloat(it.v)||0, d:it.d||'', idx:i, key:'epargne_items'}; });
   var invRows=parseItems(f.invest_items).map(function(it,i){ return {n:it.n, v:parseFloat(it.v)||0, d:it.d||'', idx:i, key:'invest_items'}; });
   var html='';
-  html+=renderArgentSection('Entrées', '💼', 'var(--green)', sumRows(revRows), renderArgentRows(revRows,'var(--green)'), 'Aucun revenu enregistré.');
-  html+=renderArgentSection('Dépenses fixes', '🔁', 'var(--red)', sumRows(split.fixed), renderArgentRows(split.fixed,'var(--red)'), 'Ajoute tes charges récurrentes (loyer, crédit…) dans Abonnements.');
+  html+=renderArgentSection('Entrées', 'revenu', 'var(--green)', sumRows(revRows), renderArgentRows(revRows,'var(--green)'), 'Aucun revenu enregistré.');
+  html+=renderArgentSection('Dépenses fixes', 'fixe', 'var(--red)', sumRows(split.fixed), renderArgentRows(split.fixed,'var(--red)'), 'Ajoute tes charges récurrentes (loyer, crédit…) dans Abonnements.');
   var varTotal=sumRows(split.buckets.courses)+sumRows(split.buckets.plaisirs)+sumRows(split.buckets.imprevus);
   var varHtml='';
   [['Courses',split.buckets.courses,'#3b82f6'],['Plaisirs & loisirs',split.buckets.plaisirs,'var(--orange)'],['Imprévus',split.buckets.imprevus,'#ef4444']].forEach(function(g){
@@ -3905,8 +3927,8 @@ function renderArgentDetail(){
       +'<span>'+g[0]+'</span><span>'+euro(sumRows(g[1]))+'</span></div>'
       +renderArgentRows(g[1],g[2]);
   });
-  html+=renderArgentSection('Variable au quotidien', '🛒', 'var(--text)', varTotal, varHtml, 'Rien enregistré ce mois-ci.');
-  html+=renderArgentSection('Épargne et investissement', '🏦', 'var(--accent2)', sumRows(epRows)+sumRows(invRows), renderArgentRows(epRows.concat(invRows),'var(--accent2)'), 'Rien mis de côté ce mois-ci.');
+  html+=renderArgentSection('Variable au quotidien', 'courses', 'var(--text)', varTotal, varHtml, 'Rien enregistré ce mois-ci.');
+  html+=renderArgentSection('Épargne et investissement', 'epargne', 'var(--accent2)', sumRows(epRows)+sumRows(invRows), renderArgentRows(epRows.concat(invRows),'var(--accent2)'), 'Rien mis de côté ce mois-ci.');
   var depTotal=sumRows(split.fixed)+varTotal;
   var theorique=(f.revenus||0)-sumRows(split.fixed)-(f.epargne||0)-(f.invest||0);
   html+='<div style="background:var(--card2);border-radius:12px;padding:10px 12px;margin-top:4px">'
@@ -3923,7 +3945,7 @@ function toggleArgentDetail(){
   if(!det||!btn) return;
   var show = det.style.display==='none' || !det.style.display;
   det.style.display = show ? 'block' : 'none';
-  if(arr) arr.innerHTML = show ? '&#9652;' : '&#9662;';
+  if(arr) arr.style.transform = show ? 'rotate(180deg)' : 'rotate(0deg)';
   btn.lastChild.textContent = show ? ' Masquer le détail par section' : ' Voir le détail par section';
 }
 // Orchestrateur — point d'entrée unique appelé par tous les autres endroits de l'app
