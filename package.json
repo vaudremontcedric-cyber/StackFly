@@ -1,6 +1,6 @@
 {
   "name": "rescuebudget",
-  "version": "5.46.0",
+  "version": "5.47.0",
   "description": "RescueBudget — Outil pédagogique de gestion budgétaire avec coach IA. Ne fournit aucun conseil en investissement.",
   "main": "serve.js",
   "scripts": {

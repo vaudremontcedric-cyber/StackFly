@@ -956,7 +956,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.46';
+window.APP_VERSION = '5.47';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1350,7 +1350,10 @@ window.APP_VERSION = '5.46';
           <div class="acc-body">
             <div class="acc-inner">
               <div id="argentJournal"></div>
-              <div style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap">
+              <button id="argAddBtn" onclick="toggleArgentAddForm()" style="width:100%;margin-top:12px;padding:12px;background:transparent;border:1.5px solid var(--border);border-radius:12px;color:var(--text2);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+                <span style="font-size:16px;line-height:1">+</span> Ajouter une ligne
+              </button>
+              <div id="argAddForm" style="display:none;gap:6px;margin-top:10px;flex-wrap:wrap">
                 <select id="argJournalType" style="flex:1;min-width:100px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-weight:600;padding:8px 6px">
                   <option value="revenus_items">💼 Revenu</option>
                   <option value="besoins_items">🏠 Besoin</option>
@@ -1677,7 +1680,7 @@ window.APP_VERSION = '5.46';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.46</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.47</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -3761,11 +3764,11 @@ function renderSynthTable(){
 // (ajout via le mini-formulaire, suppression via le × sur chaque ligne).
 // ══════════════════════════════════════════════
 var ARGENT_TYPES = [
-  {key:'revenus_items', lbl:'Revenu',         ico:'💼', col:'var(--green)',  sign:1},
-  {key:'besoins_items', lbl:'Besoin',         ico:'🏠', col:'var(--text)',   sign:-1},
-  {key:'envies_items',  lbl:'Envie',          ico:'🎉', col:'var(--text)',   sign:-1},
-  {key:'epargne_items', lbl:'Épargne',        ico:'🏦', col:'var(--accent2)',sign:-1},
-  {key:'invest_items',  lbl:'Investissement', ico:'📈', col:'#8b5cf6',       sign:-1}
+  {key:'revenus_items', lbl:'Revenu',         col:'var(--green)',   bg:'var(--green2)',           sign:1},
+  {key:'besoins_items', lbl:'Besoin',         col:'#3b82f6',        bg:'rgba(59,130,246,.15)',    sign:-1},
+  {key:'envies_items',  lbl:'Envie',          col:'var(--orange)',  bg:'var(--orange2)',           sign:-1},
+  {key:'epargne_items', lbl:'Épargne',        col:'var(--accent2)', bg:'rgba(13,148,136,.15)',     sign:-1},
+  {key:'invest_items',  lbl:'Investissement', col:'#8b5cf6',        bg:'rgba(139,92,246,.15)',     sign:-1}
 ];
 function renderArgentJournal(){
   var el=document.getElementById('argentJournal'); if(!el) return;
@@ -3782,16 +3785,22 @@ function renderArgentJournal(){
   }
   el.innerHTML=rows.map(function(r){
     var amtTxt=(r.type.sign>0?'+':'-')+euro(r.v);
-    return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">'
-      +'<span style="font-size:15px;width:20px;text-align:center;flex-shrink:0">'+r.type.ico+'</span>'
-      +'<div style="flex:1;min-width:0">'
-        +'<div style="font-size:13px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.n)+'</div>'
-        +'<div style="font-size:10px;color:var(--text3)">'+r.type.lbl+'</div>'
-      +'</div>'
-      +'<div style="font-size:13px;font-weight:700;color:'+r.type.col+';flex-shrink:0">'+amtTxt+'</div>'
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">'
+      +'<span style="flex-shrink:0;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;color:'+r.type.col+';background:'+r.type.bg+'">'+r.type.lbl+'</span>'
+      +'<div style="flex:1;min-width:0;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.n)+'</div>'
+      +'<div style="font-size:14px;font-weight:700;color:'+r.type.col+';flex-shrink:0">'+amtTxt+'</div>'
       +'<div onclick="deleteRepItem(\''+r.type.key+'\','+r.idx+')" style="cursor:pointer;color:var(--text3);font-size:17px;padding:2px 4px;flex-shrink:0" title="Supprimer">×</div>'
       +'</div>';
   }).join('');
+}
+function toggleArgentAddForm(){
+  var form=document.getElementById('argAddForm');
+  var btn=document.getElementById('argAddBtn');
+  if(!form||!btn) return;
+  var show = form.style.display==='none' || !form.style.display;
+  form.style.display = show ? 'flex' : 'none';
+  btn.style.display = show ? 'none' : 'flex';
+  if(show){ var lblEl=document.getElementById('argJournalLbl'); if(lblEl) lblEl.focus(); }
 }
 function addArgentItem(){
   var key=document.getElementById('argJournalType').value;
@@ -3808,6 +3817,7 @@ function addArgentItem(){
   syncTotals(); save();
   document.getElementById('argJournalLbl').value='';
   document.getElementById('argJournalAmt').value='';
+  toggleArgentAddForm();
   renderArgentJournal(); renderBudget();
   toast('Ligne ajoutée ✓','#10b981');
 }
