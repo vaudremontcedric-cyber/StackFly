@@ -317,8 +317,8 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 /* Carte analyse du jour */
 .analyse-wrap{padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
 .analyse-card{background:var(--card2);border:1px solid rgba(13,148,136,.35);
-  border-radius:12px;overflow:hidden}
-.analyse-tabs{display:flex;border-bottom:1px solid var(--border)}
+  border-radius:12px;overflow:hidden;cursor:pointer}
+.analyse-tabs{display:flex;align-items:center;border-bottom:1px solid var(--border)}
 .atab{flex:1;padding:9px 10px;text-align:center;font-size:11px;font-weight:700;
   color:var(--text3);cursor:pointer;text-transform:uppercase;letter-spacing:.4px;
   border:none;background:none;transition:color .2s}
@@ -326,6 +326,11 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 .atab-content{padding:12px 14px;font-size:13px;line-height:1.6;color:var(--text2);
   display:none;white-space:pre-wrap}
 .atab-content.active{display:block}
+.analyse-collapse-btn{display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  width:30px;height:100%;color:var(--text3);transition:transform .2s}
+.analyse-card.collapsed .analyse-collapse-btn{transform:rotate(180deg)}
+.analyse-card.collapsed .atab-content{display:none!important}
+.analyse-card.collapsed .analyse-tabs{border-bottom:none}
 
 /* Messages */
 .chat-msgs{flex:1;overflow-y:auto;padding:14px 16px;
@@ -958,7 +963,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.58';
+window.APP_VERSION = '5.59';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1186,6 +1191,7 @@ window.APP_VERSION = '5.58';
               <div id="argentEmpty" style="display:none;color:var(--text3);font-size:13px;text-align:center;padding:10px 0">Parle à Léo de tes revenus et dépenses, ou ajoute une ligne ci-dessous.</div>
               <div id="argentGauge"></div>
               <div id="argentStats"></div>
+              <div id="argentStatDetail" style="display:none"></div>
               <div id="argentVarBar"></div>
               <div id="argentRecent"></div>
               <button id="argDetailToggle" onclick="toggleArgentDetail()" style="width:100%;padding:10px 0;background:transparent;border:none;color:var(--accent2);font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px">
@@ -1318,11 +1324,12 @@ window.APP_VERSION = '5.58';
   <!-- ════════ COACH / CHAT ════════ -->
   <section id="pg-chat" class="page">
     <div class="analyse-wrap" id="analyseWrap" style="display:none">
-      <div class="analyse-card">
+      <div class="analyse-card" id="analyseCard" onclick="toggleAnalyseCollapse()" title="Cliquer pour réduire / déplier">
         <div class="analyse-tabs">
-          <button class="atab active" onclick="switchTab(this,'tab-analyse')">&#128202; Analyse</button>
-          <button class="atab" onclick="switchTab(this,'tab-prio')">&#127919; Priorit&#233;</button>
-          <button class="atab" onclick="switchTab(this,'tab-defi')">&#127942; D&#233;fi</button>
+          <button class="atab active" onclick="event.stopPropagation();switchTab(this,'tab-analyse')">&#128202; Analyse</button>
+          <button class="atab" onclick="event.stopPropagation();switchTab(this,'tab-prio')">&#127919; Priorit&#233;</button>
+          <button class="atab" onclick="event.stopPropagation();switchTab(this,'tab-defi')">&#127942; D&#233;fi</button>
+          <span class="analyse-collapse-btn" id="analyseCollapseArr"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
         </div>
         <div class="atab-content active" id="tab-analyse">Analyse en cours...</div>
         <div class="atab-content" id="tab-prio">Une priorit&#233; en cours de calcul...</div>
@@ -1533,7 +1540,7 @@ window.APP_VERSION = '5.58';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.58</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.59</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -2576,7 +2583,24 @@ function switchTab(btn, tabId){
   document.querySelectorAll('.atab-content').forEach(function(c){ c.classList.remove('active'); });
   btn.classList.add('active');
   document.getElementById(tabId).classList.add('active');
+  // Changer d'onglet alors que le bandeau est réduit n'a d'intérêt que si ça le déplie aussi.
+  if(_analyseCollapsed) toggleAnalyseCollapse();
 }
+// Bandeau Analyse/Priorité/Défi repliable (clic sur la carte, hors boutons d'onglet) — état
+// mémorisé pour rester réduit d'une session à l'autre si l'utilisateur le préfère ainsi.
+var _analyseCollapsed = localStorage.getItem('cf_analyseCollapsed')==='1';
+function toggleAnalyseCollapse(){
+  _analyseCollapsed = !_analyseCollapsed;
+  localStorage.setItem('cf_analyseCollapsed', _analyseCollapsed?'1':'0');
+  var card=document.getElementById('analyseCard');
+  if(card) card.classList.toggle('collapsed', _analyseCollapsed);
+}
+window.addEventListener('DOMContentLoaded', function(){
+  if(_analyseCollapsed){
+    var card=document.getElementById('analyseCard');
+    if(card) card.classList.add('collapsed');
+  }
+});
 
 // ══════════════════════════════════════════════
 // TABLEAUX BESOINS / ENVIES / ÉPARGNE (50/30/20)
@@ -3548,12 +3572,50 @@ function renderArgentStats(){
   ];
   el.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">'
     +cards.map(function(c){
-      return '<div style="background:var(--card2);border-radius:12px;padding:10px 12px">'
-        +'<div style="margin-bottom:6px">'+argIconBadge(c.ico, c.bg, c.col, 26)+'</div>'
+      var sel=_argStatOpen===c.ico;
+      return '<div onclick="toggleArgentStat(\''+c.ico+'\')" style="cursor:pointer;background:var(--card2);border-radius:12px;padding:10px 12px;box-shadow:'+(sel?'inset 0 0 0 1.5px '+c.col:'none')+';transition:box-shadow .15s">'
+        +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
+          +argIconBadge(c.ico, c.bg, c.col, 26)
+          +'<span style="color:'+(sel?c.col:'var(--text3)')+';display:flex;transition:transform .15s;transform:rotate('+(sel?'180':'0')+'deg)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>'
+        +'</div>'
         +'<div style="font-size:10.5px;color:var(--text2)">'+c.lbl+'</div>'
         +'<div style="font-size:15px;font-weight:700;color:'+c.col+'">'+euro(c.v)+'</div>'
       +'</div>';
     }).join('')
+  +'</div>';
+}
+// Détail au clic d'une mini-carte (Revenus/Charges fixes/Quotidien/Épargne) : sous-section
+// repliable montrant uniquement les lignes de la catégorie sélectionnée, sans passer par le
+// détail complet par section plus bas. Un seul ouvert à la fois (re-cliquer referme).
+var _argStatOpen=null;
+function toggleArgentStat(key){
+  _argStatOpen = (_argStatOpen===key) ? null : key;
+  renderArgentStats();
+  renderArgentStatDetail();
+}
+function renderArgentStatDetail(){
+  var el=document.getElementById('argentStatDetail'); if(!el) return;
+  if(!_argStatOpen){ el.style.display='none'; el.innerHTML=''; return; }
+  var f=S.fin||{};
+  var split=getFixedVariableSplit();
+  var rows=[], col='var(--text)', emptyTxt='Rien enregistré ce mois-ci.';
+  if(_argStatOpen==='revenu'){
+    rows=parseItems(f.revenus_items).map(function(it,i){ return {n:it.n,v:parseFloat(it.v)||0,d:it.d||'',idx:i,key:'revenus_items'}; });
+    col='var(--green)'; emptyTxt='Aucun revenu enregistré.';
+  } else if(_argStatOpen==='fixe'){
+    rows=split.fixed; col='var(--red)';
+    emptyTxt='Aucune charge fixe. Ajoute-en une avec la pastille "Charge fixe" ci-dessous, ou dis-la à Léo.';
+  } else if(_argStatOpen==='courses'){
+    rows=split.buckets.courses.concat(split.buckets.plaisirs, split.buckets.imprevus);
+    col='var(--text)'; emptyTxt='Rien enregistré ce mois-ci.';
+  } else if(_argStatOpen==='epargne'){
+    rows=parseItems(f.epargne_items).map(function(it,i){ return {n:it.n,v:parseFloat(it.v)||0,d:it.d||'',idx:i,key:'epargne_items'}; })
+      .concat(parseItems(f.invest_items).map(function(it,i){ return {n:it.n,v:parseFloat(it.v)||0,d:it.d||'',idx:i,key:'invest_items'}; }));
+    col='var(--accent2)'; emptyTxt='Rien mis de côté ce mois-ci.';
+  }
+  el.style.display='block';
+  el.innerHTML='<div style="background:var(--card2);border-radius:12px;padding:4px 12px 2px;margin-bottom:14px">'
+    +(rows.length ? renderArgentRows(rows,col) : '<div style="color:var(--text3);font-size:12.5px;padding:10px 0">'+emptyTxt+'</div>')
   +'</div>';
 }
 // Barre segmentée + légende : répartition des 3 enveloppes variables (Courses/Plaisirs &
@@ -3671,7 +3733,8 @@ function renderArgentJournal(){
   var emptyEl=document.getElementById('argentEmpty');
   if(!hasData){
     if(emptyEl) emptyEl.style.display='block';
-    ['argentGauge','argentStats','argentVarBar','argentRecent','argentDetail'].forEach(function(id){
+    _argStatOpen=null;
+    ['argentGauge','argentStats','argentStatDetail','argentVarBar','argentRecent','argentDetail'].forEach(function(id){
       var e=document.getElementById(id); if(e) e.innerHTML='';
     });
     return;
@@ -3679,6 +3742,7 @@ function renderArgentJournal(){
   if(emptyEl) emptyEl.style.display='none';
   renderArgentGauge();
   renderArgentStats();
+  renderArgentStatDetail();
   renderArgentVarBar();
   renderArgentRecent();
   renderArgentDetail();
