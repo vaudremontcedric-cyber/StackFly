@@ -958,7 +958,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.55';
+window.APP_VERSION = '5.56';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1183,8 +1183,15 @@ window.APP_VERSION = '5.55';
           </div>
           <div class="acc-body open">
             <div class="acc-inner">
-              <div id="argentSummary"></div>
-              <div id="argentJournal"></div>
+              <div id="argentEmpty" style="display:none;color:var(--text3);font-size:13px;text-align:center;padding:10px 0">Parle à Léo de tes revenus et dépenses, ou ajoute une ligne ci-dessous.</div>
+              <div id="argentGauge"></div>
+              <div id="argentStats"></div>
+              <div id="argentVarBar"></div>
+              <div id="argentRecent"></div>
+              <button id="argDetailToggle" onclick="toggleArgentDetail()" style="width:100%;padding:10px 0;background:transparent;border:none;color:var(--accent2);font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px">
+                <span id="argDetailArr">&#9662;</span> Voir le détail par section
+              </button>
+              <div id="argentDetail" style="display:none"></div>
               <button id="argAddBtn" onclick="toggleArgentAddForm()" style="width:100%;margin-top:12px;padding:12px;background:transparent;border:1.5px solid var(--border);border-radius:12px;color:var(--text2);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
                 <span style="font-size:16px;line-height:1">+</span> Ajouter une ligne
               </button>
@@ -1557,7 +1564,7 @@ window.APP_VERSION = '5.55';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.55</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.56</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -3758,12 +3765,14 @@ function renderArgentSection(title, icon, col, total, rowsHtml, emptyTxt){
     +(rowsHtml || '<div style="color:var(--text3);font-size:12.5px;padding:8px 0">'+emptyTxt+'</div>')
   +'</div>';
 }
-// Jauge "reste à vivre variable" : théorique = ce qu'il reste une fois les charges fixes et
-// l'épargne/investissement mis de côté (l'enveloppe prévue pour le quotidien) ; réel = calcRAV()
-// (déjà utilisé partout ailleurs dans l'app) = théorique moins ce qui a déjà été dépensé dans les
-// 3 enveloppes variables. Aucune nouvelle donnée à saisir : tout est déjà connu de l'app.
-function renderArgentSummary(){
-  var el=document.getElementById('argentSummary'); if(!el) return;
+function sumItems(raw){ return parseItems(raw).reduce(function(s,x){return s+(parseFloat(x.v)||0);},0); }
+// Jauge circulaire "reste à vivre variable" (v5.56, présentation moderne) : théorique = ce qu'il
+// reste une fois les charges fixes et l'épargne/investissement mis de côté (l'enveloppe prévue
+// pour le quotidien) ; réel = calcRAV() (déjà utilisé partout ailleurs dans l'app) = théorique
+// moins ce qui a déjà été dépensé dans les 3 enveloppes variables. Aucune nouvelle donnée à
+// saisir : tout est déjà connu de l'app.
+function renderArgentGauge(){
+  var el=document.getElementById('argentGauge'); if(!el) return;
   var f=S.fin||{}; var rev=f.revenus||0;
   if(!rev){ el.innerHTML=''; return; }
   var split=getFixedVariableSplit();
@@ -3775,31 +3784,117 @@ function renderArgentSummary(){
   var colors={g:'var(--green)',o:'#f59e0b',r:'var(--red)'};
   var bgs={g:'var(--green2)',o:'rgba(245,158,11,.15)',r:'var(--red2)'};
   var msgs={g:'Zone confortable pour finir le mois',o:'Enveloppe qui se resserre — reste vigilant',r:'Enveloppe dépassée ce mois-ci'};
-  el.innerHTML='<div style="background:'+bgs[cl]+';border-radius:12px;padding:12px 14px;margin-bottom:14px">'
-    +'<div style="font-size:11.5px;color:var(--text2);margin-bottom:4px">Reste à vivre variable</div>'
-    +'<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px">'
-      +'<span style="font-size:22px;font-weight:800;color:'+colors[cl]+'">'+euro(reel)+'</span>'
-      +'<span style="font-size:11.5px;color:var(--text3)">sur '+euro(theorique)+' prévus</span>'
-    +'</div>'
-    +'<div style="height:7px;border-radius:4px;background:rgba(0,0,0,.12);overflow:hidden">'
-      +'<div style="height:100%;width:'+pct+'%;background:'+colors[cl]+';border-radius:4px"></div>'
-    +'</div>'
-    +'<div style="font-size:11px;color:'+colors[cl]+';margin-top:6px">'+msgs[cl]+'</div>'
+  var R=54, C=2*Math.PI*R, offset=C-(pct/100*C);
+  el.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;padding:4px 0 14px">'
+    +'<svg width="132" height="132" viewBox="0 0 132 132">'
+      +'<circle cx="66" cy="66" r="'+R+'" fill="none" stroke="'+bgs[cl]+'" stroke-width="12"></circle>'
+      +'<circle cx="66" cy="66" r="'+R+'" fill="none" stroke="'+colors[cl]+'" stroke-width="12" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+offset.toFixed(1)+'" transform="rotate(-90 66 66)"></circle>'
+      +'<text x="66" y="62" text-anchor="middle" font-size="19" font-weight="800" fill="'+colors[cl]+'">'+euro(reel)+'</text>'
+      +'<text x="66" y="80" text-anchor="middle" font-size="10" fill="var(--text3)">sur '+euro(theorique)+'</text>'
+    +'</svg>'
+    +'<div style="font-size:11.5px;color:'+colors[cl]+';margin-top:4px;text-align:center">'+msgs[cl]+'</div>'
   +'</div>';
 }
-function renderArgentJournal(){
-  var el=document.getElementById('argentJournal'); if(!el) return;
-  renderArgentSummary();
+// 4 mini-cartes de synthèse (bento) : aperçu immédiat des 4 grandes masses du mois.
+function renderArgentStats(){
+  var el=document.getElementById('argentStats'); if(!el) return;
+  var f=S.fin||{};
+  var split=getFixedVariableSplit();
+  var revTot=sumItems(f.revenus_items);
+  var fixedTot=sumRows(split.fixed);
+  var varTot=sumRows(split.buckets.courses)+sumRows(split.buckets.plaisirs)+sumRows(split.buckets.imprevus);
+  var epTot=sumItems(f.epargne_items)+sumItems(f.invest_items);
+  if(!revTot && !fixedTot && !varTot && !epTot){ el.innerHTML=''; return; }
+  var cards=[
+    {ico:'💼', lbl:'Revenus',      v:revTot,   col:'var(--green)'},
+    {ico:'🔁', lbl:'Charges fixes',v:fixedTot, col:'var(--red)'},
+    {ico:'🛒', lbl:'Quotidien',    v:varTot,   col:'var(--text)'},
+    {ico:'🏦', lbl:'Épargne',      v:epTot,    col:'var(--accent2)'}
+  ];
+  el.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">'
+    +cards.map(function(c){
+      return '<div style="background:var(--card2);border-radius:12px;padding:10px 12px">'
+        +'<div style="font-size:15px;margin-bottom:4px">'+c.ico+'</div>'
+        +'<div style="font-size:10.5px;color:var(--text2)">'+c.lbl+'</div>'
+        +'<div style="font-size:15px;font-weight:700;color:'+c.col+'">'+euro(c.v)+'</div>'
+      +'</div>';
+    }).join('')
+  +'</div>';
+}
+// Barre segmentée + légende : répartition des 3 enveloppes variables (Courses/Plaisirs &
+// loisirs/Imprévus), en remplacement des 3 sous-totaux empilés de la v5.55.
+function renderArgentVarBar(){
+  var el=document.getElementById('argentVarBar'); if(!el) return;
+  var split=getFixedVariableSplit();
+  var c=sumRows(split.buckets.courses), p=sumRows(split.buckets.plaisirs), im=sumRows(split.buckets.imprevus);
+  var tot=c+p+im;
+  if(!tot){ el.innerHTML=''; return; }
+  var pc=Math.round(c/tot*100), pp=Math.round(p/tot*100), pi=Math.max(0,100-pc-pp);
+  el.innerHTML='<div style="margin-bottom:14px">'
+    +'<div style="font-size:12.5px;font-weight:700;color:var(--text2);margin-bottom:8px">🛒 Variable au quotidien</div>'
+    +'<div style="display:flex;height:8px;border-radius:4px;overflow:hidden;margin-bottom:8px">'
+      +(pc>0?'<div style="width:'+pc+'%;background:#3b82f6"></div>':'')
+      +(pp>0?'<div style="width:'+pp+'%;background:var(--orange)"></div>':'')
+      +(pi>0?'<div style="width:'+pi+'%;background:#ef4444"></div>':'')
+    +'</div>'
+    +'<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--text2)">'
+      +'<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3b82f6;margin-right:4px"></span>Courses '+euro(c)+'</span>'
+      +'<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--orange);margin-right:4px"></span>Plaisirs '+euro(p)+'</span>'
+      +'<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;margin-right:4px"></span>Imprévus '+euro(im)+'</span>'
+    +'</div>'
+  +'</div>';
+}
+function argentRowMeta(r,ico,bg,col,sign){
+  return {n:r.n, v:r.v, d:r.d, key:r.key, idx:r.idx, ico:ico, bg:bg, col:col, sign:sign};
+}
+// Flux "Derniers mouvements" : toutes catégories mélangées, triées par date, les 6 plus récentes
+// — façon appli bancaire, icône ronde par catégorie. Pas de × ici (déclutter) : la suppression se
+// fait dans le détail par section, replié en dessous.
+function renderArgentRecent(){
+  var el=document.getElementById('argentRecent'); if(!el) return;
+  var f=S.fin||{};
+  var split=getFixedVariableSplit();
+  var all=[];
+  parseItems(f.revenus_items).forEach(function(it,i){ all.push(argentRowMeta({n:it.n,v:parseFloat(it.v)||0,d:it.d||'',key:'revenus_items',idx:i},'💼','var(--green2)','var(--green)',1)); });
+  split.fixed.forEach(function(r){ all.push(argentRowMeta(r,'🔁','var(--red2)','var(--red)',-1)); });
+  split.buckets.courses.forEach(function(r){ all.push(argentRowMeta(r,'🛒','rgba(59,130,246,.15)','#3b82f6',-1)); });
+  split.buckets.plaisirs.forEach(function(r){ all.push(argentRowMeta(r,'🎉','var(--orange2)','var(--orange)',-1)); });
+  split.buckets.imprevus.forEach(function(r){ all.push(argentRowMeta(r,'⚠️','rgba(239,68,68,.15)','#ef4444',-1)); });
+  parseItems(f.epargne_items).forEach(function(it,i){ all.push(argentRowMeta({n:it.n,v:parseFloat(it.v)||0,d:it.d||'',key:'epargne_items',idx:i},'🏦','rgba(13,148,136,.15)','var(--accent2)',-1)); });
+  parseItems(f.invest_items).forEach(function(it,i){ all.push(argentRowMeta({n:it.n,v:parseFloat(it.v)||0,d:it.d||'',key:'invest_items',idx:i},'📈','rgba(139,92,246,.15)','#8b5cf6',-1)); });
+  if(!all.length){ el.innerHTML=''; return; }
+  all.sort(function(a,b){
+    if(!a.d && !b.d) return 0;
+    if(!a.d) return 1;
+    if(!b.d) return -1;
+    return a.d<b.d?1:(a.d>b.d?-1:0);
+  });
+  el.innerHTML='<div style="margin-bottom:4px">'
+    +'<div style="font-size:12.5px;font-weight:700;color:var(--text2);margin-bottom:6px">Derniers mouvements</div>'
+    +all.slice(0,6).map(function(r){
+      var dateTxt=fmtShortDate(r.d);
+      var amtTxt=(r.sign>0?'+':'-')+euro(r.v);
+      return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--border)">'
+        +'<div style="width:32px;height:32px;border-radius:50%;background:'+r.bg+';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px">'+r.ico+'</div>'
+        +'<div style="flex:1;min-width:0">'
+          +'<div style="font-size:13.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.n)+'</div>'
+          +(dateTxt?'<div style="font-size:10.5px;color:var(--text3)">'+dateTxt+'</div>':'')
+        +'</div>'
+        +'<div style="font-size:13.5px;font-weight:700;color:'+r.col+';flex-shrink:0">'+amtTxt+'</div>'
+      +'</div>';
+    }).join('')
+  +'</div>';
+}
+// Détail complet par section (Entrées/Dépenses fixes/Variable ventilé/Épargne & invest +
+// formules), replié par défaut derrière "Voir le détail par section" — c'est ici que vivent les ×
+// de suppression. Contenu identique à l'ancien renderArgentJournal() de la v5.55.
+function renderArgentDetail(){
+  var el=document.getElementById('argentDetail'); if(!el) return;
   var f=S.fin||{};
   var revRows=parseItems(f.revenus_items).map(function(it,i){ return {n:it.n, v:parseFloat(it.v)||0, d:it.d||'', idx:i, key:'revenus_items'}; });
   var split=getFixedVariableSplit();
   var epRows=parseItems(f.epargne_items).map(function(it,i){ return {n:it.n, v:parseFloat(it.v)||0, d:it.d||'', idx:i, key:'epargne_items'}; });
   var invRows=parseItems(f.invest_items).map(function(it,i){ return {n:it.n, v:parseFloat(it.v)||0, d:it.d||'', idx:i, key:'invest_items'}; });
-  var hasAny = revRows.length||split.fixed.length||split.buckets.courses.length||split.buckets.plaisirs.length||split.buckets.imprevus.length||epRows.length||invRows.length;
-  if(!hasAny){
-    el.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:10px 0">Parle à Léo de tes revenus et dépenses, ou ajoute une ligne ci-dessous.</div>';
-    return;
-  }
   var html='';
   html+=renderArgentSection('Entrées', '💼', 'var(--green)', sumRows(revRows), renderArgentRows(revRows,'var(--green)'), 'Aucun revenu enregistré.');
   html+=renderArgentSection('Dépenses fixes', '🔁', 'var(--red)', sumRows(split.fixed), renderArgentRows(split.fixed,'var(--red)'), 'Ajoute tes charges récurrentes (loyer, crédit…) dans Abonnements.');
@@ -3820,6 +3915,38 @@ function renderArgentJournal(){
     +'<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span style="color:var(--text2)">Reste à vivre réel</span><span style="font-weight:700;color:'+(calcRAV()>=0?'var(--green)':'var(--red)')+'">'+euro(calcRAV())+'</span></div>'
   +'</div>';
   el.innerHTML=html;
+}
+function toggleArgentDetail(){
+  var det=document.getElementById('argentDetail');
+  var arr=document.getElementById('argDetailArr');
+  var btn=document.getElementById('argDetailToggle');
+  if(!det||!btn) return;
+  var show = det.style.display==='none' || !det.style.display;
+  det.style.display = show ? 'block' : 'none';
+  if(arr) arr.innerHTML = show ? '&#9652;' : '&#9662;';
+  btn.lastChild.textContent = show ? ' Masquer le détail par section' : ' Voir le détail par section';
+}
+// Orchestrateur — point d'entrée unique appelé par tous les autres endroits de l'app
+// (renderBudget, saveTxn, saveIncome, addArgentItem, deleteRepItem…), inchangé pour eux.
+function renderArgentJournal(){
+  var gaugeEl=document.getElementById('argentGauge'); if(!gaugeEl) return;
+  var f=S.fin||{};
+  var hasData = !!(f.revenus || parseItems(f.besoins_items).length || parseItems(f.envies_items).length
+    || parseItems(f.epargne_items).length || parseItems(f.invest_items).length || parseItems(f.revenus_items).length);
+  var emptyEl=document.getElementById('argentEmpty');
+  if(!hasData){
+    if(emptyEl) emptyEl.style.display='block';
+    ['argentGauge','argentStats','argentVarBar','argentRecent','argentDetail'].forEach(function(id){
+      var e=document.getElementById(id); if(e) e.innerHTML='';
+    });
+    return;
+  }
+  if(emptyEl) emptyEl.style.display='none';
+  renderArgentGauge();
+  renderArgentStats();
+  renderArgentVarBar();
+  renderArgentRecent();
+  renderArgentDetail();
 }
 var _selArgentType=ARGENT_ADD_TYPES[0];
 function selArgentType(el, id){
