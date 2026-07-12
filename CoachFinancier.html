@@ -971,7 +971,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.62';
+window.APP_VERSION = '5.64';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1210,15 +1210,10 @@ window.APP_VERSION = '5.62';
                 <span style="font-size:16px;line-height:1">+</span> Ajouter une ligne
               </button>
               <div id="argAddForm" style="display:none;gap:6px;margin-top:10px;flex-wrap:wrap">
-                <div id="argTypePills" style="display:flex;gap:6px;flex-wrap:wrap;width:100%">
-                  <button type="button" class="arg-pill sel" onclick="selArgentType(this,'revenu')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--green);background:var(--green2);display:inline-flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path></svg>Revenu</button>
-                  <button type="button" class="arg-pill" onclick="selArgentType(this,'fixe')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--red);background:var(--red2);display:inline-flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>Charge fixe</button>
-                  <button type="button" class="arg-pill" onclick="selArgentType(this,'courses')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:#3b82f6;background:rgba(59,130,246,.15);display:inline-flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>Courses</button>
-                  <button type="button" class="arg-pill" onclick="selArgentType(this,'plaisirs')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--orange);background:var(--orange2);display:inline-flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>Plaisirs &amp; loisirs</button>
-                  <button type="button" class="arg-pill" onclick="selArgentType(this,'imprevus')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:#ef4444;background:rgba(239,68,68,.15);display:inline-flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Imprévus</button>
-                  <button type="button" class="arg-pill" onclick="selArgentType(this,'epargne')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--accent2);background:rgba(13,148,136,.15);display:inline-flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>Épargne</button>
-                  <button type="button" class="arg-pill" onclick="selArgentType(this,'invest')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:#8b5cf6;background:rgba(139,92,246,.15);display:inline-flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>Investissement</button>
-                </div>
+                <!-- Contenu généré par renderArgTypePills() (v5.64) : auparavant en dur, dupliqué à la
+                     main depuis ARGENT_ADD_TYPES/ARGENT_ICON_PATHS et donc désynchronisé après la
+                     mise à jour v5.63 (Imprévus resté rouge #ef4444, Épargne resté sur l'ancien bouclier). -->
+                <div id="argTypePills" style="display:flex;gap:6px;flex-wrap:wrap;width:100%"></div>
                 <input id="argJournalLbl" placeholder="Libellé (ex: Courses Carrefour)" maxlength="40" style="flex:1.6;min-width:110px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:8px"/>
                 <input id="argJournalAmt" type="text" inputmode="decimal" placeholder="Montant €" style="width:88px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:8px"/>
                 <input id="argJournalDate" type="date" style="flex:1;min-width:130px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:8px"/>
@@ -1548,7 +1543,7 @@ window.APP_VERSION = '5.62';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.62</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.64</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -1817,18 +1812,10 @@ window.APP_VERSION = '5.62';
     <div class="modal-drag"></div>
     <div class="modal-title">Dépense rapide</div>
     <div id="txnSectionBadge" class="txn-section-badge txn-section-envies">🎉 Envie</div>
-    <div class="txn-cats" id="txnCats">
-      <div class="txn-cat sel" onclick="selTxnCat(this,'&#127828;','Resto')"><div class="txn-cat-ico" style="color:#f59e0b"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg></div><div class="txn-cat-lbl">Resto</div></div>
-      <div class="txn-cat" onclick="selTxnCat(this,'&#127860;','Courses')"><div class="txn-cat-ico" style="color:#3b82f6"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg></div><div class="txn-cat-lbl">Courses</div></div>
-      <div class="txn-cat" onclick="selTxnCat(this,'&#128664;','Transport')"><div class="txn-cat-ico" style="color:#64748b"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg></div><div class="txn-cat-lbl">Transport</div></div>
-      <div class="txn-cat" onclick="selTxnCat(this,'&#128722;','Shopping')"><div class="txn-cat-ico" style="color:#ec4899"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg></div><div class="txn-cat-lbl">Shopping</div></div>
-      <div class="txn-cat" onclick="selTxnCat(this,'&#128518;','Loisirs')"><div class="txn-cat-ico" style="color:var(--orange)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg></div><div class="txn-cat-lbl">Loisirs</div></div>
-      <div class="txn-cat" onclick="selTxnCat(this,'&#127968;','Logement')"><div class="txn-cat-ico" style="color:var(--accent2)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div><div class="txn-cat-lbl">Logement</div></div>
-      <div class="txn-cat" onclick="selTxnCat(this,'&#128138;','Sant&#233;')"><div class="txn-cat-ico" style="color:#22c55e"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></div><div class="txn-cat-lbl">Sant&#233;</div></div>
-      <div class="txn-cat" onclick="selTxnCat(this,'&#10133;','Autre')"><div class="txn-cat-ico" style="color:var(--text3)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg></div><div class="txn-cat-lbl">Autre</div></div>
-      <div class="txn-cat" onclick="selTxnCat(this,'&#127807;','Épargne')"><div class="txn-cat-ico" style="color:var(--accent2)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div><div class="txn-cat-lbl">Épargne</div></div>
-      <div class="txn-cat" onclick="selTxnCat(this,'&#128200;','Investiss.')"><div class="txn-cat-ico" style="color:#8b5cf6"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg></div><div class="txn-cat-lbl">Investiss.</div></div>
-    </div>
+    <!-- Contenu généré par renderTxnCats() (v5.64) : évite la duplication manuelle des SVG/couleurs,
+         qui avait dérivé d'ARGENT_ICON_PATHS (ex: Épargne montrait encore l'ancien bouclier après
+         la mise à jour v5.63 de son icône ailleurs dans l'app). -->
+    <div class="txn-cats" id="txnCats"></div>
     <div class="m-lbl">Montant (&#8364;)</div>
     <input class="m-in" id="txnAmt" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" style="font-size:24px;text-align:center;font-weight:700"/>
     <div class="m-lbl">Description (optionnel)</div>
@@ -3492,15 +3479,22 @@ var ARGENT_ICON_PATHS = {
   courses:  '<circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>',
   plaisirs: '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>',
   imprevus: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>',
-  epargne:  '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>',
+  // Coffre/tirelire (v5.63) : auparavant "epargne" utilisait le même pictogramme "bouclier" que
+  // "assurance" (contradictoire avec son emoji 🛡️ dans ACTIF_TYPES) — la protection va désormais
+  // au bouclier, l'épargne à un coffre, plus lisible pour "de l'argent mis de côté".
+  epargne:  '<rect x="2" y="7" width="20" height="14" rx="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path><circle cx="12" cy="13" r="2"></circle>',
   invest:   '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline>',
-  resto:    '<path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line>',
+  // Couverts (v5.64) : remplace l'ancienne tasse à café, peu parlante pour "Resto" — une
+  // fourchette + un couteau est le pictogramme le plus reconnu pour la restauration.
+  resto:    '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path>',
   transport:'<rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle>',
   shopping: '<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path>',
   logement: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline>',
   sante:    '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>',
   autre:    '<circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle>',
-  assurance:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>',
+  // Bouclier (repris de l'ancien "epargne", voir commentaire ci-dessus) : correspond enfin à
+  // l'emoji 🛡️ déjà utilisé pour "Assurance vie" dans ACTIF_TYPES.
+  assurance:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>',
   layers:   '<polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline>'
 };
 function argIcon(name, size){
@@ -3521,10 +3515,51 @@ var ARGENT_ADD_TYPES = [
   {id:'fixe',     lbl:'Charge fixe',        key:'besoins_items', b:'fixe',     col:'var(--red)',     bg:'var(--red2)'},
   {id:'courses',  lbl:'Courses',            key:'besoins_items', b:'courses',  col:'#3b82f6',        bg:'rgba(59,130,246,.15)'},
   {id:'plaisirs', lbl:'Plaisirs & loisirs', key:'envies_items',  b:'plaisirs', col:'var(--orange)',  bg:'var(--orange2)'},
-  {id:'imprevus', lbl:'Imprévus',           key:'besoins_items', b:'imprevus', col:'#ef4444',        bg:'rgba(239,68,68,.15)'},
+  // Couleur distincte du rouge de "Charge fixe" (v5.63) : les deux étaient quasi identiques
+  // (var(--red) ≈ #ef4444), rendant "Imprévus" et "Charges fixes" difficiles à distinguer d'un
+  // coup d'œil dans le bento, "Derniers mouvements" et le détail par section.
+  {id:'imprevus', lbl:'Imprévus',           key:'besoins_items', b:'imprevus', col:'#ec4899',        bg:'rgba(236,72,153,.15)'},
   {id:'epargne',  lbl:'Épargne',            key:'epargne_items', b:null,       col:'var(--accent2)', bg:'rgba(13,148,136,.15)'},
   {id:'invest',   lbl:'Investissement',     key:'invest_items',  b:null,       col:'#8b5cf6',        bg:'rgba(139,92,246,.15)'}
 ];
+// Rendu dynamique des pastilles "Ajouter une ligne" (v5.64) : généré depuis ARGENT_ADD_TYPES +
+// argIcon(), pour rester automatiquement synchronisé avec les couleurs/icônes centralisées — fini
+// la dérive silencieuse d'un jeu de SVG codé en dur à la main (celle corrigée en v5.63 : Imprévus
+// resté rouge, Épargne restée sur l'ancien bouclier, alors que ARGENT_ICON_PATHS avait changé).
+function renderArgTypePills(){
+  var el=document.getElementById('argTypePills'); if(!el) return;
+  el.innerHTML=ARGENT_ADD_TYPES.map(function(t,i){
+    return '<button type="button" class="arg-pill'+(i===0?' sel':'')+'" onclick="selArgentType(this,\''+t.id+'\')" '
+      +'style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:'+t.col+';background:'+t.bg+';display:inline-flex;align-items:center;gap:5px">'
+      +argIcon(t.id,12)+t.lbl+'</button>';
+  }).join('');
+}
+// Sous-catégories de la modale "Dépense rapide" (v5.64, remplace un bloc HTML dupliqué à la main).
+// svgKey pointe vers ARGENT_ICON_PATHS ; deux couleurs ont été différenciées pour éviter des
+// collisions visuelles pré-existantes dans cette grille : Resto (orange profond, distinct de
+// Loisirs qui reprend intentionnellement la teinte de "Plaisirs & loisirs") et Logement (indigo,
+// distinct d'Épargne qui reprend la teinte "accent" utilisée partout ailleurs dans l'app).
+var TXN_CAT_TYPES = [
+  {name:'Resto',      ico:'&#127828;', svgKey:'resto',     col:'#f97316',        bg:'rgba(249,115,22,.15)'},
+  {name:'Courses',    ico:'&#127860;', svgKey:'courses',   col:'#3b82f6',        bg:'rgba(59,130,246,.15)'},
+  {name:'Transport',  ico:'&#128664;', svgKey:'transport', col:'#64748b',        bg:'rgba(100,116,139,.15)'},
+  {name:'Shopping',   ico:'&#128722;', svgKey:'shopping',  col:'#ec4899',        bg:'rgba(236,72,153,.15)'},
+  {name:'Loisirs',    ico:'&#128518;', svgKey:'plaisirs',  col:'var(--orange)',  bg:'var(--orange2)'},
+  {name:'Logement',   ico:'&#127968;', svgKey:'logement',  col:'#6366f1',        bg:'rgba(99,102,241,.15)'},
+  {name:'Santé',      ico:'&#128138;', svgKey:'sante',     col:'#22c55e',        bg:'rgba(34,197,94,.15)'},
+  {name:'Autre',      ico:'&#10133;',  svgKey:'autre',     col:'var(--text3)',   bg:'rgba(148,163,184,.15)'},
+  {name:'Épargne',    ico:'&#127807;', svgKey:'epargne',   col:'var(--accent2)', bg:'rgba(13,148,136,.15)'},
+  {name:'Investiss.', ico:'&#128200;', svgKey:'invest',    col:'#8b5cf6',        bg:'rgba(139,92,246,.15)'}
+];
+function renderTxnCats(){
+  var el=document.getElementById('txnCats'); if(!el) return;
+  el.innerHTML=TXN_CAT_TYPES.map(function(t,i){
+    return '<div class="txn-cat'+(i===0?' sel':'')+'" onclick="selTxnCat(this,\''+t.ico+'\',\''+t.name+'\')">'
+      +argIconBadge(t.svgKey, t.bg, t.col, 34)
+      +'<div class="txn-cat-lbl">'+t.name+'</div>'
+    +'</div>';
+  }).join('');
+}
 // Migration ponctuelle (v5.58, suppression de la section Abonnements) : avant cette version, une
 // dépense besoins_items/envies_items était classée "Dépenses fixes" si son libellé correspondait
 // au nom d'un abonnement actif dans S.subs. Cette correspondance par nom disparaît avec la
@@ -3565,6 +3600,22 @@ function getFixedVariableSplit(){
   return {fixed:fixed, buckets:buckets};
 }
 function sumRows(rows){ return rows.reduce(function(s,r){return s+r.v;},0); }
+// Base "dépenses fixes" pour le reste à vivre théorique (jauge + détail par section).
+// BUG corrigé (v5.63) : theorique = revenus - sumRows(split.fixed) - epargne - invest utilisait
+// TOUJOURS sumRows(split.fixed), qui vaut 0 si l'utilisateur n'a jamais détaillé de ligne
+// besoins_items/envies_items — même quand une dépense globale connue existe (f.depenses, déclarée
+// via un chiffre unique donné à Léo, ex: "je dépense 1500€/mois"). Résultat : le théorique
+// affichait par erreur la quasi-totalité des revenus comme enveloppe disponible, alors que le
+// "réel" (calcRAV(), qui lui soustrait bien f.depenses) était nettement inférieur — écart trompeur
+// entre les deux montants affichés côte à côte. Tant qu'aucune ligne n'est détaillée, on ne peut
+// pas savoir quelle part de f.depenses est fixe ou variable : on utilise alors le total déclaré
+// comme base, pour que théorique et réel restent cohérents (théorique = réel dans ce cas, ce qui
+// est honnête vu le manque de détail).
+function getFixedBaseForTheorique(split){
+  var f=S.fin||{};
+  var hasItems = parseItems(f.besoins_items).length>0 || parseItems(f.envies_items).length>0;
+  return hasItems ? sumRows(split.fixed) : (f.depenses||0);
+}
 // BUG corrigé (v5.61) : renderArgentStats()/renderArgentStatDetail()/renderArgentDetail()/
 // renderArgentRecent() ne lisaient QUE revenus_items/epargne_items/invest_items pour ces 3
 // catégories — si l'utilisateur avait seulement déclaré un chiffre global à Léo (ex: "je gagne
@@ -3633,7 +3684,7 @@ function renderArgentGauge(){
   var f=S.fin||{}; var rev=f.revenus||0;
   if(!rev){ el.innerHTML=''; return; }
   var split=getFixedVariableSplit();
-  var fixedTot=sumRows(split.fixed);
+  var fixedTot=getFixedBaseForTheorique(split);
   var theorique=rev-fixedTot-(f.epargne||0)-(f.invest||0);
   var reel=calcRAV();
   var pct=theorique>0?Math.max(0,Math.min(100,Math.round(reel/theorique*100))):0;
@@ -3727,12 +3778,12 @@ function renderArgentVarBar(){
     +'<div style="display:flex;height:8px;border-radius:4px;overflow:hidden;margin-bottom:8px">'
       +(pc>0?'<div style="width:'+pc+'%;background:#3b82f6"></div>':'')
       +(pp>0?'<div style="width:'+pp+'%;background:var(--orange)"></div>':'')
-      +(pi>0?'<div style="width:'+pi+'%;background:#ef4444"></div>':'')
+      +(pi>0?'<div style="width:'+pi+'%;background:#ec4899"></div>':'')
     +'</div>'
     +'<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--text2)">'
       +'<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3b82f6;margin-right:4px"></span>Courses '+euro(c)+'</span>'
       +'<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--orange);margin-right:4px"></span>Plaisirs '+euro(p)+'</span>'
-      +'<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;margin-right:4px"></span>Imprévus '+euro(im)+'</span>'
+      +'<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ec4899;margin-right:4px"></span>Imprévus '+euro(im)+'</span>'
     +'</div>'
   +'</div>';
 }
@@ -3750,7 +3801,7 @@ function renderArgentRecent(){
   split.fixed.forEach(function(r){ all.push(argentRowMeta(r,'fixe','var(--red2)','var(--red)',-1)); });
   split.buckets.courses.forEach(function(r){ all.push(argentRowMeta(r,'courses','rgba(59,130,246,.15)','#3b82f6',-1)); });
   split.buckets.plaisirs.forEach(function(r){ all.push(argentRowMeta(r,'plaisirs','var(--orange2)','var(--orange)',-1)); });
-  split.buckets.imprevus.forEach(function(r){ all.push(argentRowMeta(r,'imprevus','rgba(239,68,68,.15)','#ef4444',-1)); });
+  split.buckets.imprevus.forEach(function(r){ all.push(argentRowMeta(r,'imprevus','rgba(236,72,153,.15)','#ec4899',-1)); });
   getEpargneInvestRows().forEach(function(r){
     var isInvest = r.key==='invest_items';
     all.push(argentRowMeta(r, isInvest?'invest':'epargne', isInvest?'rgba(139,92,246,.15)':'rgba(13,148,136,.15)', isInvest?'#8b5cf6':'var(--accent2)', -1));
@@ -3792,15 +3843,19 @@ function renderArgentDetail(){
   html+=renderArgentSection('Dépenses fixes', 'fixe', 'var(--red)', sumRows(split.fixed), renderArgentRows(split.fixed,'var(--red)'), 'Ajoute tes charges récurrentes (loyer, crédit…) avec la pastille "Charge fixe" ci-dessous, ou dis-les à Léo.');
   var varTotal=sumRows(split.buckets.courses)+sumRows(split.buckets.plaisirs)+sumRows(split.buckets.imprevus);
   var varHtml='';
-  [['Courses',split.buckets.courses,'#3b82f6'],['Plaisirs & loisirs',split.buckets.plaisirs,'var(--orange)'],['Imprévus',split.buckets.imprevus,'#ef4444']].forEach(function(g){
+  [['Courses',split.buckets.courses,'#3b82f6'],['Plaisirs & loisirs',split.buckets.plaisirs,'var(--orange)'],['Imprévus',split.buckets.imprevus,'#ec4899']].forEach(function(g){
     varHtml+='<div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--text2);padding:6px 0 2px;font-weight:700">'
       +'<span>'+g[0]+'</span><span>'+euro(sumRows(g[1]))+'</span></div>'
       +renderArgentRows(g[1],g[2]);
   });
   html+=renderArgentSection('Variable au quotidien', 'courses', 'var(--text)', varTotal, varHtml, 'Rien enregistré ce mois-ci.');
   html+=renderArgentSection('Épargne et investissement', 'epargne', 'var(--accent2)', sumRows(epInvRows), renderArgentRows(epInvRows,'var(--accent2)'), 'Rien mis de côté ce mois-ci.');
-  var depTotal=sumRows(split.fixed)+varTotal;
-  var theorique=(f.revenus||0)-sumRows(split.fixed)-(f.epargne||0)-(f.invest||0);
+  // Même logique que getFixedBaseForTheorique() : si aucune ligne besoins/envies n'est détaillée,
+  // sumRows(split.fixed)+varTotal vaut 0 alors qu'une dépense globale peut être connue (f.depenses)
+  // — on retombe dessus pour que "Total dépenses" reste cohérent avec le "Reste à vivre" en dessous.
+  var hasDepItems = parseItems(f.besoins_items).length>0 || parseItems(f.envies_items).length>0;
+  var depTotal = hasDepItems ? (sumRows(split.fixed)+varTotal) : (f.depenses||0);
+  var theorique=(f.revenus||0)-getFixedBaseForTheorique(split)-(f.epargne||0)-(f.invest||0);
   html+='<div style="background:var(--card2);border-radius:12px;padding:10px 12px;margin-top:4px">'
     +'<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span style="color:var(--text2)">Total dépenses</span><span>'+euro(depTotal)+'</span></div>'
     +'<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span style="color:var(--text2)">Reste à vivre théorique</span><span>'+euro(theorique)+'</span></div>'
@@ -6080,6 +6135,11 @@ save = function(){
 // ── Auto-init on page load ───────────────────────────
 window.addEventListener('DOMContentLoaded', function(){
   updateFbRows();
+  // v5.64 : génère les pastilles/catégories jusqu'ici codées en dur dans le HTML (voir
+  // renderArgTypePills()/renderTxnCats()) — une seule fois au chargement, elles ne dépendent pas
+  // des données utilisateur.
+  renderArgTypePills();
+  renderTxnCats();
 });
 
 // ── Load from cloud after login ──────────────────────
