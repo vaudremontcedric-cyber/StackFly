@@ -956,7 +956,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.44';
+window.APP_VERSION = '5.46';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1022,7 +1022,7 @@ window.APP_VERSION = '5.44';
     </div>
     <div class="hdr-right">
       <div class="hdr-btn" id="themeBtnHdr" onclick="toggleTheme()" title="Changer le thème" style="font-size:18px;display:none">🌙</div>
-      <div class="hdr-btn" id="keyBtn" style="display:none" onclick="openKeyModal()">&#9881;</div>
+      <div class="hdr-btn" id="profilBtn" style="display:none" onclick="go('profil')" title="Profil &amp; param&#232;tres">&#9881;</div>
       <div class="hdr-btn" id="sosBtn" onclick="openSosModal()" title="Besoin d'aide ? Ressources gratuites" style="width:auto;padding:0 10px;border-radius:17px;font-size:11px;font-weight:800;letter-spacing:.5px;color:#ef4444;border-color:rgba(239,68,68,.45)">SOS</div>
     </div>
   </header>
@@ -1349,15 +1349,19 @@ window.APP_VERSION = '5.44';
           </div>
           <div class="acc-body">
             <div class="acc-inner">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-                <span style="font-size:12px;font-weight:700;color:var(--text2)">Vue</span>
-                <select id="argentViewSel" onchange="renderArgentView()" style="background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-weight:600;padding:4px 8px">
-                  <option value="pr">Prévu vs Réel</option>
-                  <option value="ech">Échéancier du mois</option>
-                  <option value="cmp">Comparatif multi-mois</option>
+              <div id="argentJournal"></div>
+              <div style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap">
+                <select id="argJournalType" style="flex:1;min-width:100px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-weight:600;padding:8px 6px">
+                  <option value="revenus_items">💼 Revenu</option>
+                  <option value="besoins_items">🏠 Besoin</option>
+                  <option value="envies_items">🎉 Envie</option>
+                  <option value="epargne_items">🏦 Épargne</option>
+                  <option value="invest_items">📈 Investissement</option>
                 </select>
+                <input id="argJournalLbl" placeholder="Libellé (ex: Loyer)" maxlength="40" style="flex:1.6;min-width:110px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:8px"/>
+                <input id="argJournalAmt" type="text" inputmode="decimal" placeholder="Montant €" style="width:88px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:8px"/>
+                <button onclick="addArgentItem()" style="background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:0 16px;font-size:18px;font-weight:700;cursor:pointer">+</button>
               </div>
-              <div id="argentViewTable"></div>
             </div>
           </div>
         </div>
@@ -1673,7 +1677,7 @@ window.APP_VERSION = '5.44';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.44</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.46</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -1743,9 +1747,6 @@ window.APP_VERSION = '5.44';
     </button>
     <button class="ni" id="ni-tuto" onclick="openTutoModal()">
       <span class="ni-i">&#128214;</span><span class="ni-l">Guide</span>
-    </button>
-    <button class="ni" id="ni-profil" onclick="go('profil')">
-      <span class="ni-i">&#128100;</span><span class="ni-l">Profil</span>
     </button>
   </nav>
 </div>
@@ -2611,7 +2612,7 @@ var _infoTips = {
   'depenses':{ title:'📋 Dépenses du jour',      body:'Toutes les dépenses saisies aujourd\'hui. Appuie sur + pour en ajouter une. Elles s\'intègrent automatiquement dans ta répartition 50/30/20. Astuce : renseigne le champ Prévu pour comparer chaque dépense à ce que tu avais anticipé (visible dans Où va mon argent → Échéancier du mois).' },
   'revenus':  { title:'💼 Revenus du jour',       body:'Journal de tous tes revenus (salaire, freelance, remboursements…). Appuie sur + pour en ajouter un. Chaque revenu logué s\'ajoute automatiquement à ton revenu mensuel total.' },
   'repartit':{ title:'📊 Répartition budgétaire',  body:'Méthode recommandée : 50% pour les Besoins (loyer, courses…), 30% pour les Envies (sorties, abos…), 10% Épargne (livret, fonds urgence) + 10% Investissements (PEA, ETF…).' },
-  'argent':  { title:'📍 Où va mon argent ?',      body:'3 façons de suivre ton budget : Prévu vs Réel (compare tes dépenses à la méthode 50/30/10/10), Échéancier (journal chronologique de tes dépenses ponctuelles du mois), Comparatif multi-mois (évolution mois par mois, se construit au fil du temps).' },
+  'argent':  { title:'📍 Où va mon argent ?',      body:'Le journal complet de ton mois : tous tes revenus et dépenses, remplis automatiquement quand tu en parles à Léo. Tu peux aussi ajouter une ligne toi-même avec le formulaire en bas, ou supprimer une ligne avec le ×.' },
   'abos':    { title:'🔄 Abonnements',           body:'Toutes tes charges récurrentes (Netflix, salle de sport, assurances…). Ils sont déduits automatiquement de tes revenus. Choisis mensuel ou annuel.' },
   'actifs':  { title:'💰 Mes actifs',            body:'Valeur totale de ton patrimoine : compte épargne, immobilier, investissements, crypto… Permet à Léo de te donner des conseils plus précis.' },
   'leo':     { title:'💡 Léo recommande',        body:'Conseils personnalisés générés par Léo selon ta situation actuelle. Mis à jour à chaque modification de ton budget. Appuie pour en discuter avec lui.' },
@@ -2696,7 +2697,7 @@ function doLogout(){
     // Sauvegarde automatique avant déconnexion
     try{
       var backup = {};
-      ['cf_auth','cf_fin','cf_subs','cf_txns','cf_incomes','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile','cf_badges','cf_streak','cf_actions','cf_start','cf_greet','cf_anal','cf_hist','cf_monthRates','cf_monthSnaps'].forEach(function(k){
+      ['cf_auth','cf_fin','cf_subs','cf_txns','cf_incomes','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile','cf_badges','cf_streak','cf_actions','cf_start','cf_greet','cf_anal','cf_hist','cf_monthRates'].forEach(function(k){
         var v=localStorage.getItem(k); if(v!==null) backup[k]=v;
       });
       backup._exported=new Date().toISOString(); backup._version='1';
@@ -2719,7 +2720,6 @@ try{ S.fin        = JSON.parse(localStorage.getItem('cf_fin')   ||'{}'); }catch(
 try{ S.goals      = JSON.parse(localStorage.getItem('cf_goals') ||'[]'); }catch(e){}
 try{ S.dailySnaps = JSON.parse(localStorage.getItem('cf_snaps') ||'[]'); }catch(e){}
 try{ S.monthRates = JSON.parse(localStorage.getItem('cf_monthRates') ||'{}'); }catch(e){ S.monthRates={}; }
-try{ S.monthSnaps = JSON.parse(localStorage.getItem('cf_monthSnaps') ||'{}'); }catch(e){ S.monthSnaps={}; }
 try{ S.subs       = JSON.parse(localStorage.getItem('cf_subs')  ||'[]'); }catch(e){}
 try{ S.txns       = JSON.parse(localStorage.getItem('cf_txns')  ||'[]'); }catch(e){}
 try{ S.incomes    = JSON.parse(localStorage.getItem('cf_incomes')||'[]'); }catch(e){}
@@ -2740,7 +2740,6 @@ function save(){
     localStorage.setItem('cf_goals',  JSON.stringify(S.goals));
     localStorage.setItem('cf_snaps',  JSON.stringify(S.dailySnaps.slice(-40)));
     localStorage.setItem('cf_monthRates', JSON.stringify(S.monthRates||{}));
-    localStorage.setItem('cf_monthSnaps', JSON.stringify(S.monthSnaps||{}));
     localStorage.setItem('cf_subs',   JSON.stringify(S.subs||[]));
     var cutoff=new Date(Date.now()-30*86400000).toISOString().slice(0,10);
     localStorage.setItem('cf_txns',   JSON.stringify((S.txns||[]).filter(function(t){return t.date>=cutoff;})));
@@ -3461,7 +3460,7 @@ function saveTxn(){
   }
   S.fin[key]=JSON.stringify(items);
   syncTotals();
-  save(); closeTxnModal(); renderTxns(); renderPoche(); renderScore(); renderTriCards(); renderArgentView();
+  save(); closeTxnModal(); renderTxns(); renderPoche(); renderScore(); renderTriCards(); renderArgentJournal();
   var sLabel=CAT_SECTION_LABEL[section]||section;
   toast(_selTxnCat.ico+' '+euro(amt)+' → '+sLabel,'#10b981');
 }
@@ -3668,22 +3667,6 @@ function getMonthRateTrend(n){
     return {k:k, lbl:moisAbr[m]||k, v:S.monthRates[k]};
   });
 }
-// Historique mensuel complet (besoins/envies/épargne/invest/RAV) — un point par mois, conservé
-// 24 mois. Complète trackMonthRate() (qui ne gardait que le taux épargne+invest en %) pour
-// permettre un vrai comparatif multi-mois par catégorie (tableau "Où va mon argent ?").
-function trackMonthSnap(){
-  var f=S.fin||{}; var rev=f.revenus||0;
-  if(!rev) return;
-  syncTotals();
-  var b=parseItems(f.besoins_items).reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
-  var e=parseItems(f.envies_items ).reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
-  var now=new Date();
-  var key=now.getFullYear()+'-'+(now.getMonth()<9?'0':'')+(now.getMonth()+1);
-  if(!S.monthSnaps) S.monthSnaps={};
-  S.monthSnaps[key]={rev:rev, b:b, e:e, ep:f.epargne||0, inv:f.invest||0, rav:calcRAV()};
-  var keys=Object.keys(S.monthSnaps).sort();
-  if(keys.length>24){ keys.slice(0,keys.length-24).forEach(function(k){ delete S.monthSnaps[k]; }); }
-}
 
 // ══════════════════════════════════════════════
 // NAVIGATION
@@ -3771,134 +3754,62 @@ function renderSynthTable(){
 }
 
 // ══════════════════════════════════════════════
-// OÙ VA MON ARGENT ? — 3 vues au choix (dropdown #argentViewSel)
+// OÙ VA MON ARGENT ? — journal unique éditable
+// Liste chronologique-catégorielle de TOUTES les entrées du mois (revenus + dépenses),
+// remplie automatiquement par Léo en conversation (besoins_items/envies_items/epargne_items/
+// invest_items/revenus_items, via son bloc [FD]) et éditable à la main ci-dessous
+// (ajout via le mini-formulaire, suppression via le × sur chaque ligne).
 // ══════════════════════════════════════════════
-function renderArgentView(){
-  var sel = document.getElementById('argentViewSel');
-  var v = sel ? sel.value : 'pr';
-  if(v==='ech') renderArgentEcheancier();
-  else if(v==='cmp') renderArgentComparatif();
-  else renderArgentPrevuReel();
-}
-
-// Vue 1 : Prévu (méthode 50/30/10/10 appliquée aux revenus) vs Réel (montants saisis avec Léo)
-function renderArgentPrevuReel(){
-  var el=document.getElementById('argentViewTable'); if(!el) return;
-  syncTotals();
+var ARGENT_TYPES = [
+  {key:'revenus_items', lbl:'Revenu',         ico:'💼', col:'var(--green)',  sign:1},
+  {key:'besoins_items', lbl:'Besoin',         ico:'🏠', col:'var(--text)',   sign:-1},
+  {key:'envies_items',  lbl:'Envie',          ico:'🎉', col:'var(--text)',   sign:-1},
+  {key:'epargne_items', lbl:'Épargne',        ico:'🏦', col:'var(--accent2)',sign:-1},
+  {key:'invest_items',  lbl:'Investissement', ico:'📈', col:'#8b5cf6',       sign:-1}
+];
+function renderArgentJournal(){
+  var el=document.getElementById('argentJournal'); if(!el) return;
   var f=S.fin||{};
-  var rev=f.revenus||0;
-  if(!rev){
-    el.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:10px 0">Renseigne tes revenus avec Léo pour voir ce tableau</div>';
+  var rows=[];
+  ARGENT_TYPES.forEach(function(t){
+    parseItems(f[t.key]).forEach(function(it,i){
+      rows.push({type:t, n:it.n, v:parseFloat(it.v)||0, idx:i});
+    });
+  });
+  if(!rows.length){
+    el.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:10px 0">Parle à Léo de tes revenus et dépenses, ou ajoute une ligne ci-dessous.</div>';
     return;
   }
-  var b=parseItems(f.besoins_items).reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
-  var e=parseItems(f.envies_items ).reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
-  var ep=f.epargne||0, inv=f.invest||0;
-  var rows=[
-    {lbl:'🏠 Besoins',         prevu:rev*0.5, reel:b},
-    {lbl:'🎉 Envies',          prevu:rev*0.3, reel:e},
-    {lbl:'🏦 Épargne',         prevu:rev*0.1, reel:ep},
-    {lbl:'📈 Investissements', prevu:rev*0.1, reel:inv}
-  ];
-  var head='<div style="display:flex;align-items:center;padding:0 0 6px;gap:6px">'
-    +'<div style="flex:1.4;font-size:10.5px;font-weight:700;color:var(--text3);text-transform:uppercase">Poste (idéal 50/30/10/10)</div>'
-    +'<div style="flex:1;font-size:10.5px;font-weight:700;color:var(--text3);text-align:right">Prévu</div>'
-    +'<div style="flex:1;font-size:10.5px;font-weight:700;color:var(--text3);text-align:right">Réel</div>'
-    +'<div style="flex:1;font-size:10.5px;font-weight:700;color:var(--text3);text-align:right">Écart</div>'
-    +'</div>';
-  var body=rows.map(function(r){
-    var ecart=r.prevu-r.reel;
-    var col=ecart>=0?'var(--green)':'var(--red)';
-    return '<div style="display:flex;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);gap:6px">'
-      +'<div style="flex:1.4;font-size:13px;color:var(--text2)">'+r.lbl+'</div>'
-      +'<div style="flex:1;font-size:13px;color:var(--text3);text-align:right">'+euro(r.prevu)+'</div>'
-      +'<div style="flex:1;font-size:13px;color:var(--text);font-weight:700;text-align:right">'+euro(r.reel)+'</div>'
-      +'<div style="flex:1;font-size:12px;font-weight:700;color:'+col+';text-align:right">'+(ecart>=0?'+':'')+euro(ecart)+'</div>'
-      +'</div>';
-  }).join('');
-  var totPrevu=rev, totReel=b+e+ep+inv, totEcart=totPrevu-totReel;
-  var foot='<div style="display:flex;align-items:center;padding:10px 0 0;gap:6px">'
-    +'<div style="flex:1.4;font-size:13px;font-weight:800;color:var(--text)">Total</div>'
-    +'<div style="flex:1;font-size:13px;font-weight:800;color:var(--text);text-align:right">'+euro(totPrevu)+'</div>'
-    +'<div style="flex:1;font-size:13px;font-weight:800;color:var(--text);text-align:right">'+euro(totReel)+'</div>'
-    +'<div style="flex:1;font-size:13px;font-weight:800;color:'+(totEcart>=0?'var(--green)':'var(--red)')+';text-align:right">'+(totEcart>=0?'+':'')+euro(totEcart)+'</div>'
-    +'</div>'
-    +'<div style="font-size:11px;color:var(--text3);text-align:center;margin-top:10px">Prévu = méthode 50/30/10/10 appliquée à tes revenus. Écart total = ton reste à vivre.</div>';
-  el.innerHTML=head+body+foot;
-}
-
-// Vue 2 : journal chronologique des dépenses ponctuelles saisies ce mois (S.txns), avec cumul
-function renderArgentEcheancier(){
-  var el=document.getElementById('argentViewTable'); if(!el) return;
-  var now=new Date();
-  var moisKey=now.getFullYear()+'-'+(now.getMonth()<9?'0':'')+(now.getMonth()+1);
-  var txns=(S.txns||[]).filter(function(t){ return t.date && t.date.indexOf(moisKey)===0; })
-    .slice().sort(function(a,b){ return a.date<b.date?-1:a.date>b.date?1:(a.time<b.time?-1:1); });
-  if(!txns.length){
-    el.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:10px 0">Aucune dépense ponctuelle enregistrée ce mois-ci. Ajoute une dépense rapide (Zone du jour) pour voir ton journal ici.</div>';
-    return;
-  }
-  var moisAbr=['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
-  var cumul=0;
-  var body=txns.map(function(t){
-    cumul+=t.amt;
-    var d=new Date(t.date+'T00:00:00');
-    var dLbl=d.getDate()+' '+moisAbr[d.getMonth()];
-    var prevuLine='';
-    if(t.prevu){
-      var ecart=t.prevu-t.amt;
-      var col=ecart>=0?'var(--green)':'var(--red)';
-      prevuLine='<div style="font-size:10.5px;color:'+col+'">prévu '+euro(t.prevu)+' · '+(ecart>=0?'+':'')+euro(ecart)+'</div>';
-    }
-    return '<div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);gap:6px">'
-      +'<div style="width:46px;font-size:11.5px;color:var(--text3)">'+dLbl+'</div>'
-      +'<div style="font-size:15px;width:22px;text-align:center">'+t.ico+'</div>'
+  el.innerHTML=rows.map(function(r){
+    var amtTxt=(r.type.sign>0?'+':'-')+euro(r.v);
+    return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">'
+      +'<span style="font-size:15px;width:20px;text-align:center;flex-shrink:0">'+r.type.ico+'</span>'
       +'<div style="flex:1;min-width:0">'
-        +'<div style="font-size:13px;color:var(--text2)">'+esc(t.desc)+'</div>'
-        +prevuLine
+        +'<div style="font-size:13px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.n)+'</div>'
+        +'<div style="font-size:10px;color:var(--text3)">'+r.type.lbl+'</div>'
       +'</div>'
-      +'<div style="font-size:13px;font-weight:700;color:var(--text)">-'+euro(t.amt)+'</div>'
-      +'<div style="font-size:11px;color:var(--text3);min-width:70px;text-align:right">cumul '+euro(cumul)+'</div>'
+      +'<div style="font-size:13px;font-weight:700;color:'+r.type.col+';flex-shrink:0">'+amtTxt+'</div>'
+      +'<div onclick="deleteRepItem(\''+r.type.key+'\','+r.idx+')" style="cursor:pointer;color:var(--text3);font-size:17px;padding:2px 4px;flex-shrink:0" title="Supprimer">×</div>'
       +'</div>';
   }).join('');
-  var subsTotal=(S.subs||[]).reduce(function(s,x){return s+x.amt;},0);
-  var note=subsTotal>0
-    ? 'Journal des dépenses ponctuelles uniquement — tes abonnements/charges récurrentes ('+euro(subsTotal)+'/mois) sont déjà comptés dans Besoins/Envies, pas listés ligne à ligne ici.'
-    : 'Journal chronologique de tes dépenses ponctuelles saisies ce mois-ci.';
-  el.innerHTML=body+'<div style="font-size:11px;color:var(--text3);text-align:center;margin-top:10px">'+note+'</div>';
 }
-
-// Vue 3 : comparatif mois par mois (S.monthSnaps, alimenté automatiquement par trackMonthSnap())
-function renderArgentComparatif(){
-  var el=document.getElementById('argentViewTable'); if(!el) return;
-  var keys=Object.keys(S.monthSnaps||{}).sort().slice(-3);
-  if(keys.length<2){
-    el.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:10px 0">Reviens dans quelques mois : ce tableau se construit automatiquement, un point ajouté à chaque mois passé sur l\'app.</div>';
-    return;
-  }
-  var moisAbr=['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
-  var lbls=keys.map(function(k){ var m=parseInt(k.split('-')[1],10)-1; return moisAbr[m]||k; });
-  var rows=[
-    {lbl:'🏠 Besoins',        get:function(s){return s.b;}},
-    {lbl:'🎉 Envies',         get:function(s){return s.e;}},
-    {lbl:'🏦 Épargne+Invest', get:function(s){return (s.ep||0)+(s.inv||0);}},
-    {lbl:'✅ Reste à vivre',  get:function(s){return s.rav;}, rav:true}
-  ];
-  var head='<div style="display:flex;align-items:center;padding:0 0 6px;gap:4px">'
-    +'<div style="flex:1.5;font-size:10.5px;font-weight:700;color:var(--text3);text-transform:uppercase">Catégorie</div>'
-    +lbls.map(function(l){return '<div style="flex:1;font-size:10.5px;font-weight:700;color:var(--text3);text-align:right">'+l+'</div>';}).join('')
-    +'</div>';
-  var body=rows.map(function(r){
-    return '<div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);gap:4px">'
-      +'<div style="flex:1.5;font-size:12.5px;color:var(--text2)">'+r.lbl+'</div>'
-      +keys.map(function(k){
-        var v=r.get(S.monthSnaps[k]);
-        var col=r.rav ? (v>=0?'var(--green)':'var(--red)') : 'var(--text)';
-        return '<div style="flex:1;font-size:12.5px;font-weight:700;color:'+col+';text-align:right">'+(r.rav&&v>=0?'+':'')+euro(v)+'</div>';
-      }).join('')
-      +'</div>';
-  }).join('');
-  el.innerHTML=head+body+'<div style="font-size:11px;color:var(--text3);text-align:center;margin-top:10px">Un point ajouté automatiquement chaque mois où tu utilises l\'app — l\'historique s\'enrichit avec le temps.</div>';
+function addArgentItem(){
+  var key=document.getElementById('argJournalType').value;
+  var lbl=document.getElementById('argJournalLbl').value.trim();
+  var amt=parseMontant(document.getElementById('argJournalAmt').value);
+  if(!lbl){ toast('Ajoute un libellé (ex: Loyer)','#ef4444'); return; }
+  if(!amt||amt<=0){ toast('Entre un montant valide (ex: 45,90)','#ef4444'); return; }
+  if(!S.fin) S.fin={};
+  var items=parseItems(S.fin[key]);
+  var existing=items.filter(function(i){return i.n===lbl;});
+  if(existing.length){ existing[0].v=Math.round((existing[0].v+amt)*100)/100; }
+  else { items.push({n:lbl,v:amt}); }
+  S.fin[key]=JSON.stringify(items);
+  syncTotals(); save();
+  document.getElementById('argJournalLbl').value='';
+  document.getElementById('argJournalAmt').value='';
+  renderArgentJournal(); renderBudget();
+  toast('Ligne ajoutée ✓','#10b981');
 }
 
 // Mini-graphique de tendance du taux épargne+invest sur les derniers mois
@@ -3993,7 +3904,6 @@ function renderBudget(){
   // Zone 2: Evolution
   trackSnap();
   trackMonthRate();
-  trackMonthSnap();
   var e7  = getEvol(7);
   var e30 = getEvol(30);
   var el7  = document.getElementById('evol7');
@@ -4083,7 +3993,7 @@ function renderBudget(){
   renderIncomes();
   renderTriCards();
   renderSynthTable(); // synchronise Synthese budget apres chaque mise a jour
-  renderArgentView();
+  renderArgentJournal();
   renderBudgetAlertBanner();
   trackSnap();
   checkBadges();
@@ -4793,7 +4703,7 @@ function startApp(){
     document.getElementById('profilName').textContent=auth.user;
     document.getElementById('profilSub').textContent='RescueBudget · Coach Léo';
   }
-  document.getElementById('keyBtn').style.display='flex';
+  document.getElementById('profilBtn').style.display='flex';
   document.getElementById('themeBtnHdr').style.display='flex';
   document.getElementById('bnav').style.display='flex';
   updateStreak();
@@ -5301,7 +5211,7 @@ function validateReceipt(){
 // ═══════════════════════════════════════════════════
 function exportBackup(){
   var backup = {};
-  var keys = ['cf_auth','cf_fin','cf_subs','cf_txns','cf_incomes','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile','cf_badges','cf_streak','cf_actions','cf_start','cf_greet','cf_anal','cf_hist','cf_monthRates','cf_monthSnaps'];
+  var keys = ['cf_auth','cf_fin','cf_subs','cf_txns','cf_incomes','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile','cf_badges','cf_streak','cf_actions','cf_start','cf_greet','cf_anal','cf_hist','cf_monthRates'];
   keys.forEach(function(k){
     var v = localStorage.getItem(k);
     if(v !== null) backup[k] = v;
@@ -5329,7 +5239,7 @@ function importBackup(event){
         toast('Fichier invalide ou vide','#ef4444'); return;
       }
       showConfirm('Restaurer cette sauvegarde ? Tes données actuelles seront remplacées.', function(){
-        var keys = ['cf_auth','cf_fin','cf_subs','cf_txns','cf_incomes','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile','cf_badges','cf_streak','cf_actions','cf_start','cf_greet','cf_anal','cf_hist','cf_monthRates','cf_monthSnaps'];
+        var keys = ['cf_auth','cf_fin','cf_subs','cf_txns','cf_incomes','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile','cf_badges','cf_streak','cf_actions','cf_start','cf_greet','cf_anal','cf_hist','cf_monthRates'];
         keys.forEach(function(k){
           if(backup[k] !== undefined) localStorage.setItem(k, backup[k]);
         });
