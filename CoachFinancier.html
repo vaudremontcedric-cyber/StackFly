@@ -958,7 +958,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.50';
+window.APP_VERSION = '5.51';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1167,37 +1167,44 @@ window.APP_VERSION = '5.50';
            <div class="rav-status" id="ravStatus">-- &#9679;</div>
            <div class="rav-msg" id="ravMsg"></div>
         </div>
-        <div class="poche-card" id="pocheCard">
-          <div class="poche-ico">&#128176;</div>
-          <div class="poche-info">
-            <div class="poche-lbl">Poche du jour</div>
-            <div class="poche-val" id="pocheVal">-- &#8364;</div>
-            <div class="poche-sub" id="pocheSub">D&#233;pens&#233; aujourd&#8217;hui : 0 &#8364;</div>
-          </div>
-          <button class="poche-add-btn" onclick="openTxnModal()" title="Ajouter une d&#233;pense">+</button>
-        </div>
-      </div>
-
-      <!-- ► Mini stats rev/dep/ep ───────────────────────────────── -->
-      <div style="display:flex;gap:8px;margin:10px 0 2px">
-        <div style="flex:1;background:var(--card);border-radius:12px;padding:10px 8px;text-align:center;border:1px solid var(--border)">
-          <div style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">Revenus</div>
-          <div id="miniRev" style="font-size:13px;font-weight:800;color:var(--green)">-- €</div>
-        </div>
-        <div style="flex:1;background:var(--card);border-radius:12px;padding:10px 8px;text-align:center;border:1px solid var(--border)">
-          <div style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">Dépenses</div>
-          <div id="miniDep" style="font-size:13px;font-weight:800;color:var(--red)">-- €</div>
-        </div>
-        <div style="flex:1;background:var(--card);border-radius:12px;padding:10px 8px;text-align:center;border:1px solid var(--border)">
-          <div style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">Épargne & Invest</div>
-          <div id="miniEp" style="font-size:13px;font-weight:800;color:var(--accent2)">-- €</div>
-        </div>
       </div>
 
       <!-- ► Accordéons ─────────────────────────────────────────── -->
       <div class="acc-list">
 
-        <!-- 1. Synthèse (ouvert) -->
+        <!-- 1. Où va mon argent ? (ouvert — première section, juste sous le Reste à vivre) -->
+        <div class="acc">
+          <div class="acc-hdr open" onclick="toggleAcc(this)">
+            <span>&#128205; O&#249; va mon argent ?</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <button class="info-btn" onclick="event.stopPropagation();showInfoTip(this,'argent')" title="En savoir plus">i</button>
+              <span class="acc-arr">&#9660;</span>
+            </div>
+          </div>
+          <div class="acc-body open">
+            <div class="acc-inner">
+              <div id="argentJournal"></div>
+              <button id="argAddBtn" onclick="toggleArgentAddForm()" style="width:100%;margin-top:12px;padding:12px;background:transparent;border:1.5px solid var(--border);border-radius:12px;color:var(--text2);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+                <span style="font-size:16px;line-height:1">+</span> Ajouter une ligne
+              </button>
+              <div id="argAddForm" style="display:none;gap:6px;margin-top:10px;flex-wrap:wrap">
+                <div id="argTypePills" style="display:flex;gap:6px;flex-wrap:wrap;width:100%">
+                  <button type="button" class="arg-pill sel" onclick="selArgentType(this,'revenus_items')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--green);background:var(--green2)">💼 Revenu</button>
+                  <button type="button" class="arg-pill" onclick="selArgentType(this,'besoins_items')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:#3b82f6;background:rgba(59,130,246,.15)">🏠 Besoin</button>
+                  <button type="button" class="arg-pill" onclick="selArgentType(this,'envies_items')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--orange);background:var(--orange2)">🎉 Envie</button>
+                  <button type="button" class="arg-pill" onclick="selArgentType(this,'epargne_items')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--accent2);background:rgba(13,148,136,.15)">🏦 Épargne</button>
+                  <button type="button" class="arg-pill" onclick="selArgentType(this,'invest_items')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:#8b5cf6;background:rgba(139,92,246,.15)">📈 Investissement</button>
+                </div>
+                <input id="argJournalLbl" placeholder="Libellé (ex: Loyer)" maxlength="40" style="flex:1.6;min-width:110px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:8px"/>
+                <input id="argJournalAmt" type="text" inputmode="decimal" placeholder="Montant €" style="width:88px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:8px"/>
+                <input id="argJournalDate" type="date" style="flex:1;min-width:130px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:8px"/>
+                <button onclick="addArgentItem()" style="background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:0 16px;font-size:18px;font-weight:700;cursor:pointer">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Synthèse (ouvert) -->
         <div class="acc">
           <div class="acc-hdr open" onclick="toggleAcc(this)">
             <span>&#128202; Synth&#232;se budget</span>
@@ -1221,23 +1228,7 @@ window.APP_VERSION = '5.50';
           </div>
         </div>
 
-        <!-- 2. Dépenses du jour (ouvert) -->
-        <div class="acc">
-          <div class="acc-hdr open" onclick="toggleAcc(this)">
-            <span>&#128203; D&#233;penses du jour</span>
-            <div style="display:flex;align-items:center;gap:8px">
-              <button class="info-btn" onclick="event.stopPropagation();showInfoTip(this,'depenses')" title="En savoir plus">i</button>
-              <span class="acc-badge" id="txnTotal">0 &#8364;</span>
-              <button class="acc-add-btn" onclick="event.stopPropagation();openTxnModal()">+</button>
-              <span class="acc-arr">&#9660;</span>
-            </div>
-          </div>
-          <div class="acc-body open">
-            <div id="txnList"><div class="txn-empty">Aucune d&#233;pense enregistr&#233;e aujourd&#8217;hui</div></div>
-          </div>
-        </div>
-
-        <!-- 2bis. Revenus du jour (fermé) -->
+        <!-- 3. Revenus du jour (fermé) -->
         <div class="acc">
           <div class="acc-hdr" onclick="toggleAcc(this)">
             <span>&#128188; Revenus du jour</span>
@@ -1253,126 +1244,7 @@ window.APP_VERSION = '5.50';
           </div>
         </div>
 
-        <!-- 3. Répartition 50/30/20 (fermé) -->
-        <div class="acc">
-          <div class="acc-hdr" onclick="toggleAcc(this)">
-            <span>&#128200; R&#233;partition 50/30/20</span>
-            <div style="display:flex;align-items:center;gap:8px">
-              <button class="info-btn" onclick="event.stopPropagation();showInfoTip(this,'repartit')" title="En savoir plus">i</button>
-              <span class="acc-arr">&#9660;</span>
-            </div>
-          </div>
-          <div class="acc-body">
-            <div class="acc-inner" id="repSection">
-              <div class="rep-card b" id="repCardB">
-                <div class="rep-head">
-                  <div class="rep-head-l">
-                    <div class="rep-ico">&#127968;</div>
-                    <div class="rep-meta">
-                      <div class="rep-name">Besoins</div>
-                      <div class="rep-ideal">Id&#233;al &#8804; 50%</div>
-                    </div>
-                  </div>
-                  <div class="rep-right">
-                    <div class="rep-total" id="repBTotal">-- &#8364;</div>
-                    <div class="rep-pct" id="repBPct">--%</div>
-                  </div>
-                </div>
-                <div class="rep-bar-wrap"><div class="rep-bar-fill" id="repBBar" style="width:0%"></div></div>
-                <div class="rep-divider"></div>
-                <button class="rep-detail-btn" id="detBtnB" onclick="toggleDetail('B')">D&#233;tails <span class="arr">&#9662;</span></button><div class="rep-items-wrap" id="repBWrap"><div id="repBItems"><div class="rep-empty">Loyer, courses, transport…</div></div></div>
-              </div>
-              <div class="rep-card e" id="repCardE">
-                <div class="rep-head">
-                  <div class="rep-head-l">
-                    <div class="rep-ico">&#10024;</div>
-                    <div class="rep-meta">
-                      <div class="rep-name">Envies</div>
-                      <div class="rep-ideal">Id&#233;al &#8804; 30%</div>
-                    </div>
-                  </div>
-                  <div class="rep-right">
-                    <div class="rep-total" id="repETotal">-- &#8364;</div>
-                    <div class="rep-pct" id="repEPct">--%</div>
-                  </div>
-                </div>
-                <div class="rep-bar-wrap"><div class="rep-bar-fill" id="repEBar" style="width:0%"></div></div>
-                <div class="rep-divider"></div>
-                <button class="rep-detail-btn" id="detBtnE" onclick="toggleDetail('E')">D&#233;tails <span class="arr">&#9662;</span></button><div class="rep-items-wrap" id="repEWrap"><div id="repEItems"><div class="rep-empty">Restos, Netflix, shopping…</div></div></div>
-              </div>
-              <div class="rep-card s" id="repCardS">
-                <div class="rep-head">
-                  <div class="rep-head-l">
-                    <div class="rep-ico">&#127807;</div>
-                    <div class="rep-meta">
-                      <div class="rep-name">&#201;pargne</div>
-                      <div class="rep-ideal">Id&#233;al &#8805; 10%</div>
-                    </div>
-                  </div>
-                  <div class="rep-right">
-                    <div class="rep-total" id="repSTotal">-- &#8364;</div>
-                    <div class="rep-pct" id="repSPct">--%</div>
-                  </div>
-                </div>
-                <div class="rep-bar-wrap"><div class="rep-bar-fill" id="repSBar" style="width:0%"></div></div>
-                <div class="rep-divider"></div>
-                <button class="rep-detail-btn" id="detBtnS" onclick="toggleDetail('S')">D&#233;tails <span class="arr">&#9662;</span></button><div class="rep-items-wrap" id="repSWrap"><div id="repSItems"><div class="rep-empty">Livret A, fonds urgence, CEL…</div></div></div>
-              </div>
-              <div class="rep-card i" id="repCardI">
-                <div class="rep-head">
-                  <div class="rep-head-l">
-                    <div class="rep-ico">&#128200;</div>
-                    <div class="rep-meta">
-                      <div class="rep-name">Investissements</div>
-                      <div class="rep-ideal">Id&#233;al &#8805; 10%</div>
-                    </div>
-                  </div>
-                  <div class="rep-right">
-                    <div class="rep-total" id="repITotal">-- &#8364;</div>
-                    <div class="rep-pct" id="repIPct">--%</div>
-                  </div>
-                </div>
-                <div class="rep-bar-wrap"><div class="rep-bar-fill" id="repIBar" style="width:0%"></div></div>
-                <div class="rep-divider"></div>
-                <button class="rep-detail-btn" id="detBtnI" onclick="toggleDetail('I')">D&#233;tails <span class="arr">&#9662;</span></button><div class="rep-items-wrap" id="repIWrap"><div id="repIItems"><div class="rep-empty">PEA, ETF, CTO, actions…</div></div></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 4. Où va mon argent ? (fermé) -->
-        <div class="acc">
-          <div class="acc-hdr" onclick="toggleAcc(this)">
-            <span>&#128205; O&#249; va mon argent ?</span>
-            <div style="display:flex;align-items:center;gap:8px">
-              <button class="info-btn" onclick="event.stopPropagation();showInfoTip(this,'argent')" title="En savoir plus">i</button>
-              <span class="acc-arr">&#9660;</span>
-            </div>
-          </div>
-          <div class="acc-body">
-            <div class="acc-inner">
-              <div id="argentJournal"></div>
-              <button id="argAddBtn" onclick="toggleArgentAddForm()" style="width:100%;margin-top:12px;padding:12px;background:transparent;border:1.5px solid var(--border);border-radius:12px;color:var(--text2);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
-                <span style="font-size:16px;line-height:1">+</span> Ajouter une ligne
-              </button>
-              <div id="argAddForm" style="display:none;gap:6px;margin-top:10px;flex-wrap:wrap">
-                <div id="argTypePills" style="display:flex;gap:6px;flex-wrap:wrap;width:100%">
-                  <button type="button" class="arg-pill sel" onclick="selArgentType(this,'revenus_items')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--green);background:var(--green2)">💼 Revenu</button>
-                  <button type="button" class="arg-pill" onclick="selArgentType(this,'besoins_items')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:#3b82f6;background:rgba(59,130,246,.15)">🏠 Besoin</button>
-                  <button type="button" class="arg-pill" onclick="selArgentType(this,'envies_items')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--orange);background:var(--orange2)">🎉 Envie</button>
-                  <button type="button" class="arg-pill" onclick="selArgentType(this,'epargne_items')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--accent2);background:rgba(13,148,136,.15)">🏦 Épargne</button>
-                  <button type="button" class="arg-pill" onclick="selArgentType(this,'invest_items')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:#8b5cf6;background:rgba(139,92,246,.15)">📈 Investissement</button>
-                </div>
-                <input id="argJournalLbl" placeholder="Libellé (ex: Loyer)" maxlength="40" style="flex:1.6;min-width:110px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:8px"/>
-                <input id="argJournalAmt" type="text" inputmode="decimal" placeholder="Montant €" style="width:88px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:8px"/>
-                <input id="argJournalDate" type="date" style="flex:1;min-width:130px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:8px"/>
-                <button onclick="addArgentItem()" style="background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:0 16px;font-size:18px;font-weight:700;cursor:pointer">+</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 5. Abonnements (fermé) -->
+        <!-- 4. Abonnements (fermé) -->
         <div class="acc">
           <div class="acc-hdr" onclick="toggleAcc(this)">
             <span>&#128260; Abonnements</span>
@@ -1388,7 +1260,7 @@ window.APP_VERSION = '5.50';
           </div>
         </div>
 
-        <!-- 6. Mes actifs (fermé) -->
+        <!-- 5. Mes actifs (fermé) -->
         <div class="acc" id="z4-wrap">
           <div class="acc-hdr" onclick="toggleAcc(this)">
             <span>&#128176; Mes actifs</span>
@@ -1403,7 +1275,7 @@ window.APP_VERSION = '5.50';
           </div>
         </div>
 
-        <!-- 7. Léo recommande + Évolution (fermé) -->
+        <!-- 6. Léo recommande + Évolution (fermé) -->
         <div class="acc">
           <div class="acc-hdr" onclick="toggleAcc(this)">
             <span>&#128161; L&#233;o recommande</span>
@@ -1683,7 +1555,7 @@ window.APP_VERSION = '5.50';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.50</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.51</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -2862,11 +2734,13 @@ function parseItems(raw){
 }
 
 function renderOneCard(itemsId, totalId, pctId, barId, items, rev, idealPct, sectionKey){
+  var totalEl=document.getElementById(totalId);
+  if(!totalEl) return; // section "Répartition 50/30/20" retirée de l'UI (v5.51) — no-op silencieux
   var total=items.reduce(function(s,x){return s+(parseFloat(x.v)||0);},0);
   var pct=rev>0?Math.round(total/rev*100):0;
   var overBudget=pct>idealPct;
 
-  document.getElementById(totalId).innerHTML=euro(total)+'<small style="font-size:10px;opacity:.6;margin-left:2px">/mois</small>';
+  totalEl.innerHTML=euro(total)+'<small style="font-size:10px;opacity:.6;margin-left:2px">/mois</small>';
 
   var pctEl=document.getElementById(pctId);
   pctEl.textContent=pct+'%';
