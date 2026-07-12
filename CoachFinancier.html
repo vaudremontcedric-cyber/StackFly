@@ -956,7 +956,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.47';
+window.APP_VERSION = '5.48';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1680,7 +1680,7 @@ window.APP_VERSION = '5.47';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.47</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.48</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -3458,8 +3458,9 @@ function saveTxn(){
   var existing=items.filter(function(i){return i.n===label;});
   if(existing.length){
     existing[0].v=Math.round((existing[0].v+amt)*100)/100;
+    existing[0].d=today();
   } else {
-    items.push({n:label,v:amt});
+    items.push({n:label,v:amt,d:today()});
   }
   S.fin[key]=JSON.stringify(items);
   syncTotals();
@@ -3513,13 +3514,14 @@ function saveIncome(){
   // détail) : on le convertit en une ligne "Revenu déclaré" pour ne pas l'écraser au prochain
   // syncTotals() — sinon un seul petit revenu ponctuel remplacerait tout le salaire connu.
   if(!items.length && (S.fin.revenus||0)>0){
-    items.push({n:'Revenu déclaré', v:S.fin.revenus});
+    items.push({n:'Revenu déclaré', v:S.fin.revenus, d:today()});
   }
   var existing=items.filter(function(i){return i.n===label;});
   if(existing.length){
     existing[0].v=Math.round((existing[0].v+amt)*100)/100;
+    existing[0].d=today();
   } else {
-    items.push({n:label,v:amt});
+    items.push({n:label,v:amt,d:today()});
   }
   S.fin.revenus_items=JSON.stringify(items);
   syncTotals();
@@ -3770,24 +3772,60 @@ var ARGENT_TYPES = [
   {key:'epargne_items', lbl:'Épargne',        col:'var(--accent2)', bg:'rgba(13,148,136,.15)',     sign:-1},
   {key:'invest_items',  lbl:'Investissement', col:'#8b5cf6',        bg:'rgba(139,92,246,.15)',     sign:-1}
 ];
+// Les 5 clés d'items concernées par le journal — utilisées à la fois pour le rendu et pour
+// le merge date-préservant appliqué aux mises à jour envoyées par Léo (bloc [FD]).
+var ARGENT_ITEM_KEYS = ARGENT_TYPES.map(function(t){ return t.key; });
+var MOIS_ABR = ['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+function fmtShortDate(iso){
+  if(!iso) return '';
+  var d=new Date(iso+'T00:00:00');
+  if(isNaN(d.getTime())) return '';
+  return d.getDate()+' '+MOIS_ABR[d.getMonth()];
+}
+// Fusionne un nouveau tableau d'items (envoyé par Léo via [FD]) avec l'ancien, en préservant
+// la date (d) de chaque ligne déjà connue et inchangée. Une ligne nouvelle, ou dont le montant
+// a changé (nouvelle contribution/mouvement), est datée d'aujourd'hui — c'est bien ce jour-là
+// que le mouvement d'argent a été enregistré.
+function mergeItemsPreservingDates(oldRaw, newItems){
+  var oldByName={};
+  parseItems(oldRaw).forEach(function(i){ if(i.n) oldByName[i.n]=i; });
+  var td=today();
+  return newItems.map(function(i){
+    var prev=oldByName[i.n];
+    var sameValue = prev && Math.abs((parseFloat(prev.v)||0)-(parseFloat(i.v)||0))<0.005;
+    return {n:i.n, v:i.v, d:(sameValue && prev.d) ? prev.d : td};
+  });
+}
 function renderArgentJournal(){
   var el=document.getElementById('argentJournal'); if(!el) return;
   var f=S.fin||{};
   var rows=[];
   ARGENT_TYPES.forEach(function(t){
     parseItems(f[t.key]).forEach(function(it,i){
-      rows.push({type:t, n:it.n, v:parseFloat(it.v)||0, idx:i});
+      rows.push({type:t, n:it.n, v:parseFloat(it.v)||0, d:it.d||'', idx:i});
     });
   });
   if(!rows.length){
     el.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:10px 0">Parle à Léo de tes revenus et dépenses, ou ajoute une ligne ci-dessous.</div>';
     return;
   }
+  // Plus récent en premier ; les lignes sans date (anciennes, migrées avant l'ajout de la
+  // colonne date) sont reléguées en fin de liste plutôt que de se voir attribuer une fausse date.
+  rows.sort(function(a,b){
+    if(!a.d && !b.d) return 0;
+    if(!a.d) return 1;
+    if(!b.d) return -1;
+    return a.d<b.d?1:(a.d>b.d?-1:0);
+  });
   el.innerHTML=rows.map(function(r){
     var amtTxt=(r.type.sign>0?'+':'-')+euro(r.v);
+    var dateTxt=fmtShortDate(r.d);
     return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">'
       +'<span style="flex-shrink:0;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;color:'+r.type.col+';background:'+r.type.bg+'">'+r.type.lbl+'</span>'
-      +'<div style="flex:1;min-width:0;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.n)+'</div>'
+      +'<div style="flex:1;min-width:0">'
+        +'<div style="font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.n)+'</div>'
+        +(dateTxt?'<div style="font-size:10.5px;color:var(--text3);margin-top:1px">'+dateTxt+'</div>':'')
+      +'</div>'
       +'<div style="font-size:14px;font-weight:700;color:'+r.type.col+';flex-shrink:0">'+amtTxt+'</div>'
       +'<div onclick="deleteRepItem(\''+r.type.key+'\','+r.idx+')" style="cursor:pointer;color:var(--text3);font-size:17px;padding:2px 4px;flex-shrink:0" title="Supprimer">×</div>'
       +'</div>';
@@ -3811,8 +3849,8 @@ function addArgentItem(){
   if(!S.fin) S.fin={};
   var items=parseItems(S.fin[key]);
   var existing=items.filter(function(i){return i.n===lbl;});
-  if(existing.length){ existing[0].v=Math.round((existing[0].v+amt)*100)/100; }
-  else { items.push({n:lbl,v:amt}); }
+  if(existing.length){ existing[0].v=Math.round((existing[0].v+amt)*100)/100; existing[0].d=today(); }
+  else { items.push({n:lbl,v:amt,d:today()}); }
   S.fin[key]=JSON.stringify(items);
   syncTotals(); save();
   document.getElementById('argJournalLbl').value='';
@@ -4372,7 +4410,15 @@ async function sendMsg(txt, hiddenUser, fileData){
         }
         Object.keys(fd).forEach(function(k){
           if(k==='rav') return; // le RAV n'est jamais pris depuis l'IA (voir ligne ~4134) — garde-fou si un vieux prompt/modele le renvoie quand meme
-          if(fd[k]!==null&&fd[k]!==undefined){ S.fin[k]=fd[k]; upd=true; }
+          if(fd[k]===null||fd[k]===undefined) return;
+          // besoins_items/envies_items/epargne_items/invest_items/revenus_items : Léo renvoie le
+          // tableau complet à chaque tour, ce qui écraserait les dates (d) déjà connues. On fusionne
+          // par nom au lieu de remplacer telle quelle — voir mergeItemsPreservingDates().
+          if(ARGENT_ITEM_KEYS.indexOf(k)>=0 && Array.isArray(fd[k])){
+            S.fin[k]=mergeItemsPreservingDates(S.fin[k], fd[k]); upd=true;
+          } else {
+            S.fin[k]=fd[k]; upd=true;
+          }
         });
         if(fd._actionDone === true && !S.fin._actionDoneCounted){
           S.actions = (S.actions||0) + 1;
