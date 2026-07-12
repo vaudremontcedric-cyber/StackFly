@@ -958,7 +958,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.51';
+window.APP_VERSION = '5.53';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1183,6 +1183,7 @@ window.APP_VERSION = '5.51';
           </div>
           <div class="acc-body open">
             <div class="acc-inner">
+              <div id="argentSummary"></div>
               <div id="argentJournal"></div>
               <button id="argAddBtn" onclick="toggleArgentAddForm()" style="width:100%;margin-top:12px;padding:12px;background:transparent;border:1.5px solid var(--border);border-radius:12px;color:var(--text2);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
                 <span style="font-size:16px;line-height:1">+</span> Ajouter une ligne
@@ -1555,7 +1556,7 @@ window.APP_VERSION = '5.51';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.51</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.53</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -1676,8 +1677,8 @@ window.APP_VERSION = '5.51';
         <div class="tuto-card-body"><div class="tuto-card-content">
           <div class="tuto-step"><div class="tuto-step-num">1</div><div>Ouvre l'onglet <b>Budget</b> (icône graphique en bas).</div></div>
           <div class="tuto-step"><div class="tuto-step-num">2</div><div>Parle à <b>Léo</b> pour qu'il remplisse automatiquement tes revenus et dépenses, ou entre-les manuellement via le bouton <b>+</b>.</div></div>
-          <div class="tuto-step"><div class="tuto-step-num">3</div><div>Consulte ton <b>Reste à vivre</b> : argent disponible après toutes les dépenses.</div></div>
-          <div class="tuto-step"><div class="tuto-step-num">4</div><div>Change la période (jour / mois / an) avec le menu déroulant en haut.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">3</div><div>Consulte ton <b>Reste à vivre</b> : argent disponible après toutes les dépenses. Le menu déroulant à côté bascule entre affichage mensuel et annuel.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">4</div><div>La section <b>Où va mon argent ?</b> juste en dessous liste tout ce qui rentre et sort ce mois-ci.</div></div>
           <div class="tuto-tip">💡 Le score de santé financière se met à jour automatiquement selon tes données.</div>
         </div></div>
       </div>
@@ -1726,7 +1727,7 @@ window.APP_VERSION = '5.51';
           <div class="tuto-step"><div class="tuto-step-num">1</div><div><b>Besoins (50%)</b> : loyer, alimentation, transport, assurances — ce que tu ne peux pas éviter.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">2</div><div><b>Envies (30%)</b> : restaurants, loisirs, streaming, shopping — ce qui te fait plaisir.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">3</div><div><b>Épargne (20%)</b> : livret, investissement, remboursement de dettes — ton avenir.</div></div>
-          <div class="tuto-step"><div class="tuto-step-num">4</div><div>Léo classe automatiquement tes dépenses. Tu peux aussi appuyer sur <b>Détails</b> pour voir et supprimer chaque ligne.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">4</div><div>Léo classe automatiquement chaque dépense. Retrouve-les dans <b>Où va mon argent ?</b> : chaque ligne affiche une pastille de couleur selon sa catégorie (bleu = Besoin, orange = Envie, etc.).</div></div>
           <div class="tuto-tip">💡 L'idéal est de respecter les 50/30/20, mais adapte selon ta situation personnelle.</div>
         </div></div>
       </div>
@@ -1761,18 +1762,18 @@ window.APP_VERSION = '5.51';
         </div></div>
       </div>
 
-      <!-- Dépenses du jour -->
+      <!-- Ajouter une dépense -->
       <div class="tuto-card" id="tc6">
         <div class="tuto-card-hdr" onclick="toggleTuto(6)">
           <span class="tuto-card-ico">🧾</span>
-          <span class="tuto-card-ttl">Dépenses du jour</span>
+          <span class="tuto-card-ttl">Ajouter une dépense</span>
           <span class="tuto-card-arr">&#9662;</span>
         </div>
         <div class="tuto-card-body"><div class="tuto-card-content">
-          <div class="tuto-step"><div class="tuto-step-num">1</div><div>Dans Budget, la section <b>Dépenses du jour</b> montre ce que tu as dépensé aujourd'hui.</div></div>
-          <div class="tuto-step"><div class="tuto-step-num">2</div><div>Appuie sur <b>+</b> pour saisir une dépense manuelle : montant, description, catégorie.</div></div>
-          <div class="tuto-step"><div class="tuto-step-num">3</div><div>La <b>Poche du jour</b> te montre combien il te reste à dépenser aujourd'hui sans dépasser ton budget.</div></div>
-          <div class="tuto-tip">💡 Scanne un ticket de caisse 📷 pour saisir une dépense automatiquement.</div>
+          <div class="tuto-step"><div class="tuto-step-num">1</div><div>Le plus simple : dis-le à <b>Léo</b> dans le Chat, il l'enregistre automatiquement.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">2</div><div>Ou appuie sur le bouton <b>+</b> flottant en bas de l'écran : saisie rapide par catégorie, ou scanne un ticket de caisse 📷.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">3</div><div>Ou ajoute une ligne directement dans <b>Où va mon argent ?</b>, avec sa date.</div></div>
+          <div class="tuto-tip">💡 Toutes tes dépenses, quelle que soit la méthode, apparaissent au même endroit : Où va mon argent ?</div>
         </div></div>
       </div>
 
@@ -2488,10 +2489,8 @@ async function saveProfileEdit(){
 // ═══════════════════════════════════════════════════
 var _infoTips = {
   'synth':   { title:'📊 Synthèse budget',      body:'Vue d\'ensemble de tes revenus, dépenses et épargne du mois en cours. Change la période (Mensuel / Journalier / Annuel) pour adapter l\'affichage.' },
-  'depenses':{ title:'📋 Dépenses du jour',      body:'Toutes les dépenses saisies aujourd\'hui. Appuie sur + pour en ajouter une. Elles s\'intègrent automatiquement dans ta répartition 50/30/20. Astuce : renseigne le champ Prévu pour comparer chaque dépense à ce que tu avais anticipé (visible dans Où va mon argent → Échéancier du mois).' },
   'revenus':  { title:'💼 Revenus du jour',       body:'Journal de tous tes revenus (salaire, freelance, remboursements…). Appuie sur + pour en ajouter un. Chaque revenu logué s\'ajoute automatiquement à ton revenu mensuel total.' },
-  'repartit':{ title:'📊 Répartition budgétaire',  body:'Méthode recommandée : 50% pour les Besoins (loyer, courses…), 30% pour les Envies (sorties, abos…), 10% Épargne (livret, fonds urgence) + 10% Investissements (PEA, ETF…).' },
-  'argent':  { title:'📍 Où va mon argent ?',      body:'Le journal complet de ton mois : tous tes revenus et dépenses, remplis automatiquement quand tu en parles à Léo. Tu peux aussi ajouter une ligne toi-même avec le formulaire en bas, ou supprimer une ligne avec le ×.' },
+  'argent':  { title:'📍 Où va mon argent ?',      body:'Le journal complet de ton mois : tous tes revenus et dépenses, classés par catégorie (pastille de couleur), remplis automatiquement quand tu en parles à Léo. Tu peux aussi ajouter une ligne toi-même avec le formulaire en bas, ou supprimer une ligne avec le ×.' },
   'abos':    { title:'🔄 Abonnements',           body:'Toutes tes charges récurrentes (Netflix, salle de sport, assurances…). Ils sont déduits automatiquement de tes revenus. Choisis mensuel ou annuel.' },
   'actifs':  { title:'💰 Mes actifs',            body:'Valeur totale de ton patrimoine : compte épargne, immobilier, investissements, crypto… Permet à Léo de te donner des conseils plus précis.' },
   'leo':     { title:'💡 Léo recommande',        body:'Conseils personnalisés générés par Léo selon ta situation actuelle. Mis à jour à chaque modification de ton budget. Appuie pour en discuter avec lui.' },
@@ -3686,8 +3685,34 @@ function mergeItemsPreservingDates(oldRaw, newItems){
     return {n:i.n, v:i.v, d:(sameValue && prev.d) ? prev.d : td};
   });
 }
+// v5.53 — repère 50/30/20 discret : depuis la suppression de l'accordéon "Répartition 50/30/20"
+// (v5.51), il n'y avait plus nulle part un rappel visuel du poids de chaque catégorie par rapport
+// aux revenus. Une ligne compacte de badges (pas une section entière) suffit à garder la pédagogie
+// 50/30/20 sans réintroduire la lourdeur de l'ancienne section à 4 cartes détaillées.
+var ARGENT_SUMMARY_DEFS = [
+  {key:'besoins_items', lbl:'Besoins',  col:'#3b82f6',        bg:'rgba(59,130,246,.15)', ideal:50, dir:'max'},
+  {key:'envies_items',  lbl:'Envies',   col:'var(--orange)',  bg:'var(--orange2)',       ideal:30, dir:'max'},
+  {key:'epargne_items', lbl:'Épargne',  col:'var(--accent2)', bg:'rgba(13,148,136,.15)', ideal:10, dir:'min'},
+  {key:'invest_items',  lbl:'Invest.',  col:'#8b5cf6',        bg:'rgba(139,92,246,.15)', ideal:10, dir:'min'}
+];
+function renderArgentSummary(){
+  var el=document.getElementById('argentSummary'); if(!el) return;
+  var f=S.fin||{}; var rev=f.revenus||0;
+  if(!rev){ el.innerHTML=''; return; }
+  el.innerHTML='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">'
+    +ARGENT_SUMMARY_DEFS.map(function(d){
+      var total=parseItems(f[d.key]).reduce(function(s,x){return s+(parseFloat(x.v)||0);},0);
+      var pct=Math.round(total/rev*100);
+      var ok = d.dir==='max' ? pct<=d.ideal : pct>=d.ideal;
+      return '<span style="font-size:10.5px;font-weight:700;padding:4px 9px;border-radius:20px;color:'+d.col+';background:'+d.bg+'" title="Idéal '+(d.dir==='max'?'≤':'≥')+d.ideal+'%">'
+        +d.lbl+' '+pct+'%'+(ok?'':' &#9888;')
+        +'</span>';
+    }).join('')
+    +'</div>';
+}
 function renderArgentJournal(){
   var el=document.getElementById('argentJournal'); if(!el) return;
+  renderArgentSummary();
   var f=S.fin||{};
   var rows=[];
   ARGENT_TYPES.forEach(function(t){
@@ -3784,25 +3809,17 @@ function buildMonthTrendHtml(){
     +'</div>';
 }
 
+// v5.53 — remplace l'ancienne liste de mois (Janvier/Février/…) par un simple bascule
+// Mensuel/Annuel. L'ancienne liste laissait croire qu'on pouvait consulter l'historique d'un
+// mois passé, alors que renderBudget() n'a jamais utilisé que 2 comportements réels : facteur
+// ×1 (peu importe le mois choisi) ou ×12 pour "Année". Le sélecteur reflète maintenant fidèlement
+// ce qu'il fait.
 function buildRavPeriodOptions(){
   var sel = document.getElementById('ravPeriodSel');
   if(!sel) return;
   var prev = sel.value; // sauvegarder la sélection avant reconstruction
-  var now = new Date();
-  var yr  = now.getFullYear();
-  var mois = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
-  var curM = now.getMonth();
-  var defaultVal = yr+'-'+(curM<9?'0':'')+(curM+1);
-  var opts = '';
-  for(var m = 0; m <= curM; m++){
-    var val = yr+'-'+(m<9?'0':'')+(m+1);
-    var lbl = mois[m]+' '+yr;
-    opts += '<option value="'+val+'">📅 '+lbl+'</option>';
-  }
-  opts += '<option value="year-'+yr+'">📆 Année '+yr+'</option>';
-  sel.innerHTML = opts;
-  // Restaurer la sélection précédente (si encore valide), sinon mois courant
-  sel.value = prev || defaultVal;
+  sel.innerHTML = '<option value="month">📅 Mensuel</option><option value="year">📆 Annuel</option>';
+  sel.value = (prev==='year') ? 'year' : 'month';
 }
 
 function renderBudget(){
@@ -3816,7 +3833,7 @@ function renderBudget(){
 
   var sel = document.getElementById('ravPeriodSel');
   var period = sel ? sel.value : '';
-  var isAnnual = period && period.indexOf('year-') === 0;
+  var isAnnual = period === 'year';
   var factor = isAnnual ? 12 : 1;
 
   var rev = (f.revenus||0) * factor;
