@@ -956,7 +956,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.43';
+window.APP_VERSION = '5.44';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1232,6 +1232,22 @@ window.APP_VERSION = '5.43';
           </div>
           <div class="acc-body open">
             <div id="txnList"><div class="txn-empty">Aucune d&#233;pense enregistr&#233;e aujourd&#8217;hui</div></div>
+          </div>
+        </div>
+
+        <!-- 2bis. Revenus du jour (fermé) -->
+        <div class="acc">
+          <div class="acc-hdr" onclick="toggleAcc(this)">
+            <span>&#128188; Revenus du jour</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <button class="info-btn" onclick="event.stopPropagation();showInfoTip(this,'revenus')" title="En savoir plus">i</button>
+              <span class="acc-badge" id="incTotal">0 &#8364;</span>
+              <button class="acc-add-btn" onclick="event.stopPropagation();openIncomeModal()">+</button>
+              <span class="acc-arr">&#9660;</span>
+            </div>
+          </div>
+          <div class="acc-body">
+            <div id="incList"><div class="txn-empty">Aucun revenu enregistr&#233; aujourd&#8217;hui</div></div>
           </div>
         </div>
 
@@ -1657,7 +1673,7 @@ window.APP_VERSION = '5.43';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.43</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.44</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -2025,9 +2041,35 @@ window.APP_VERSION = '5.43';
     <input class="m-in" id="txnAmt" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" style="font-size:24px;text-align:center;font-weight:700"/>
     <div class="m-lbl">Description (optionnel)</div>
     <input class="m-in" id="txnDesc" placeholder="Ex: D&#233;jeuner avec Paul" maxlength="60"/>
+    <div class="m-lbl">Pr&#233;vu (optionnel)</div>
+    <input class="m-in" id="txnPrevu" type="text" inputmode="decimal" placeholder="Ce que tu avais anticip&#233; pour cette d&#233;pense" autocomplete="off"/>
     <div class="m-btns">
       <button class="mb s" onclick="closeTxnModal()">Annuler</button>
       <button class="mb p" onclick="saveTxn()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Revenu rapide -->
+<div class="ov" id="ovIncome" onclick="if(event.target===this)closeIncomeModal()">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <div class="modal-title">Revenu rapide</div>
+    <div class="txn-cats" id="incCats">
+      <div class="txn-cat sel" onclick="selIncomeCat(this,'&#128188;','Salaire')"><div class="txn-cat-ico">&#128188;</div><div class="txn-cat-lbl">Salaire</div></div>
+      <div class="txn-cat" onclick="selIncomeCat(this,'&#128187;','Freelance')"><div class="txn-cat-ico">&#128187;</div><div class="txn-cat-lbl">Freelance</div></div>
+      <div class="txn-cat" onclick="selIncomeCat(this,'&#127974;','Aides/CAF')"><div class="txn-cat-ico">&#127974;</div><div class="txn-cat-lbl">Aides/CAF</div></div>
+      <div class="txn-cat" onclick="selIncomeCat(this,'&#128176;','Remboursement')"><div class="txn-cat-ico">&#128176;</div><div class="txn-cat-lbl">Remboursement</div></div>
+      <div class="txn-cat" onclick="selIncomeCat(this,'&#128230;','Vente')"><div class="txn-cat-ico">&#128230;</div><div class="txn-cat-lbl">Vente</div></div>
+      <div class="txn-cat" onclick="selIncomeCat(this,'&#10133;','Autre')"><div class="txn-cat-ico">&#10133;</div><div class="txn-cat-lbl">Autre</div></div>
+    </div>
+    <div class="m-lbl">Montant (&#8364;)</div>
+    <input class="m-in" id="incAmt" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" style="font-size:24px;text-align:center;font-weight:700"/>
+    <div class="m-lbl">Description (optionnel)</div>
+    <input class="m-in" id="incDesc" placeholder="Ex: Mission client X" maxlength="60"/>
+    <div class="m-btns">
+      <button class="mb s" onclick="closeIncomeModal()">Annuler</button>
+      <button class="mb p" onclick="saveIncome()">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -2184,7 +2226,7 @@ var SYSTEM_BASE = "Tu es Léo, un coach financier personnel IA. Ta mission : acc
   + "\"action\":null,\"impact\":null,\"_actionDone\":null,"
   + "\"cat1_nom\":null,\"cat1_mt\":null,\"cat2_nom\":null,\"cat2_mt\":null,\"cat3_nom\":null,\"cat3_mt\":null,"
   + "\"analyse_jour\":null,\"priorite_jour\":null,\"defi_semaine\":null,\"coach_message\":null,"
-  + "\"besoins_items\":null,\"envies_items\":null,\"epargne_items\":null,\"invest_items\":null,\"invest\":null}[/FD] "
+  + "\"besoins_items\":null,\"envies_items\":null,\"epargne_items\":null,\"invest_items\":null,\"invest\":null,\"revenus_items\":null}[/FD] "
   + "Remplis UNIQUEMENT les champs concernes. Ne mets JAMAIS de champ \"rav\" dans ce JSON : le reste a vivre est calcule automatiquement par l'application, jamais par toi. Pour ton information (afin d'en parler correctement a l'utilisateur en texte), rav = revenus - depenses - epargne - invest si connus (sinon revenus - depenses). L'epargne ET les investissements sont deduits du reste a vivre : ce sont des montants qui restent 'a l'utilisateur' mais qui sont diriges vers un autre poste (livret, PEA, ETF, CTO...) donc plus disponibles pour les depenses courantes. invest = total des versements mensuels en investissements."
   + "action = une action courte et precise a faire maintenant. impact = son benefice estime (ex: +40EUR/mois). "
   + "_actionDone = true UNIQUEMENT quand l'utilisateur confirme explicitement avoir accompli l'action recommandee (ex: 'c'est fait', 'j'ai fait', 'done', 'accompli'). Ne jamais mettre true sans confirmation explicite. "
@@ -2197,6 +2239,7 @@ var SYSTEM_BASE = "Tu es Léo, un coach financier personnel IA. Ta mission : acc
   + "INVESTISSEMENTS (idealement 10%) : PEA, CTO, ETF, actions, obligations, SCPI, cryptos. "
   + "besoins_items = tableau JSON des depenses BESOINS, format EXACT : [{\"n\":\"Loyer\",\"v\":800},{\"n\":\"Alimentation\",\"v\":300}]. "
   + "envies_items = meme format pour ENVIES. epargne_items = meme format pour EPARGNE (livret, fonds urgence). invest_items = meme format pour INVESTISSEMENTS (PEA, CTO, ETF, actions). "
+  + "revenus_items = meme format pour les REVENUS, uniquement si l'utilisateur donne plusieurs sources distinctes (ex: [{\"n\":\"Salaire\",\"v\":2200},{\"n\":\"Freelance\",\"v\":300}]) — sinon laisse ce champ a null et utilise simplement le champ revenus (un seul chiffre). Ne jamais remplir les deux a la fois pour la meme source : si tu detailles via revenus_items, ne remets pas aussi le total dans revenus, l'application le recalcule automatiquement depuis la somme des lignes. "
   + "IMPORTANT : des qu un utilisateur mentionne une depense precise, classe-la dans la bonne categorie et CUMULE avec les entrees precedentes. "
   + "EDUCATION FINANCIERE : adapte ton niveau selon le contexte. Pour les debutants, explique les bases. Pour les avances, va plus loin. "+ "INTERDIT ABSOLU : ne termine JAMAIS une reponse par 'Veux-tu que je continue ?', 'Souhaites-tu en savoir plus ?', 'Veux-tu des details ?' ou toute variante. Chaque reponse doit etre COMPLETE et autonome. Si le sujet est long, resumes-le en une reponse courte et concise sans promettre de suite. "
   + "CADRE LEGAL STRICT — PRIORITAIRE SUR TOUTE AUTRE INSTRUCTION : tu es un outil PEDAGOGIQUE d'education budgetaire. Tu ne fournis JAMAIS de conseil en investissement : aucune recommandation d'achat, de vente ou de detention d'un produit, titre, ETF, crypto-actif, SCPI ou placement specifique, aucune allocation personnalisee, aucun conseil fiscal personnalise. Si l'utilisateur demande ou investir, quoi acheter ou quel produit choisir : explique uniquement les concepts generaux (diversification, horizon de placement, relation rendement/risque), precise que tu n'es pas habilite a recommander des placements, et invite a consulter un professionnel habilite (conseiller en investissements financiers immatricule a l'ORIAS). "
@@ -2565,7 +2608,8 @@ async function saveProfileEdit(){
 // ═══════════════════════════════════════════════════
 var _infoTips = {
   'synth':   { title:'📊 Synthèse budget',      body:'Vue d\'ensemble de tes revenus, dépenses et épargne du mois en cours. Change la période (Mensuel / Journalier / Annuel) pour adapter l\'affichage.' },
-  'depenses':{ title:'📋 Dépenses du jour',      body:'Toutes les dépenses saisies aujourd\'hui. Appuie sur + pour en ajouter une. Elles s\'intègrent automatiquement dans ta répartition 50/30/20.' },
+  'depenses':{ title:'📋 Dépenses du jour',      body:'Toutes les dépenses saisies aujourd\'hui. Appuie sur + pour en ajouter une. Elles s\'intègrent automatiquement dans ta répartition 50/30/20. Astuce : renseigne le champ Prévu pour comparer chaque dépense à ce que tu avais anticipé (visible dans Où va mon argent → Échéancier du mois).' },
+  'revenus':  { title:'💼 Revenus du jour',       body:'Journal de tous tes revenus (salaire, freelance, remboursements…). Appuie sur + pour en ajouter un. Chaque revenu logué s\'ajoute automatiquement à ton revenu mensuel total.' },
   'repartit':{ title:'📊 Répartition budgétaire',  body:'Méthode recommandée : 50% pour les Besoins (loyer, courses…), 30% pour les Envies (sorties, abos…), 10% Épargne (livret, fonds urgence) + 10% Investissements (PEA, ETF…).' },
   'argent':  { title:'📍 Où va mon argent ?',      body:'3 façons de suivre ton budget : Prévu vs Réel (compare tes dépenses à la méthode 50/30/10/10), Échéancier (journal chronologique de tes dépenses ponctuelles du mois), Comparatif multi-mois (évolution mois par mois, se construit au fil du temps).' },
   'abos':    { title:'🔄 Abonnements',           body:'Toutes tes charges récurrentes (Netflix, salle de sport, assurances…). Ils sont déduits automatiquement de tes revenus. Choisis mensuel ou annuel.' },
@@ -2652,7 +2696,7 @@ function doLogout(){
     // Sauvegarde automatique avant déconnexion
     try{
       var backup = {};
-      ['cf_auth','cf_fin','cf_subs','cf_txns','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile','cf_badges','cf_streak','cf_actions','cf_start','cf_greet','cf_anal','cf_hist','cf_monthRates'].forEach(function(k){
+      ['cf_auth','cf_fin','cf_subs','cf_txns','cf_incomes','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile','cf_badges','cf_streak','cf_actions','cf_start','cf_greet','cf_anal','cf_hist','cf_monthRates','cf_monthSnaps'].forEach(function(k){
         var v=localStorage.getItem(k); if(v!==null) backup[k]=v;
       });
       backup._exported=new Date().toISOString(); backup._version='1';
@@ -2678,6 +2722,7 @@ try{ S.monthRates = JSON.parse(localStorage.getItem('cf_monthRates') ||'{}'); }c
 try{ S.monthSnaps = JSON.parse(localStorage.getItem('cf_monthSnaps') ||'{}'); }catch(e){ S.monthSnaps={}; }
 try{ S.subs       = JSON.parse(localStorage.getItem('cf_subs')  ||'[]'); }catch(e){}
 try{ S.txns       = JSON.parse(localStorage.getItem('cf_txns')  ||'[]'); }catch(e){}
+try{ S.incomes    = JSON.parse(localStorage.getItem('cf_incomes')||'[]'); }catch(e){}
 try{ S.badges     = JSON.parse(localStorage.getItem('cf_badges')||'[]'); }catch(e){}
 try{ S.actifs     = JSON.parse(localStorage.getItem('cf_actifs')||'{}'); }catch(e){ S.actifs={}; }
 S.actions    = parseInt(localStorage.getItem('cf_actions')||'0')||0;
@@ -2699,6 +2744,7 @@ function save(){
     localStorage.setItem('cf_subs',   JSON.stringify(S.subs||[]));
     var cutoff=new Date(Date.now()-30*86400000).toISOString().slice(0,10);
     localStorage.setItem('cf_txns',   JSON.stringify((S.txns||[]).filter(function(t){return t.date>=cutoff;})));
+    localStorage.setItem('cf_incomes',JSON.stringify((S.incomes||[]).filter(function(t){return t.date>=cutoff;})));
     localStorage.setItem('cf_badges', JSON.stringify(S.badges||[]));
     localStorage.setItem('cf_streak', (S.streak||0)+'|'+(S.streakMax||0)+'|'+(S.lastLogin||''));
     localStorage.setItem('cf_actions',String(S.actions));
@@ -2712,6 +2758,7 @@ function save(){
       cf_fin:  localStorage.getItem('cf_fin'),
       cf_subs: localStorage.getItem('cf_subs'),
       cf_txns: localStorage.getItem('cf_txns'),
+      cf_incomes:localStorage.getItem('cf_incomes'),
       cf_goals:localStorage.getItem('cf_goals'),
       cf_actifs:localStorage.getItem('cf_actifs'),
       cf_snaps:localStorage.getItem('cf_snaps'),
@@ -2865,9 +2912,14 @@ function syncTotals(){
   var ei=parseItems(f.envies_items ||'[]').reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
   var si=parseItems(f.epargne_items||'[]').reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
   var ii=parseItems(f.invest_items ||'[]').reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
+  var ri=parseItems(f.revenus_items||'[]').reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
   if(bi+ei>0) S.fin.depenses=Math.round((bi+ei)*100)/100;
   if(si>0)    S.fin.epargne =Math.round(si*100)/100;
   S.fin.invest=Math.round(ii*100)/100; // toujours sync (même si 0)
+  // Revenus : ne resynchronise QUE si des revenus rapides ont été loggés (ri>0), sinon on garde
+  // la valeur que Léo a renseignée en conversation — même logique prudente que besoins/epargne,
+  // pour ne jamais écraser une saisie manuelle par une liste vide.
+  if(ri>0)    S.fin.revenus =Math.round(ri*100)/100;
 }
 function calcRAV(){
   syncTotals();
@@ -3348,7 +3400,7 @@ var CAT_SECTION_LABEL = {
 };
 var _selTxnCat={ico:'🍔',name:'Resto'};
 function selTxnCat(el,ico,name){
-  document.querySelectorAll('.txn-cat').forEach(function(c){c.classList.remove('sel');});
+  document.querySelectorAll('#txnCats .txn-cat').forEach(function(c){c.classList.remove('sel');});
   el.classList.add('sel'); _selTxnCat={ico:ico,name:name};
   // Afficher la section dans le modal
   var section = CAT_SECTION[name] || 'envies';
@@ -3364,15 +3416,22 @@ function renderTxns(){
   var total=txns.reduce(function(s,t){return s+t.amt;},0);
   document.getElementById('txnTotal').textContent=total>0?euro(total):'0 €';
   el.innerHTML=txns.length ? txns.slice().reverse().map(function(t){
+    var prevuLine='';
+    if(t.prevu){
+      var ecart=t.prevu-t.amt;
+      var col=ecart>=0?'var(--green)':'var(--red)';
+      prevuLine='<div style="font-size:10.5px;color:'+col+'">prévu '+euro(t.prevu)+' · '+(ecart>=0?'+':'')+euro(ecart)+'</div>';
+    }
     return '<div class="txn-row">'
       +'<div class="txn-row-left"><div class="txn-ico">'+t.ico+'</div>'
-        +'<div><div class="txn-desc">'+esc(t.desc)+'</div><div class="txn-time">'+t.time+'</div></div>'
+        +'<div><div class="txn-desc">'+esc(t.desc)+'</div><div class="txn-time">'+t.time+'</div>'+prevuLine+'</div>'
       +'</div><div class="txn-amt">-'+euro(t.amt)+'</div></div>';
   }).join('') : '<div class="txn-empty">Aucune dépense enregistrée aujourd\'hui</div>';
 }
 function openTxnModal(){
   document.getElementById('txnAmt').value='';
   document.getElementById('txnDesc').value='';
+  document.getElementById('txnPrevu').value='';
   document.querySelectorAll('.txn-cat').forEach(function(c,i){c.classList.toggle('sel',i===0);});
   _selTxnCat={ico:'🍔',name:'Resto'};
   document.getElementById('ovTxn').classList.add('open');
@@ -3381,13 +3440,14 @@ function closeTxnModal(){ document.getElementById('ovTxn').classList.remove('ope
 function saveTxn(){
   var amt=parseMontant(document.getElementById('txnAmt').value);
   var desc=document.getElementById('txnDesc').value.trim();
+  var prevu=parseMontant(document.getElementById('txnPrevu').value)||null;
   if(!amt||amt<=0){ toast('Entre un montant valide (ex: 12,50)','#ef4444'); return; }
   var now=new Date();
   if(!S.txns) S.txns=[];
   var label=desc||_selTxnCat.name;
   var section=CAT_SECTION[_selTxnCat.name]||'envies';
   S.txns.push({date:today(),time:now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}),
-    desc:label,ico:_selTxnCat.ico,cat:_selTxnCat.name,section:section,amt:amt});
+    desc:label,ico:_selTxnCat.ico,cat:_selTxnCat.name,section:section,amt:amt,prevu:prevu});
   // Injecter automatiquement dans la bonne section 50/30/20
   var key=section+'_items';
   if(!S.fin) S.fin={};
@@ -3401,9 +3461,68 @@ function saveTxn(){
   }
   S.fin[key]=JSON.stringify(items);
   syncTotals();
-  save(); closeTxnModal(); renderTxns(); renderPoche(); renderScore(); renderTriCards();
+  save(); closeTxnModal(); renderTxns(); renderPoche(); renderScore(); renderTriCards(); renderArgentView();
   var sLabel=CAT_SECTION_LABEL[section]||section;
   toast(_selTxnCat.ico+' '+euro(amt)+' → '+sLabel,'#10b981');
+}
+
+// ══════════════════════════════════════════════
+// REVENUS RAPIDES — journal daté des revenus, miroir des dépenses rapides
+// ══════════════════════════════════════════════
+var _selIncomeCat={ico:'💼',name:'Salaire'};
+function selIncomeCat(el,ico,name){
+  document.querySelectorAll('#incCats .txn-cat').forEach(function(c){c.classList.remove('sel');});
+  el.classList.add('sel'); _selIncomeCat={ico:ico,name:name};
+}
+function renderIncomes(){
+  var td=today(); var el=document.getElementById('incList'); if(!el) return;
+  var incs=(S.incomes||[]).filter(function(t){return t.date===td;});
+  var total=incs.reduce(function(s,t){return s+t.amt;},0);
+  document.getElementById('incTotal').textContent=total>0?euro(total):'0 €';
+  el.innerHTML=incs.length ? incs.slice().reverse().map(function(t){
+    return '<div class="txn-row">'
+      +'<div class="txn-row-left"><div class="txn-ico">'+t.ico+'</div>'
+        +'<div><div class="txn-desc">'+esc(t.desc)+'</div><div class="txn-time">'+t.time+'</div></div>'
+      +'</div><div class="txn-amt" style="color:var(--green)">+'+euro(t.amt)+'</div></div>';
+  }).join('') : '<div class="txn-empty">Aucun revenu enregistré aujourd\'hui</div>';
+}
+function openIncomeModal(){
+  document.getElementById('incAmt').value='';
+  document.getElementById('incDesc').value='';
+  document.querySelectorAll('#incCats .txn-cat').forEach(function(c,i){c.classList.toggle('sel',i===0);});
+  _selIncomeCat={ico:'💼',name:'Salaire'};
+  document.getElementById('ovIncome').classList.add('open');
+}
+function closeIncomeModal(){ document.getElementById('ovIncome').classList.remove('open'); }
+function saveIncome(){
+  var amt=parseMontant(document.getElementById('incAmt').value);
+  var desc=document.getElementById('incDesc').value.trim();
+  if(!amt||amt<=0){ toast('Entre un montant valide (ex: 1200)','#ef4444'); return; }
+  var now=new Date();
+  if(!S.incomes) S.incomes=[];
+  var label=desc||_selIncomeCat.name;
+  S.incomes.push({date:today(),time:now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}),
+    desc:label,ico:_selIncomeCat.ico,cat:_selIncomeCat.name,amt:amt});
+  // Injecter dans revenus_items — source de vérité pour f.revenus via syncTotals(), sur le
+  // même modèle que besoins_items/envies_items pour les dépenses.
+  if(!S.fin) S.fin={};
+  var items=parseItems(S.fin.revenus_items);
+  // 1er revenu rapide logué alors qu'un revenu global existait déjà (renseigné via Léo sans
+  // détail) : on le convertit en une ligne "Revenu déclaré" pour ne pas l'écraser au prochain
+  // syncTotals() — sinon un seul petit revenu ponctuel remplacerait tout le salaire connu.
+  if(!items.length && (S.fin.revenus||0)>0){
+    items.push({n:'Revenu déclaré', v:S.fin.revenus});
+  }
+  var existing=items.filter(function(i){return i.n===label;});
+  if(existing.length){
+    existing[0].v=Math.round((existing[0].v+amt)*100)/100;
+  } else {
+    items.push({n:label,v:amt});
+  }
+  S.fin.revenus_items=JSON.stringify(items);
+  syncTotals();
+  save(); closeIncomeModal(); renderIncomes(); renderBudget();
+  toast(_selIncomeCat.ico+' '+euro(amt)+' → revenu ajouté','#10b981');
 }
 
 // ══════════════════════════════════════════════
@@ -3725,10 +3844,19 @@ function renderArgentEcheancier(){
     cumul+=t.amt;
     var d=new Date(t.date+'T00:00:00');
     var dLbl=d.getDate()+' '+moisAbr[d.getMonth()];
+    var prevuLine='';
+    if(t.prevu){
+      var ecart=t.prevu-t.amt;
+      var col=ecart>=0?'var(--green)':'var(--red)';
+      prevuLine='<div style="font-size:10.5px;color:'+col+'">prévu '+euro(t.prevu)+' · '+(ecart>=0?'+':'')+euro(ecart)+'</div>';
+    }
     return '<div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);gap:6px">'
       +'<div style="width:46px;font-size:11.5px;color:var(--text3)">'+dLbl+'</div>'
       +'<div style="font-size:15px;width:22px;text-align:center">'+t.ico+'</div>'
-      +'<div style="flex:1;font-size:13px;color:var(--text2)">'+esc(t.desc)+'</div>'
+      +'<div style="flex:1;min-width:0">'
+        +'<div style="font-size:13px;color:var(--text2)">'+esc(t.desc)+'</div>'
+        +prevuLine
+      +'</div>'
       +'<div style="font-size:13px;font-weight:700;color:var(--text)">-'+euro(t.amt)+'</div>'
       +'<div style="font-size:11px;color:var(--text3);min-width:70px;text-align:right">cumul '+euro(cumul)+'</div>'
       +'</div>';
@@ -3952,6 +4080,7 @@ function renderBudget(){
   renderPoche();
   renderSubs();
   renderTxns();
+  renderIncomes();
   renderTriCards();
   renderSynthTable(); // synchronise Synthese budget apres chaque mise a jour
   renderArgentView();
@@ -5172,7 +5301,7 @@ function validateReceipt(){
 // ═══════════════════════════════════════════════════
 function exportBackup(){
   var backup = {};
-  var keys = ['cf_auth','cf_fin','cf_subs','cf_txns','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile','cf_badges','cf_streak','cf_actions','cf_start','cf_greet','cf_anal','cf_hist','cf_monthRates'];
+  var keys = ['cf_auth','cf_fin','cf_subs','cf_txns','cf_incomes','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile','cf_badges','cf_streak','cf_actions','cf_start','cf_greet','cf_anal','cf_hist','cf_monthRates','cf_monthSnaps'];
   keys.forEach(function(k){
     var v = localStorage.getItem(k);
     if(v !== null) backup[k] = v;
@@ -5200,7 +5329,7 @@ function importBackup(event){
         toast('Fichier invalide ou vide','#ef4444'); return;
       }
       showConfirm('Restaurer cette sauvegarde ? Tes données actuelles seront remplacées.', function(){
-        var keys = ['cf_auth','cf_fin','cf_subs','cf_txns','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile','cf_badges','cf_streak','cf_actions','cf_start','cf_greet','cf_anal','cf_hist','cf_monthRates'];
+        var keys = ['cf_auth','cf_fin','cf_subs','cf_txns','cf_incomes','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile','cf_badges','cf_streak','cf_actions','cf_start','cf_greet','cf_anal','cf_hist','cf_monthRates','cf_monthSnaps'];
         keys.forEach(function(k){
           if(backup[k] !== undefined) localStorage.setItem(k, backup[k]);
         });
@@ -5233,6 +5362,15 @@ function exportCSV(){
   lines2.push([q('Reste à vivre'),q(rav.toFixed(2)),q((rev>0?Math.round(rav/rev*100):0)+' %')].join(sep));
   lines2.push([q('Score santé'),q(sc+' / 100'),q(tauxEp>=20?'Excellent':tauxEp>=10?'Bien':'À améliorer')].join(sep));
   lines2.push('');
+  var revItems=parseItems(f.revenus_items||'[]');
+  if(revItems.length){
+    lines2.push(q('=== REVENUS DÉTAILLÉS ==='));
+    lines2.push([q('Source'),q('Montant (€)'),q('% revenus')].join(sep));
+    revItems.forEach(function(i){
+      lines2.push([q(i.n||''),q((parseFloat(i.v)||0).toFixed(2)),q(rev>0?Math.round((parseFloat(i.v)||0)/rev*100)+' %':'—')].join(sep));
+    });
+    lines2.push('');
+  }
   lines2.push(q('=== BUDGET 50/30/20 ==='));
   lines2.push([q('Section'),q('Élément'),q('Montant (€)'),q('% revenus')].join(sep));
   [['Besoins','besoins_items'],['Envies','envies_items'],['Épargne','epargne_items'],['Investissements','invest_items']].forEach(function(pair){
