@@ -966,7 +966,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.60';
+window.APP_VERSION = '5.61';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1543,7 +1543,7 @@ window.APP_VERSION = '5.60';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.60</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.61</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -3501,6 +3501,32 @@ function getFixedVariableSplit(){
   return {fixed:fixed, buckets:buckets};
 }
 function sumRows(rows){ return rows.reduce(function(s,r){return s+r.v;},0); }
+// BUG corrigé (v5.61) : renderArgentStats()/renderArgentStatDetail()/renderArgentDetail()/
+// renderArgentRecent() ne lisaient QUE revenus_items/epargne_items/invest_items pour ces 3
+// catégories — si l'utilisateur avait seulement déclaré un chiffre global à Léo (ex: "je gagne
+// 2200€/mois") sans jamais le détailler ligne par ligne, ces items restent vides et les cartes
+// Revenus/Épargne affichaient 0€ (et leur détail au clic semblait vide), alors que le montant
+// déclaré (f.revenus/f.epargne/f.invest) est bien connu de l'app et utilisé partout ailleurs
+// (jauge, Reste à vivre, Synthèse). Ces deux fonctions renvoient les lignes détaillées si elles
+// existent, sinon une ligne synthétique reflétant le total agrégé, marquée "déclaré" (non
+// supprimable individuellement — il faut redire un nouveau montant à Léo pour la faire évoluer).
+function getRevenuRows(){
+  var f=S.fin||{};
+  var items=parseItems(f.revenus_items).map(function(it,i){ return {n:it.n,v:parseFloat(it.v)||0,d:it.d||'',idx:i,key:'revenus_items'}; });
+  if(items.length) return items;
+  if((f.revenus||0)>0) return [{n:'Revenu déclaré',v:f.revenus,d:'',idx:-1,key:'revenus_items',synthetic:true}];
+  return [];
+}
+function getEpargneInvestRows(){
+  var f=S.fin||{};
+  var rows=parseItems(f.epargne_items).map(function(it,i){ return {n:it.n,v:parseFloat(it.v)||0,d:it.d||'',idx:i,key:'epargne_items'}; })
+    .concat(parseItems(f.invest_items).map(function(it,i){ return {n:it.n,v:parseFloat(it.v)||0,d:it.d||'',idx:i,key:'invest_items'}; }));
+  if(rows.length) return rows;
+  var synth=[];
+  if((f.epargne||0)>0) synth.push({n:'Épargne déclarée',v:f.epargne,d:'',idx:-1,key:'epargne_items',synthetic:true});
+  if((f.invest||0)>0) synth.push({n:'Investissement déclaré',v:f.invest,d:'',idx:-1,key:'invest_items',synthetic:true});
+  return synth;
+}
 function renderArgentRows(rows, col){
   return rows.slice().sort(function(a,b){
     if(!a.d && !b.d) return 0;
@@ -3509,13 +3535,18 @@ function renderArgentRows(rows, col){
     return a.d<b.d?1:(a.d>b.d?-1:0);
   }).map(function(r){
     var dateTxt=fmtShortDate(r.d);
+    // Ligne synthétique (voir getRevenuRows()/getEpargneInvestRows()) : représente un montant
+    // déclaré globalement à Léo, sans détail par ligne — pas d'index réel à supprimer.
+    var delBtn=r.synthetic
+      ? '<span style="font-size:9.5px;color:var(--text3);flex-shrink:0;font-style:italic">déclaré</span>'
+      : '<div onclick="deleteRepItem(\''+r.key+'\','+r.idx+')" style="cursor:pointer;color:var(--text3);font-size:16px;padding:2px 4px;flex-shrink:0" title="Supprimer">×</div>';
     return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">'
       +'<div style="flex:1;min-width:0">'
         +'<div style="font-size:13.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.n)+'</div>'
         +(dateTxt?'<div style="font-size:10.5px;color:var(--text3);margin-top:1px">'+dateTxt+'</div>':'')
       +'</div>'
       +'<div style="font-size:13.5px;font-weight:700;color:'+col+';flex-shrink:0">'+euro(r.v)+'</div>'
-      +'<div onclick="deleteRepItem(\''+r.key+'\','+r.idx+')" style="cursor:pointer;color:var(--text3);font-size:16px;padding:2px 4px;flex-shrink:0" title="Supprimer">×</div>'
+      +delBtn
       +'</div>';
   }).join('');
 }
@@ -3528,7 +3559,6 @@ function renderArgentSection(title, icon, col, total, rowsHtml, emptyTxt){
     +(rowsHtml || '<div style="color:var(--text3);font-size:12.5px;padding:8px 0">'+emptyTxt+'</div>')
   +'</div>';
 }
-function sumItems(raw){ return parseItems(raw).reduce(function(s,x){return s+(parseFloat(x.v)||0);},0); }
 // Jauge circulaire "reste à vivre variable" (v5.56, présentation moderne) : théorique = ce qu'il
 // reste une fois les charges fixes et l'épargne/investissement mis de côté (l'enveloppe prévue
 // pour le quotidien) ; réel = calcRAV() (déjà utilisé partout ailleurs dans l'app) = théorique
@@ -3561,12 +3591,11 @@ function renderArgentGauge(){
 // 4 mini-cartes de synthèse (bento) : aperçu immédiat des 4 grandes masses du mois.
 function renderArgentStats(){
   var el=document.getElementById('argentStats'); if(!el) return;
-  var f=S.fin||{};
   var split=getFixedVariableSplit();
-  var revTot=sumItems(f.revenus_items);
+  var revTot=sumRows(getRevenuRows());
   var fixedTot=sumRows(split.fixed);
   var varTot=sumRows(split.buckets.courses)+sumRows(split.buckets.plaisirs)+sumRows(split.buckets.imprevus);
-  var epTot=sumItems(f.epargne_items)+sumItems(f.invest_items);
+  var epTot=sumRows(getEpargneInvestRows());
   if(!revTot && !fixedTot && !varTot && !epTot){ el.innerHTML=''; return; }
   var cards=[
     {ico:'revenu',  lbl:'Revenus',      v:revTot,   col:'var(--green)',  bg:'var(--green2)'},
@@ -3600,11 +3629,10 @@ function toggleArgentStat(key){
 function renderArgentStatDetail(){
   var el=document.getElementById('argentStatDetail'); if(!el) return;
   if(!_argStatOpen){ el.style.display='none'; el.innerHTML=''; return; }
-  var f=S.fin||{};
   var split=getFixedVariableSplit();
   var rows=[], col='var(--text)', emptyTxt='Rien enregistré ce mois-ci.';
   if(_argStatOpen==='revenu'){
-    rows=parseItems(f.revenus_items).map(function(it,i){ return {n:it.n,v:parseFloat(it.v)||0,d:it.d||'',idx:i,key:'revenus_items'}; });
+    rows=getRevenuRows();
     col='var(--green)'; emptyTxt='Aucun revenu enregistré.';
   } else if(_argStatOpen==='fixe'){
     rows=split.fixed; col='var(--red)';
@@ -3613,8 +3641,7 @@ function renderArgentStatDetail(){
     rows=split.buckets.courses.concat(split.buckets.plaisirs, split.buckets.imprevus);
     col='var(--text)'; emptyTxt='Rien enregistré ce mois-ci.';
   } else if(_argStatOpen==='epargne'){
-    rows=parseItems(f.epargne_items).map(function(it,i){ return {n:it.n,v:parseFloat(it.v)||0,d:it.d||'',idx:i,key:'epargne_items'}; })
-      .concat(parseItems(f.invest_items).map(function(it,i){ return {n:it.n,v:parseFloat(it.v)||0,d:it.d||'',idx:i,key:'invest_items'}; }));
+    rows=getEpargneInvestRows();
     col='var(--accent2)'; emptyTxt='Rien mis de côté ce mois-ci.';
   }
   el.style.display='block';
@@ -3653,16 +3680,17 @@ function argentRowMeta(r,ico,bg,col,sign){
 // fait dans le détail par section, replié en dessous.
 function renderArgentRecent(){
   var el=document.getElementById('argentRecent'); if(!el) return;
-  var f=S.fin||{};
   var split=getFixedVariableSplit();
   var all=[];
-  parseItems(f.revenus_items).forEach(function(it,i){ all.push(argentRowMeta({n:it.n,v:parseFloat(it.v)||0,d:it.d||'',key:'revenus_items',idx:i},'revenu','var(--green2)','var(--green)',1)); });
+  getRevenuRows().forEach(function(r){ all.push(argentRowMeta(r,'revenu','var(--green2)','var(--green)',1)); });
   split.fixed.forEach(function(r){ all.push(argentRowMeta(r,'fixe','var(--red2)','var(--red)',-1)); });
   split.buckets.courses.forEach(function(r){ all.push(argentRowMeta(r,'courses','rgba(59,130,246,.15)','#3b82f6',-1)); });
   split.buckets.plaisirs.forEach(function(r){ all.push(argentRowMeta(r,'plaisirs','var(--orange2)','var(--orange)',-1)); });
   split.buckets.imprevus.forEach(function(r){ all.push(argentRowMeta(r,'imprevus','rgba(239,68,68,.15)','#ef4444',-1)); });
-  parseItems(f.epargne_items).forEach(function(it,i){ all.push(argentRowMeta({n:it.n,v:parseFloat(it.v)||0,d:it.d||'',key:'epargne_items',idx:i},'epargne','rgba(13,148,136,.15)','var(--accent2)',-1)); });
-  parseItems(f.invest_items).forEach(function(it,i){ all.push(argentRowMeta({n:it.n,v:parseFloat(it.v)||0,d:it.d||'',key:'invest_items',idx:i},'invest','rgba(139,92,246,.15)','#8b5cf6',-1)); });
+  getEpargneInvestRows().forEach(function(r){
+    var isInvest = r.key==='invest_items';
+    all.push(argentRowMeta(r, isInvest?'invest':'epargne', isInvest?'rgba(139,92,246,.15)':'rgba(13,148,136,.15)', isInvest?'#8b5cf6':'var(--accent2)', -1));
+  });
   if(!all.length){ el.innerHTML=''; return; }
   all.sort(function(a,b){
     if(!a.d && !b.d) return 0;
@@ -3692,10 +3720,9 @@ function renderArgentRecent(){
 function renderArgentDetail(){
   var el=document.getElementById('argentDetail'); if(!el) return;
   var f=S.fin||{};
-  var revRows=parseItems(f.revenus_items).map(function(it,i){ return {n:it.n, v:parseFloat(it.v)||0, d:it.d||'', idx:i, key:'revenus_items'}; });
+  var revRows=getRevenuRows();
   var split=getFixedVariableSplit();
-  var epRows=parseItems(f.epargne_items).map(function(it,i){ return {n:it.n, v:parseFloat(it.v)||0, d:it.d||'', idx:i, key:'epargne_items'}; });
-  var invRows=parseItems(f.invest_items).map(function(it,i){ return {n:it.n, v:parseFloat(it.v)||0, d:it.d||'', idx:i, key:'invest_items'}; });
+  var epInvRows=getEpargneInvestRows();
   var html='';
   html+=renderArgentSection('Entrées', 'revenu', 'var(--green)', sumRows(revRows), renderArgentRows(revRows,'var(--green)'), 'Aucun revenu enregistré.');
   html+=renderArgentSection('Dépenses fixes', 'fixe', 'var(--red)', sumRows(split.fixed), renderArgentRows(split.fixed,'var(--red)'), 'Ajoute tes charges récurrentes (loyer, crédit…) avec la pastille "Charge fixe" ci-dessous, ou dis-les à Léo.');
@@ -3707,7 +3734,7 @@ function renderArgentDetail(){
       +renderArgentRows(g[1],g[2]);
   });
   html+=renderArgentSection('Variable au quotidien', 'courses', 'var(--text)', varTotal, varHtml, 'Rien enregistré ce mois-ci.');
-  html+=renderArgentSection('Épargne et investissement', 'epargne', 'var(--accent2)', sumRows(epRows)+sumRows(invRows), renderArgentRows(epRows.concat(invRows),'var(--accent2)'), 'Rien mis de côté ce mois-ci.');
+  html+=renderArgentSection('Épargne et investissement', 'epargne', 'var(--accent2)', sumRows(epInvRows), renderArgentRows(epInvRows,'var(--accent2)'), 'Rien mis de côté ce mois-ci.');
   var depTotal=sumRows(split.fixed)+varTotal;
   var theorique=(f.revenus||0)-sumRows(split.fixed)-(f.epargne||0)-(f.invest||0);
   html+='<div style="background:var(--card2);border-radius:12px;padding:10px 12px;margin-top:4px">'
