@@ -958,7 +958,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.57';
+window.APP_VERSION = '5.58';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1198,6 +1198,7 @@ window.APP_VERSION = '5.57';
               <div id="argAddForm" style="display:none;gap:6px;margin-top:10px;flex-wrap:wrap">
                 <div id="argTypePills" style="display:flex;gap:6px;flex-wrap:wrap;width:100%">
                   <button type="button" class="arg-pill sel" onclick="selArgentType(this,'revenu')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--green);background:var(--green2);display:inline-flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path></svg>Revenu</button>
+                  <button type="button" class="arg-pill" onclick="selArgentType(this,'fixe')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--red);background:var(--red2);display:inline-flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>Charge fixe</button>
                   <button type="button" class="arg-pill" onclick="selArgentType(this,'courses')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:#3b82f6;background:rgba(59,130,246,.15);display:inline-flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>Courses</button>
                   <button type="button" class="arg-pill" onclick="selArgentType(this,'plaisirs')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--orange);background:var(--orange2);display:inline-flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>Plaisirs &amp; loisirs</button>
                   <button type="button" class="arg-pill" onclick="selArgentType(this,'imprevus')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:#ef4444;background:rgba(239,68,68,.15);display:inline-flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Imprévus</button>
@@ -1237,39 +1238,7 @@ window.APP_VERSION = '5.57';
           </div>
         </div>
 
-        <!-- 3. Revenus du jour (fermé) -->
-        <div class="acc">
-          <div class="acc-hdr" onclick="toggleAcc(this)">
-            <span>&#128188; Revenus du jour</span>
-            <div style="display:flex;align-items:center;gap:8px">
-              <button class="info-btn" onclick="event.stopPropagation();showInfoTip(this,'revenus')" title="En savoir plus">i</button>
-              <span class="acc-badge" id="incTotal">0 &#8364;</span>
-              <button class="acc-add-btn" onclick="event.stopPropagation();openIncomeModal()">+</button>
-              <span class="acc-arr">&#9660;</span>
-            </div>
-          </div>
-          <div class="acc-body">
-            <div id="incList"><div class="txn-empty">Aucun revenu enregistr&#233; aujourd&#8217;hui</div></div>
-          </div>
-        </div>
-
-        <!-- 4. Abonnements (fermé) -->
-        <div class="acc">
-          <div class="acc-hdr" onclick="toggleAcc(this)">
-            <span>&#128260; Abonnements</span>
-            <div style="display:flex;align-items:center;gap:8px">
-              <button class="info-btn" onclick="event.stopPropagation();showInfoTip(this,'abos')" title="En savoir plus">i</button>
-              <span class="acc-badge" id="subsTotal">0 &#8364;/mois</span>
-              <button class="acc-add-btn" onclick="event.stopPropagation();openSubModal()">+</button>
-              <span class="acc-arr">&#9660;</span>
-            </div>
-          </div>
-          <div class="acc-body">
-            <div id="subsList"><div class="subs-empty">Aucun abonnement. Appuie sur + pour en ajouter.</div></div>
-          </div>
-        </div>
-
-        <!-- 5. Mes actifs (fermé) -->
+        <!-- 3. Mes actifs (fermé) -->
         <div class="acc" id="z4-wrap">
           <div class="acc-hdr" onclick="toggleAcc(this)">
             <span>&#128176; Mes actifs</span>
@@ -1284,7 +1253,7 @@ window.APP_VERSION = '5.57';
           </div>
         </div>
 
-        <!-- 6. Léo recommande + Évolution (fermé) -->
+        <!-- 4. Léo recommande + Évolution (fermé) -->
         <div class="acc">
           <div class="acc-hdr" onclick="toggleAcc(this)">
             <span>&#128161; L&#233;o recommande</span>
@@ -1564,7 +1533,7 @@ window.APP_VERSION = '5.57';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.57</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.58</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -1732,7 +1701,7 @@ window.APP_VERSION = '5.57';
           <span class="tuto-card-arr">&#9662;</span>
         </div>
         <div class="tuto-card-body"><div class="tuto-card-content">
-          <div class="tuto-step"><div class="tuto-step-num">1</div><div><b>Dépenses fixes</b> : loyer, crédit, abonnements — tout ce que tu déclares une fois dans <b>Abonnements</b> apparaît ici automatiquement chaque mois.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">1</div><div><b>Dépenses fixes</b> : loyer, crédit, abonnements — ajoute-les avec la pastille <b>Charge fixe</b> dans "Où va mon argent ?", ou dis-les simplement à Léo.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">2</div><div><b>Variable au quotidien</b> : tout le reste, réparti en 3 enveloppes seulement — Courses, Plaisirs & loisirs, Imprévus.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">3</div><div><b>Épargne & investissement</b> : ce que tu mets de côté (livret, PEA, ETF…).</div></div>
           <div class="tuto-step"><div class="tuto-step-num">4</div><div>La jauge en haut de <b>Où va mon argent ?</b> affiche en un coup d'œil ce qu'il te reste à dépenser pour finir le mois.</div></div>
@@ -1752,21 +1721,6 @@ window.APP_VERSION = '5.57';
           <div class="tuto-step"><div class="tuto-step-num">2</div><div>Appuie sur <b>Modifier</b> pour déclarer la valeur de chaque catégorie : livret, bourse, immobilier, autres.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">3</div><div>RescueBudget calcule ton <b>patrimoine total</b> et te donne une vision globale.</div></div>
           <div class="tuto-tip">💡 Mets à jour tes actifs chaque mois pour suivre l'évolution de ton patrimoine.</div>
-        </div></div>
-      </div>
-
-      <!-- Abonnements -->
-      <div class="tuto-card" id="tc5">
-        <div class="tuto-card-hdr" onclick="toggleTuto(5)">
-          <span class="tuto-card-ico">🔔</span>
-          <span class="tuto-card-ttl">Abonnements</span>
-          <span class="tuto-card-arr">&#9662;</span>
-        </div>
-        <div class="tuto-card-body"><div class="tuto-card-content">
-          <div class="tuto-step"><div class="tuto-step-num">1</div><div>Dans Budget, trouve la section <b>Abonnements</b>.</div></div>
-          <div class="tuto-step"><div class="tuto-step-num">2</div><div>Appuie sur <b>+</b> pour ajouter un abonnement (Netflix, Spotify, loyer…) avec son montant mensuel.</div></div>
-          <div class="tuto-step"><div class="tuto-step-num">3</div><div>Le total est automatiquement intégré dans tes dépenses mensuelles.</div></div>
-          <div class="tuto-tip">💡 Utilise les présélections rapides pour ajouter Netflix, Spotify, etc. en un clic.</div>
         </div></div>
       </div>
 
@@ -1824,89 +1778,6 @@ window.APP_VERSION = '5.57';
   </div>
 </div>
 
-<!-- Modal Abonnement -->
-<div class="ov" id="ovSub" onclick="if(event.target===this)closeSubModal()">
-  <div class="modal">
-    <div class="modal-drag"></div>
-    <div class="modal-title">Ajouter un abonnement</div>
-        <div class="m-lbl" style="margin-bottom:6px">S&#233;lection rapide</div>
-    <div class="preset-cat-tabs">
-      <button class="pct-btn sel" onclick="switchPresetCat(this,'streaming')">🎬</button>
-      <button class="pct-btn" onclick="switchPresetCat(this,'charges')">🏠</button>
-      <button class="pct-btn" onclick="switchPresetCat(this,'assurances')">🛡️</button>
-      <button class="pct-btn" onclick="switchPresetCat(this,'sante')">💊</button>
-      <button class="pct-btn" onclick="switchPresetCat(this,'telecom')">📱</button>
-    </div>
-    <div class="sub-presets" id="presetGroup-streaming">
-      <button class="sub-preset-btn" onclick="addSubPreset('Netflix','🎬',17.99,'#e50914')">🎬 Netflix</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Spotify','🎵',10.99,'#1db954')">🎵 Spotify</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Disney+','✨',8.99,'#1434cb')">✨ Disney+</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Amazon Prime','📦',6.99,'#ff9900')">📦 Prime</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('YouTube Premium','▶️',13.99,'#ff0000')">▶️ YouTube</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Apple Music','🎧',10.99,'#fc3c44')">🎧 Apple</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Canal+','📺',29.99,'#000')">📺 Canal+</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Deezer','🎶',10.99,'#ef5466')">🎶 Deezer</button>
-    </div>
-    <div class="sub-presets" id="presetGroup-charges" style="display:none">
-      <button class="sub-preset-btn" onclick="addSubPreset('Loyer','🏠',800,'#0d9488')">🏠 Loyer</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Électricité','⚡',80,'#f59e0b')">⚡ EDF</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Gaz','🔥',60,'#f97316')">🔥 Gaz</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Eau','💧',30,'#3b82f6')">💧 Eau</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Internet','🌐',35,'#6366f1')">🌐 Fibre</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Syndic','🏢',150,'#64748b')">🏢 Syndic</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Parking','🅿️',80,'#475569')">🅿️ Parking</button>
-    </div>
-    <div class="sub-presets" id="presetGroup-assurances" style="display:none">
-      <button class="sub-preset-btn" onclick="addSubPreset('Assurance auto','🚗',60,'#0284c7')">🚗 Auto</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Assurance habitation','🏡',20,'#0d9488')">🏡 Habitation</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Assurance vie','📋',50,'#7c3aed')">📋 Vie</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Assurance moto','🏍️',40,'#dc2626')">🏍️ Moto</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Protection juridique','⚖️',15,'#059669')">⚖️ Juridique</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Prévoyance','🛡️',30,'#2563eb')">🛡️ Prévoyance</button>
-    </div>
-    <div class="sub-presets" id="presetGroup-sante" style="display:none">
-      <button class="sub-preset-btn" onclick="addSubPreset('Mutuelle','💊',60,'#16a34a')">💊 Mutuelle</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Complémentaire santé','🏥',45,'#0d9488')">🏥 Complément.</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Salle de sport','💪',30,'#f59e0b')">💪 Sport</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Médecin / kiné','🩺',40,'#06b6d4')">🩺 Médecin</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Pharmacie','💉',25,'#22c55e')">💉 Pharmacie</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Optique','👓',15,'#a855f7')">👓 Optique</button>
-    </div>
-    <div class="sub-presets" id="presetGroup-telecom" style="display:none">
-      <button class="sub-preset-btn" onclick="addSubPreset('Forfait mobile','📱',20,'#0891b2')">📱 Mobile</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Forfait mobile 2','📲',15,'#0284c7')">📲 Mobile 2</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Abonnement TV','📡',20,'#7c3aed')">📡 TV</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('iCloud','☁️',2.99,'#3b82f6')">☁️ iCloud</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Google One','🔷',2.99,'#4285f4')">🔷 Google One</button>
-      <button class="sub-preset-btn" onclick="addSubPreset('Microsoft 365','💼',9.99,'#0078d4')">💼 Office 365</button>
-    </div>
-    <div class="m-lbl">Nom</div>
-    <input class="m-in" id="subName" placeholder="Nom de l'abonnement" maxlength="40"/>
-    <input type="hidden" id="subNameIco" value="&#128260;"/>
-    <input type="hidden" id="subNameCol" value="#0d9488"/>
-    <div class="m-lbl" style="margin-top:10px">Fréquence</div>
-    <div class="sub-section-toggle" id="subFreqToggle">
-      <button class="sub-sect-btn sel" id="sfbMensuel" onclick="setSubFreq('M')">📅 Mensuel</button>
-      <button class="sub-sect-btn" id="sfbAnnuel" onclick="setSubFreq('A')">📆 Annuel</button>
-    </div>
-    <div class="m-row">
-      <div><div class="m-lbl" id="subAmtLbl">Montant/mois (€)</div>
-        <input class="m-in" id="subAmt" type="number" placeholder="9.99" min="0" step="0.01" style="margin:0"/></div>
-      <div><div class="m-lbl">Icône (emoji)</div>
-        <input class="m-in" id="subIco" placeholder="🔄" maxlength="4" style="margin:0;font-size:20px;text-align:center"/></div>
-    </div>
-    <div class="m-lbl" style="margin-top:10px">Classer dans</div>
-    <div class="sub-section-toggle" id="subSectionToggle">
-      <button class="sub-sect-btn sel" id="ssbEnvies" onclick="setSubSection('envies')">🎉 Envie (streaming)</button>
-      <button class="sub-sect-btn" id="ssbBesoins" onclick="setSubSection('besoins')">🏠 Besoin (essentiel)</button>
-    </div>
-    <div class="m-btns">
-      <button class="mb s" onclick="closeSubModal()">Annuler</button>
-      <button class="mb p" onclick="saveSub()">Ajouter</button>
-    </div>
-  </div>
-</div>
-
 <!-- Modal Transaction rapide -->
 <div class="ov" id="ovTxn" onclick="if(event.target===this)closeTxnModal()">
   <div class="modal">
@@ -1914,16 +1785,16 @@ window.APP_VERSION = '5.57';
     <div class="modal-title">Dépense rapide</div>
     <div id="txnSectionBadge" class="txn-section-badge txn-section-envies">🎉 Envie</div>
     <div class="txn-cats" id="txnCats">
-      <div class="txn-cat sel" onclick="selTxnCat(this,'&#127828;','Resto')"><div class="txn-cat-ico">&#127828;</div><div class="txn-cat-lbl">Resto</div></div>
-      <div class="txn-cat" onclick="selTxnCat(this,'&#127860;','Courses')"><div class="txn-cat-ico">&#127860;</div><div class="txn-cat-lbl">Courses</div></div>
-      <div class="txn-cat" onclick="selTxnCat(this,'&#128664;','Transport')"><div class="txn-cat-ico">&#128664;</div><div class="txn-cat-lbl">Transport</div></div>
-      <div class="txn-cat" onclick="selTxnCat(this,'&#128722;','Shopping')"><div class="txn-cat-ico">&#128722;</div><div class="txn-cat-lbl">Shopping</div></div>
-      <div class="txn-cat" onclick="selTxnCat(this,'&#128518;','Loisirs')"><div class="txn-cat-ico">&#128518;</div><div class="txn-cat-lbl">Loisirs</div></div>
-      <div class="txn-cat" onclick="selTxnCat(this,'&#127968;','Logement')"><div class="txn-cat-ico">&#127968;</div><div class="txn-cat-lbl">Logement</div></div>
-      <div class="txn-cat" onclick="selTxnCat(this,'&#128138;','Sant&#233;')"><div class="txn-cat-ico">&#128138;</div><div class="txn-cat-lbl">Sant&#233;</div></div>
-      <div class="txn-cat" onclick="selTxnCat(this,'&#10133;','Autre')"><div class="txn-cat-ico">&#10133;</div><div class="txn-cat-lbl">Autre</div></div>
-      <div class="txn-cat" onclick="selTxnCat(this,'&#127807;','Épargne')"><div class="txn-cat-ico">&#127807;</div><div class="txn-cat-lbl">Épargne</div></div>
-      <div class="txn-cat" onclick="selTxnCat(this,'&#128200;','Investiss.')"><div class="txn-cat-ico">&#128200;</div><div class="txn-cat-lbl">Investiss.</div></div>
+      <div class="txn-cat sel" onclick="selTxnCat(this,'&#127828;','Resto')"><div class="txn-cat-ico" style="color:#f59e0b"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg></div><div class="txn-cat-lbl">Resto</div></div>
+      <div class="txn-cat" onclick="selTxnCat(this,'&#127860;','Courses')"><div class="txn-cat-ico" style="color:#3b82f6"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg></div><div class="txn-cat-lbl">Courses</div></div>
+      <div class="txn-cat" onclick="selTxnCat(this,'&#128664;','Transport')"><div class="txn-cat-ico" style="color:#64748b"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg></div><div class="txn-cat-lbl">Transport</div></div>
+      <div class="txn-cat" onclick="selTxnCat(this,'&#128722;','Shopping')"><div class="txn-cat-ico" style="color:#ec4899"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg></div><div class="txn-cat-lbl">Shopping</div></div>
+      <div class="txn-cat" onclick="selTxnCat(this,'&#128518;','Loisirs')"><div class="txn-cat-ico" style="color:var(--orange)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg></div><div class="txn-cat-lbl">Loisirs</div></div>
+      <div class="txn-cat" onclick="selTxnCat(this,'&#127968;','Logement')"><div class="txn-cat-ico" style="color:var(--accent2)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div><div class="txn-cat-lbl">Logement</div></div>
+      <div class="txn-cat" onclick="selTxnCat(this,'&#128138;','Sant&#233;')"><div class="txn-cat-ico" style="color:#22c55e"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></div><div class="txn-cat-lbl">Sant&#233;</div></div>
+      <div class="txn-cat" onclick="selTxnCat(this,'&#10133;','Autre')"><div class="txn-cat-ico" style="color:var(--text3)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg></div><div class="txn-cat-lbl">Autre</div></div>
+      <div class="txn-cat" onclick="selTxnCat(this,'&#127807;','Épargne')"><div class="txn-cat-ico" style="color:var(--accent2)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div><div class="txn-cat-lbl">Épargne</div></div>
+      <div class="txn-cat" onclick="selTxnCat(this,'&#128200;','Investiss.')"><div class="txn-cat-ico" style="color:#8b5cf6"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg></div><div class="txn-cat-lbl">Investiss.</div></div>
     </div>
     <div class="m-lbl">Montant (&#8364;)</div>
     <input class="m-in" id="txnAmt" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" style="font-size:24px;text-align:center;font-weight:700"/>
@@ -1938,29 +1809,6 @@ window.APP_VERSION = '5.57';
   </div>
 </div>
 
-<!-- Modal Revenu rapide -->
-<div class="ov" id="ovIncome" onclick="if(event.target===this)closeIncomeModal()">
-  <div class="modal">
-    <div class="modal-drag"></div>
-    <div class="modal-title">Revenu rapide</div>
-    <div class="txn-cats" id="incCats">
-      <div class="txn-cat sel" onclick="selIncomeCat(this,'&#128188;','Salaire')"><div class="txn-cat-ico">&#128188;</div><div class="txn-cat-lbl">Salaire</div></div>
-      <div class="txn-cat" onclick="selIncomeCat(this,'&#128187;','Freelance')"><div class="txn-cat-ico">&#128187;</div><div class="txn-cat-lbl">Freelance</div></div>
-      <div class="txn-cat" onclick="selIncomeCat(this,'&#127974;','Aides/CAF')"><div class="txn-cat-ico">&#127974;</div><div class="txn-cat-lbl">Aides/CAF</div></div>
-      <div class="txn-cat" onclick="selIncomeCat(this,'&#128176;','Remboursement')"><div class="txn-cat-ico">&#128176;</div><div class="txn-cat-lbl">Remboursement</div></div>
-      <div class="txn-cat" onclick="selIncomeCat(this,'&#128230;','Vente')"><div class="txn-cat-ico">&#128230;</div><div class="txn-cat-lbl">Vente</div></div>
-      <div class="txn-cat" onclick="selIncomeCat(this,'&#10133;','Autre')"><div class="txn-cat-ico">&#10133;</div><div class="txn-cat-lbl">Autre</div></div>
-    </div>
-    <div class="m-lbl">Montant (&#8364;)</div>
-    <input class="m-in" id="incAmt" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" style="font-size:24px;text-align:center;font-weight:700"/>
-    <div class="m-lbl">Description (optionnel)</div>
-    <input class="m-in" id="incDesc" placeholder="Ex: Mission client X" maxlength="60"/>
-    <div class="m-btns">
-      <button class="mb s" onclick="closeIncomeModal()">Annuler</button>
-      <button class="mb p" onclick="saveIncome()">Enregistrer</button>
-    </div>
-  </div>
-</div>
 
 <div class="toast" id="toast"></div>
 
@@ -2127,6 +1975,7 @@ var SYSTEM_BASE = "Tu es Léo, un coach financier personnel IA. Ta mission : acc
   + "INVESTISSEMENTS (idealement 10%) : PEA, CTO, ETF, actions, obligations, SCPI, cryptos. "
   + "besoins_items = tableau JSON des depenses BESOINS, format EXACT : [{\"n\":\"Loyer\",\"v\":800},{\"n\":\"Alimentation\",\"v\":300}]. "
   + "envies_items = meme format pour ENVIES. epargne_items = meme format pour EPARGNE (livret, fonds urgence). invest_items = meme format pour INVESTISSEMENTS (PEA, CTO, ETF, actions). "
+  + "CHARGES FIXES — IMPORTANT : quand une depense est recurrente et automatique chaque mois, montant et date fixes (loyer, credit immobilier ou conso, assurance, abonnement Netflix/Spotify/salle de sport, forfait mobile, facture internet/energie recurrente...), ajoute \"b\":\"fixe\" a sa ligne dans besoins_items ou envies_items, format : [{\"n\":\"Loyer\",\"v\":800,\"b\":\"fixe\"}]. Sans ce tag, la depense est comptee comme variable au quotidien dans l'application. Ne mets JAMAIS \"b\":\"fixe\" pour une depense ponctuelle meme habituelle (restaurant, courses, sortie, achat) : fixe = un engagement recurrent au montant stable, pas juste une habitude de consommation. "
   + "revenus_items = meme format pour les REVENUS, uniquement si l'utilisateur donne plusieurs sources distinctes (ex: [{\"n\":\"Salaire\",\"v\":2200},{\"n\":\"Freelance\",\"v\":300}]) — sinon laisse ce champ a null et utilise simplement le champ revenus (un seul chiffre). Ne jamais remplir les deux a la fois pour la meme source : si tu detailles via revenus_items, ne remets pas aussi le total dans revenus, l'application le recalcule automatiquement depuis la somme des lignes. "
   + "IMPORTANT : des qu un utilisateur mentionne une depense precise, classe-la dans la bonne categorie et CUMULE avec les entrees precedentes. "
   + "EDUCATION FINANCIERE : adapte ton niveau selon le contexte. Pour les debutants, explique les bases. Pour les avances, va plus loin. "+ "INTERDIT ABSOLU : ne termine JAMAIS une reponse par 'Veux-tu que je continue ?', 'Souhaites-tu en savoir plus ?', 'Veux-tu des details ?' ou toute variante. Chaque reponse doit etre COMPLETE et autonome. Si le sujet est long, resumes-le en une reponse courte et concise sans promettre de suite. "
@@ -2497,9 +2346,7 @@ async function saveProfileEdit(){
 // ═══════════════════════════════════════════════════
 var _infoTips = {
   'synth':   { title:'📊 Synthèse budget',      body:'Vue d\'ensemble de tes revenus, dépenses et épargne du mois en cours. Change la période (Mensuel / Journalier / Annuel) pour adapter l\'affichage.' },
-  'revenus':  { title:'💼 Revenus du jour',       body:'Journal de tous tes revenus (salaire, freelance, remboursements…). Appuie sur + pour en ajouter un. Chaque revenu logué s\'ajoute automatiquement à ton revenu mensuel total.' },
-  'argent':  { title:'📍 Où va mon argent ?',      body:'La jauge en haut montre ce qu\'il te reste à dépenser ce mois-ci. En dessous : Entrées, Dépenses fixes (remplies automatiquement depuis Abonnements), Variable au quotidien (Courses / Plaisirs & loisirs / Imprévus), et Épargne & investissement. Rempli automatiquement quand tu parles à Léo, ou ajoute/supprime une ligne toi-même.' },
-  'abos':    { title:'🔄 Abonnements',           body:'Toutes tes charges récurrentes (Netflix, salle de sport, assurances…). Ils sont déduits automatiquement de tes revenus. Choisis mensuel ou annuel.' },
+  'argent':  { title:'📍 Où va mon argent ?',      body:'La jauge en haut montre ce qu\'il te reste à dépenser ce mois-ci. En dessous : Entrées, Dépenses fixes (loyer, crédit, abonnements — ajoute-les toi-même avec la pastille "Charge fixe", ou dis-les à Léo), Variable au quotidien (Courses / Plaisirs & loisirs / Imprévus), et Épargne & investissement. Rempli automatiquement quand tu parles à Léo, ou ajoute/supprime une ligne toi-même.' },
   'actifs':  { title:'💰 Mes actifs',            body:'Valeur totale de ton patrimoine : compte épargne, immobilier, investissements, crypto… Permet à Léo de te donner des conseils plus précis.' },
   'leo':     { title:'💡 Léo recommande',        body:'Conseils personnalisés générés par Léo selon ta situation actuelle. Mis à jour à chaque modification de ton budget. Appuie pour en discuter avec lui.' },
   'rav':     { title:'✅ Reste à vivre',          body:'Calcul : Revenus − Dépenses (Besoins + Envies) − Épargne du mois − Investissements (PEA, ETF, CTO…). Ces montants restent "à toi", mais dès que tu les diriges vers l\'épargne ou l\'investissement, ils ne sont plus disponibles pour tes dépenses courantes. Un reste à vivre négatif signifie que tes dépenses + ton épargne + tes investissements dépassent tes revenus.' }
@@ -2974,12 +2821,15 @@ function parseMontant(val){
 
 // ACTIFS
 // ══════════════════════════════════════════════
+// NB : "ico" reste un emoji (utilisé tel quel par le CSV export, le rapport PDF imprimable et les
+// toasts — contextes hors app où argIcon()/SVG n'est pas disponible). "svgIco" est la clé SVG
+// (voir ARGENT_ICON_PATHS) utilisée uniquement par la carte "Mes actifs" en direct dans l'app.
 var ACTIF_TYPES = [
-  {key:'epargne',   ico:'🏦', label:'Épargne',          sub:'Livret A, LEP, LDDS...'},
-  {key:'assurance', ico:'🛡️', label:'Assurance vie',     sub:'Fonds euros, UC...'},
-  {key:'invest',    ico:'📈', label:'Investissements',   sub:'Actions, ETF, PEA...'},
-  {key:'immo',      ico:'🏠', label:'Immobilier',        sub:'Valeur nette estimée'},
-  {key:'autres',    ico:'💎', label:'Autres actifs',     sub:'Crypto, véhicule...'},
+  {key:'epargne',   ico:'🏦', svgIco:'epargne',   label:'Épargne',          sub:'Livret A, LEP, LDDS...'},
+  {key:'assurance', ico:'🛡️', svgIco:'assurance', label:'Assurance vie',     sub:'Fonds euros, UC...'},
+  {key:'invest',    ico:'📈', svgIco:'invest',    label:'Investissements',   sub:'Actions, ETF, PEA...'},
+  {key:'immo',      ico:'🏠', svgIco:'logement',  label:'Immobilier',        sub:'Valeur nette estimée'},
+  {key:'autres',    ico:'💎', svgIco:'layers',    label:'Autres actifs',     sub:'Crypto, véhicule...'},
 ];
 var ACTIF_SUBTYPES = {
   epargne:   ['Livret A','LEP','LDDS','PEL','CEL','Compte épargne','Autre'],
@@ -3083,7 +2933,7 @@ function renderActifs(){
       +'</div>';
     var subLbl = items.length ? items.length+' élément'+(items.length>1?'s':'') : t.sub;
     return '<div class="actif-row" onclick="toggleActifAcc(\''+t.key+'\')">'
-        +'<div class="actif-ico" style="background:rgba(13,148,136,.1)">'+t.ico+'</div>'
+        +'<div class="actif-ico" style="background:rgba(13,148,136,.1);color:var(--accent2)">'+argIcon(t.svgIco,18)+'</div>'
         +'<div style="flex:1"><div class="actif-label">'+t.label+'</div>'
         +'<div class="actif-sub">'+subLbl+'</div></div>'
         +'<div class="actif-amt" style="color:'+col+'">'+euro(total)+'</div>'
@@ -3163,127 +3013,6 @@ function saveGoalDeposit(){
     toast('+'+euro(v)+' versés. Reste : '+euro(g.target-g.current),'#0d9488');
   }
   S.actions++; save(); renderGoals(); checkBadges(); closeGoalDepositModal();
-}
-
-// ══════════════════════════════════════════════
-// ABONNEMENTS
-// ══════════════════════════════════════════════
-function renderSubs(){
-  var subs=S.subs||[]; var el=document.getElementById('subsList'); if(!el) return;
-  var total=subs.reduce(function(s,x){return s+x.amt;},0);
-  document.getElementById('subsTotal').innerHTML=euro(total)+'/mois';
-  el.innerHTML=subs.length ? subs.map(function(sub,i){
-    return '<div class="sub-row">'
-      +'<div class="sub-left">'
-        +'<div class="sub-ico" style="background:'+(sub.col||'#0d9488')+'22">'+sub.ico+'</div>'
-        +'<div><div class="sub-name">'+esc(sub.name)+'</div><div class="sub-freq">'+(sub.freq==='A'?'Annuel · '+euro(sub.amtAnnuel||sub.amt*12)+'/an':'Mensuel')+'</div></div>'
-      +'</div>'
-      +'<div style="display:flex;align-items:center">'
-        +'<div class="sub-amt">'+euro(sub.amt)+'/m</div>'
-        +'<button class="sub-del" onclick="delSub('+i+')">&#215;</button>'
-      +'</div></div>';
-  }).join('') : '<div class="subs-empty">Appuie sur + pour ajouter tes abonnements.</div>';
-}
-function delSub(i){
-  var sub=S.subs[i];
-  if(sub){ removeSubFromItems(sub.name,sub.amt); }
-  S.subs.splice(i,1);
-  // BUG corrigé (v5.54) : removeSubFromItems() modifie les tableaux d'items mais ne recalcule pas
-  // les totaux. Ce recalcul reposait jusqu'ici sur renderPoche() (calcRAV() y était appelé en
-  // interne) — mais renderPoche() est un no-op depuis la suppression de la carte "Poche du jour"
-  // (v5.51), car elle retourne dès que #pocheCard est introuvable. Résultat : supprimer un
-  // abonnement ne rafraîchissait plus dépenses/épargne/investissements/Reste à vivre à l'écran.
-  S.fin.rav=calcRAV();
-  save(); renderSubs(); renderPoche(); renderTriCards(); renderBudget();
-}
-function openSubModal(){ document.getElementById('ovSub').classList.add('open'); }
-function closeSubModal(){
-  document.getElementById('ovSub').classList.remove('open');
-  document.getElementById('subName').value='';
-  document.getElementById('subAmt').value='';
-  document.getElementById('subIco').value='';
-  document.getElementById('subNameIco').value='💳';
-  document.getElementById('subNameCol').value='#0d9488';
-  setSubSection('envies');
-  setSubFreq('M');
-}
-function addSubPreset(name,ico,amt,col){
-  document.getElementById('subName').value=name;
-  document.getElementById('subAmt').value=amt;
-  document.getElementById('subNameIco').value=ico;
-  document.getElementById('subNameCol').value=col;
-  document.getElementById('subIco').value=ico;
-  addSubPresetSection(name);
-}
-// Presets toujours classés en "envies"
-var SUB_PRESETS_SECTION = {
-  'Netflix':'envies','Spotify':'envies','Disney+':'envies','Deezer':'envies',
-  'Amazon Prime':'envies','YouTube Premium':'envies','Apple Music':'envies','Canal+':'envies',
-  'Loyer':'besoins','Électricité':'besoins','Gaz':'besoins','Eau':'besoins',
-  'Internet':'besoins','Syndic':'besoins','Parking':'besoins',
-  'Assurance auto':'besoins','Assurance habitation':'besoins','Assurance vie':'besoins',
-  'Assurance moto':'besoins','Protection juridique':'besoins','Prévoyance':'besoins',
-  'Mutuelle':'besoins','Complémentaire santé':'besoins','Salle de sport':'envies',
-  'Médecin / kiné':'besoins','Pharmacie':'besoins','Optique':'besoins',
-  'Forfait mobile':'besoins','Forfait mobile 2':'besoins','Abonnement TV':'envies',
-  'iCloud':'besoins','Google One':'besoins','Microsoft 365':'besoins'
-};
-var _selSubSection = 'envies';
-function setSubSection(s){
-  _selSubSection=s;
-  document.getElementById('ssbEnvies').classList.toggle('sel',s==='envies');
-  document.getElementById('ssbBesoins').classList.toggle('sel',s==='besoins');
-}
-function switchPresetCat(btn, cat){
-  document.querySelectorAll('.pct-btn').forEach(function(b){ b.classList.remove('sel'); });
-  btn.classList.add('sel');
-  ['streaming','charges','assurances','sante','telecom'].forEach(function(c){
-    var el = document.getElementById('presetGroup-'+c);
-    if(el) el.style.display = c===cat ? 'flex' : 'none';
-  });
-}
-function addSubPresetSection(name){ _selSubSection=SUB_PRESETS_SECTION[name]||'envies'; setSubSection(_selSubSection); }
-function injectSubToItems(name,amt,section){
-  if(!S.fin) S.fin={};
-  var key=section+'_items';
-  var items=parseItems(S.fin[key]);
-  var ex=items.filter(function(i){return i.n===name;});
-  if(ex.length){ ex[0].v=Math.round((ex[0].v+amt)*100)/100; }
-  else { items.push({n:name,v:amt}); }
-  S.fin[key]=JSON.stringify(items);
-  syncTotals();
-}
-function removeSubFromItems(name,amt){
-  ['besoins_items','envies_items','epargne_items','invest_items'].forEach(function(key){
-    if(!S.fin||!S.fin[key]) return;
-    var items=parseItems(S.fin[key]);
-    items=items.filter(function(i){ return i.n!==name; });
-    S.fin[key]=JSON.stringify(items);
-  });
-}
-var _subFreq='M';
-function setSubFreq(f){
-  _subFreq=f;
-  document.getElementById('sfbMensuel').classList.toggle('sel',f==='M');
-  document.getElementById('sfbAnnuel').classList.toggle('sel',f==='A');
-  document.getElementById('subAmtLbl').textContent=f==='A'?'Montant/an (€)':'Montant/mois (€)';
-}
-function saveSub(){
-  var name=document.getElementById('subName').value.trim();
-  var rawAmt=parseFloat(document.getElementById('subAmt').value)||0;
-  var freq=_subFreq||'M';
-  var amt=freq==='A'?parseFloat((rawAmt/12).toFixed(2)):rawAmt;
-  var amtAnnuel=freq==='A'?rawAmt:null;
-  var ico=document.getElementById('subIco').value.trim()||document.getElementById('subNameIco').value||'🔄';
-  var col=document.getElementById('subNameCol').value||'#0d9488';
-  if(!name||!rawAmt){ toast('Remplis le nom et le montant','#ef4444'); return; }
-  if(!S.subs) S.subs=[];
-  var section=SUB_PRESETS_SECTION[name]||_selSubSection||'envies';
-  S.subs.push({name:name,amt:amt,amtAnnuel:amtAnnuel,freq:freq,ico:ico,col:col,section:section});
-  injectSubToItems(name,amt,section);
-  save(); closeSubModal(); renderSubs(); renderPoche(); renderTriCards();
-  var sLabel=CAT_SECTION_LABEL[section]||section;
-  toast(ico+' '+name+' → '+sLabel,'#10b981');
 }
 
 // ══════════════════════════════════════════════
@@ -3377,64 +3106,18 @@ function saveTxn(){
   toast(_selTxnCat.ico+' '+euro(amt)+' → '+sLabel,'#10b981');
 }
 
-// ══════════════════════════════════════════════
-// REVENUS RAPIDES — journal daté des revenus, miroir des dépenses rapides
-// ══════════════════════════════════════════════
-var _selIncomeCat={ico:'💼',name:'Salaire'};
-function selIncomeCat(el,ico,name){
-  document.querySelectorAll('#incCats .txn-cat').forEach(function(c){c.classList.remove('sel');});
-  el.classList.add('sel'); _selIncomeCat={ico:ico,name:name};
-}
-function renderIncomes(){
-  var td=today(); var el=document.getElementById('incList'); if(!el) return;
-  var incs=(S.incomes||[]).filter(function(t){return t.date===td;});
-  var total=incs.reduce(function(s,t){return s+t.amt;},0);
-  document.getElementById('incTotal').textContent=total>0?euro(total):'0 €';
-  el.innerHTML=incs.length ? incs.slice().reverse().map(function(t){
-    return '<div class="txn-row">'
-      +'<div class="txn-row-left"><div class="txn-ico">'+t.ico+'</div>'
-        +'<div><div class="txn-desc">'+esc(t.desc)+'</div><div class="txn-time">'+t.time+'</div></div>'
-      +'</div><div class="txn-amt" style="color:var(--green)">+'+euro(t.amt)+'</div></div>';
-  }).join('') : '<div class="txn-empty">Aucun revenu enregistré aujourd\'hui</div>';
-}
-function openIncomeModal(){
-  document.getElementById('incAmt').value='';
-  document.getElementById('incDesc').value='';
-  document.querySelectorAll('#incCats .txn-cat').forEach(function(c,i){c.classList.toggle('sel',i===0);});
-  _selIncomeCat={ico:'💼',name:'Salaire'};
-  document.getElementById('ovIncome').classList.add('open');
-}
-function closeIncomeModal(){ document.getElementById('ovIncome').classList.remove('open'); }
-function saveIncome(){
-  var amt=parseMontant(document.getElementById('incAmt').value);
-  var desc=document.getElementById('incDesc').value.trim();
-  if(!amt||amt<=0){ toast('Entre un montant valide (ex: 1200)','#ef4444'); return; }
-  var now=new Date();
-  if(!S.incomes) S.incomes=[];
-  var label=desc||_selIncomeCat.name;
-  S.incomes.push({date:today(),time:now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}),
-    desc:label,ico:_selIncomeCat.ico,cat:_selIncomeCat.name,amt:amt});
-  // Injecter dans revenus_items — source de vérité pour f.revenus via syncTotals(), sur le
-  // même modèle que besoins_items/envies_items pour les dépenses.
+// Aide générique (utilisée par le scan de ticket de caisse, validateReceipt()) : ajoute ou
+// incrémente une ligne dans besoins_items/envies_items. Servait aussi aux anciennes sections
+// Abonnements/Revenus du jour (supprimées en v5.58) — conservée pour l'import de tickets.
+function injectSubToItems(name,amt,section){
   if(!S.fin) S.fin={};
-  var items=parseItems(S.fin.revenus_items);
-  // 1er revenu rapide logué alors qu'un revenu global existait déjà (renseigné via Léo sans
-  // détail) : on le convertit en une ligne "Revenu déclaré" pour ne pas l'écraser au prochain
-  // syncTotals() — sinon un seul petit revenu ponctuel remplacerait tout le salaire connu.
-  if(!items.length && (S.fin.revenus||0)>0){
-    items.push({n:'Revenu déclaré', v:S.fin.revenus, d:today()});
-  }
-  var existing=items.filter(function(i){return i.n===label;});
-  if(existing.length){
-    existing[0].v=Math.round((existing[0].v+amt)*100)/100;
-    existing[0].d=today();
-  } else {
-    items.push({n:label,v:amt,d:today()});
-  }
-  S.fin.revenus_items=JSON.stringify(items);
+  var key=section+'_items';
+  var items=parseItems(S.fin[key]);
+  var ex=items.filter(function(i){return i.n===name;});
+  if(ex.length){ ex[0].v=Math.round((ex[0].v+amt)*100)/100; }
+  else { items.push({n:name,v:amt,d:today()}); }
+  S.fin[key]=JSON.stringify(items);
   syncTotals();
-  save(); closeIncomeModal(); renderIncomes(); renderBudget();
-  toast(_selIncomeCat.ico+' '+euro(amt)+' → revenu ajouté','#10b981');
 }
 
 // ══════════════════════════════════════════════
@@ -3667,17 +3350,18 @@ function renderSynthTable(){
 }
 
 // ══════════════════════════════════════════════
-// OÙ VA MON ARGENT ? — tableau de suivi mensuel simplifié (v5.55)
-// Structure : jauge "reste à vivre variable" en tête, puis Entrées / Dépenses fixes (auto =
-// tout ce qui vient de la section Abonnements) / Variable au quotidien (Courses, Plaisirs &
-// loisirs, Imprévus) / Épargne & investissement, et un bloc de formules automatiques.
-// Le stockage sous-jacent ne change pas (besoins_items/envies_items/epargne_items/
-// invest_items/revenus_items) — seule la façon de classer et d'afficher change, pour rester
-// compatible avec calcRAV()/syncTotals() et le reste de l'app (Synthèse, score, alertes) sans
-// migration de données. Le classement Fixe/Variable se fait par correspondance de nom avec les
-// abonnements actifs (S.subs) ; le sous-classement Variable (Courses/Plaisirs/Imprévus) est posé
-// à la saisie via un champ b sur chaque item, avec un repli pour les lignes plus anciennes qui
-// n'ont pas ce tag (besoins→Courses, envies→Plaisirs & loisirs).
+// OÙ VA MON ARGENT ? — tableau de suivi mensuel simplifié (v5.55, classement revu en v5.58)
+// Structure : jauge "reste à vivre variable" en tête, puis Entrées / Dépenses fixes / Variable au
+// quotidien (Courses, Plaisirs & loisirs, Imprévus) / Épargne & investissement, et un bloc de
+// formules automatiques. Le stockage sous-jacent ne change pas (besoins_items/envies_items/
+// epargne_items/invest_items/revenus_items) — seule la façon de classer et d'afficher change,
+// pour rester compatible avec calcRAV()/syncTotals() et le reste de l'app (Synthèse, score,
+// alertes) sans migration de données. Depuis la v5.58 (suppression de la section Abonnements),
+// le classement Fixe/Variable se fait entièrement via le tag b posé sur chaque item à la saisie
+// (manuelle via la pastille "Charge fixe", ou par Léo en conversation) : b:'fixe' = Dépenses
+// fixes, sinon repli sur Courses/Plaisirs & loisirs/Imprévus (besoins→Courses, envies→Plaisirs)
+// pour les lignes qui n'ont pas ce tag. Les abonnements déclarés avant la v5.58 ont été migrés
+// une fois vers ce tag par migrateSubsToFixedTag(), voir plus bas.
 // ══════════════════════════════════════════════
 // Les 5 clés d'items concernées par le journal — utilisées pour le merge date-préservant
 // appliqué aux mises à jour envoyées par Léo (bloc [FD]).
@@ -3717,7 +3401,15 @@ var ARGENT_ICON_PATHS = {
   plaisirs: '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>',
   imprevus: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>',
   epargne:  '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>',
-  invest:   '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline>'
+  invest:   '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline>',
+  resto:    '<path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line>',
+  transport:'<rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle>',
+  shopping: '<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path>',
+  logement: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline>',
+  sante:    '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>',
+  autre:    '<circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle>',
+  assurance:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>',
+  layers:   '<polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline>'
 };
 function argIcon(name, size){
   size = size || 16;
@@ -3728,29 +3420,50 @@ function argIconBadge(name, bg, col, size){
   var ic = Math.round(size*0.5);
   return '<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:'+bg+';color:'+col+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'+argIcon(name, ic)+'</div>';
 }
-// Types proposés dans le formulaire d'ajout manuel. "Fixe" n'y figure pas volontairement : une
-// dépense fixe (loyer, crédit, abonnement) se déclare une fois dans la section Abonnements, qui
-// la fait ensuite apparaître automatiquement ici — pas de double saisie chaque mois.
+// Types proposés dans le formulaire d'ajout manuel. Depuis la v5.58 (suppression de la section
+// Abonnements), "Charge fixe" fait partie des types disponibles : une dépense fixe (loyer,
+// crédit, abonnement) se déclare directement ici, avec le tag b:'fixe' qui la classe dans
+// "Dépenses fixes" — ou se fait détecter automatiquement par Léo en conversation.
 var ARGENT_ADD_TYPES = [
   {id:'revenu',   lbl:'Revenu',             key:'revenus_items', b:null,       col:'var(--green)',  bg:'var(--green2)'},
+  {id:'fixe',     lbl:'Charge fixe',        key:'besoins_items', b:'fixe',     col:'var(--red)',     bg:'var(--red2)'},
   {id:'courses',  lbl:'Courses',            key:'besoins_items', b:'courses',  col:'#3b82f6',        bg:'rgba(59,130,246,.15)'},
   {id:'plaisirs', lbl:'Plaisirs & loisirs', key:'envies_items',  b:'plaisirs', col:'var(--orange)',  bg:'var(--orange2)'},
   {id:'imprevus', lbl:'Imprévus',           key:'besoins_items', b:'imprevus', col:'#ef4444',        bg:'rgba(239,68,68,.15)'},
   {id:'epargne',  lbl:'Épargne',            key:'epargne_items', b:null,       col:'var(--accent2)', bg:'rgba(13,148,136,.15)'},
   {id:'invest',   lbl:'Investissement',     key:'invest_items',  b:null,       col:'#8b5cf6',        bg:'rgba(139,92,246,.15)'}
 ];
-// Classe les lignes besoins_items/envies_items en FIXE (libellé = nom d'un abonnement actif) ou
-// VARIABLE (dans l'une des 3 enveloppes Courses/Plaisirs & loisirs/Imprévus, via le tag b posé
-// à la saisie, avec repli si absent).
-function getFixedVariableSplit(){
+// Migration ponctuelle (v5.58, suppression de la section Abonnements) : avant cette version, une
+// dépense besoins_items/envies_items était classée "Dépenses fixes" si son libellé correspondait
+// au nom d'un abonnement actif dans S.subs. Cette correspondance par nom disparaît avec la
+// section Abonnements — pour ne pas faire perdre leur classement aux utilisateurs déjà en place,
+// on pose une bonne fois pour toutes le tag b:'fixe' sur les lignes déjà reconnues comme telles.
+// Idempotent (ne fait rien si déjà migré) : peut être rappelée sans risque à chaque rendu.
+function migrateSubsToFixedTag(){
   var f=S.fin||{};
   var subNames={};
   (S.subs||[]).forEach(function(s){ if(s.name) subNames[s.name]=true; });
+  if(!Object.keys(subNames).length) return;
+  var changed=false;
+  ['besoins_items','envies_items'].forEach(function(key){
+    var items=parseItems(f[key]);
+    if(!items.length) return;
+    var keyChanged=false;
+    items.forEach(function(it){ if(subNames[it.n] && it.b!=='fixe'){ it.b='fixe'; keyChanged=true; } });
+    if(keyChanged){ f[key]=JSON.stringify(items); changed=true; }
+  });
+  if(changed) save();
+}
+// Classe les lignes besoins_items/envies_items en FIXE (tag b:'fixe', posé manuellement via la
+// pastille "Charge fixe" ou par Léo en conversation) ou VARIABLE (dans l'une des 3 enveloppes
+// Courses/Plaisirs & loisirs/Imprévus, via le tag b posé à la saisie, avec repli si absent).
+function getFixedVariableSplit(){
+  var f=S.fin||{};
   var fixed=[], buckets={courses:[], plaisirs:[], imprevus:[]};
   [['besoins_items','courses'],['envies_items','plaisirs']].forEach(function(pair){
     parseItems(f[pair[0]]).forEach(function(it,i){
       var row={n:it.n, v:parseFloat(it.v)||0, d:it.d||'', idx:i, key:pair[0]};
-      if(subNames[it.n]){ fixed.push(row); }
+      if(it.b==='fixe'){ fixed.push(row); }
       else {
         var b=it.b; if(b!=='courses'&&b!=='plaisirs'&&b!=='imprevus') b=pair[1];
         buckets[b].push(row);
@@ -3919,7 +3632,7 @@ function renderArgentDetail(){
   var invRows=parseItems(f.invest_items).map(function(it,i){ return {n:it.n, v:parseFloat(it.v)||0, d:it.d||'', idx:i, key:'invest_items'}; });
   var html='';
   html+=renderArgentSection('Entrées', 'revenu', 'var(--green)', sumRows(revRows), renderArgentRows(revRows,'var(--green)'), 'Aucun revenu enregistré.');
-  html+=renderArgentSection('Dépenses fixes', 'fixe', 'var(--red)', sumRows(split.fixed), renderArgentRows(split.fixed,'var(--red)'), 'Ajoute tes charges récurrentes (loyer, crédit…) dans Abonnements.');
+  html+=renderArgentSection('Dépenses fixes', 'fixe', 'var(--red)', sumRows(split.fixed), renderArgentRows(split.fixed,'var(--red)'), 'Ajoute tes charges récurrentes (loyer, crédit…) avec la pastille "Charge fixe" ci-dessous, ou dis-les à Léo.');
   var varTotal=sumRows(split.buckets.courses)+sumRows(split.buckets.plaisirs)+sumRows(split.buckets.imprevus);
   var varHtml='';
   [['Courses',split.buckets.courses,'#3b82f6'],['Plaisirs & loisirs',split.buckets.plaisirs,'var(--orange)'],['Imprévus',split.buckets.imprevus,'#ef4444']].forEach(function(g){
@@ -3949,7 +3662,7 @@ function toggleArgentDetail(){
   btn.lastChild.textContent = show ? ' Masquer le détail par section' : ' Voir le détail par section';
 }
 // Orchestrateur — point d'entrée unique appelé par tous les autres endroits de l'app
-// (renderBudget, saveTxn, saveIncome, addArgentItem, deleteRepItem…), inchangé pour eux.
+// (renderBudget, saveTxn, addArgentItem, deleteRepItem…), inchangé pour eux.
 function renderArgentJournal(){
   var gaugeEl=document.getElementById('argentGauge'); if(!gaugeEl) return;
   var f=S.fin||{};
@@ -4053,6 +3766,7 @@ function buildRavPeriodOptions(){
 }
 
 function renderBudget(){
+  migrateSubsToFixedTag();
   syncTotals();
   var f = S.fin;
   var hasData = !!(f.revenus || f.depenses || f.rav);
@@ -4187,9 +3901,7 @@ function renderBudget(){
   // Nouvelles zones
   renderScore();
   renderPoche();
-  renderSubs();
   renderTxns();
-  renderIncomes();
   renderTriCards();
   renderSynthTable(); // synchronise Synthese budget apres chaque mise a jour
   renderArgentJournal();
@@ -5514,14 +5226,14 @@ function exportCSV(){
     lines2.push([q(g.name||''),q((g.target||0).toFixed(2)),q((g.current||0).toFixed(2)),q(pr+' %'),q(g.deadline||'Sans échéance')].join(sep));
   });
   lines2.push('');
-  lines2.push(q('=== ABONNEMENTS ==='));
-  lines2.push([q('Nom'),q('Section'),q('Mensuel (€)'),q('Annuel (€)')].join(sep));
+  lines2.push(q('=== CHARGES FIXES ==='));
+  lines2.push([q('Nom'),q('Mensuel (€)')].join(sep));
   var subTotC=0;
-  (S.subs||[]).forEach(function(sub){
-    subTotC+=(sub.amt||0);
-    lines2.push([q(sub.name||''),q(sub.section||''),q((sub.amt||0).toFixed(2)),q(((sub.amt||0)*12).toFixed(2))].join(sep));
+  getFixedVariableSplit().fixed.forEach(function(r){
+    subTotC+=(r.v||0);
+    lines2.push([q(r.n||''),q((r.v||0).toFixed(2))].join(sep));
   });
-  lines2.push([q('TOTAL'),q(''),q(subTotC.toFixed(2)),q((subTotC*12).toFixed(2))].join(sep));
+  lines2.push([q('TOTAL'),q(subTotC.toFixed(2))].join(sep));
   lines2.push('');
   lines2.push(q('=== PATRIMOINE ==='));
   lines2.push([q('Catégorie'),q('Élément'),q('Valeur (€)')].join(sep));
@@ -5660,16 +5372,11 @@ function exportPrint(){
   });
   if(!goalsHtml) goalsHtml='<p style="color:#9ca3af;font-size:12px;font-style:italic">Aucun objectif défini.</p>';
   var subTot=0, subsHtml='';
-  (S.subs||[]).forEach(function(sub){
-    subTot+=(sub.amt||0);
-    var badge=sub.section==='besoins'
-      ?'<span style="background:#dbeafe;color:#1d4ed8;padding:1px 7px;border-radius:20px;font-size:10px;font-weight:700">Besoin</span>'
-      :'<span style="background:#fef3c7;color:#92400e;padding:1px 7px;border-radius:20px;font-size:10px;font-weight:700">Envie</span>';
-    subsHtml+='<tr><td>'+esc(sub.name||'')+'</td><td>'+badge+'</td>'
-      +'<td style="text-align:right;font-weight:700">'+fmt(sub.amt||0)+'</td>'
-      +'<td style="text-align:right;color:#6b7280">'+fmt((sub.amt||0)*12)+'</td></tr>';
+  getFixedVariableSplit().fixed.forEach(function(r){
+    subTot+=(r.v||0);
+    subsHtml+='<tr><td>'+esc(r.n||'')+'</td><td style="text-align:right;font-weight:700">'+fmt(r.v||0)+'</td></tr>';
   });
-  if(!subsHtml) subsHtml='<tr><td colspan="4" style="color:#9ca3af;font-style:italic">Aucun abonnement.</td></tr>';
+  if(!subsHtml) subsHtml='<tr><td colspan="2" style="color:#9ca3af;font-style:italic">Aucune charge fixe.</td></tr>';
   var actifsT=0, actifsHtml='';
   ACTIF_TYPES.forEach(function(t){
     var items=Array.isArray((S.actifs||{})[t.key])?(S.actifs||{})[t.key]:[];
@@ -5785,10 +5492,10 @@ function exportPrint(){
     +'<div class="sec"><div class="sec-title">🏅 Score santé financière — '+sc+' / 100 ('+si.lbl+')</div>'+scoreBarsHtml+'</div>'
     +'<div class="sec"><div class="sec-title">🎯 Objectifs d\'épargne</div>'+goalsHtml+'</div>'
     +'<div class="sec">'
-    +'<div class="sec-title">🔄 Abonnements — '+fmt(subTot)+'/mois · '+fmt(subTot*12)+'/an</div>'
-    +'<table><thead><tr><th>Nom</th><th>Section</th><th>Mensuel</th><th>Annuel</th></tr></thead>'
+    +'<div class="sec-title">🔄 Charges fixes — '+fmt(subTot)+'/mois</div>'
+    +'<table><thead><tr><th>Nom</th><th>Mensuel</th></tr></thead>'
     +'<tbody>'+subsHtml+'</tbody>'
-    +(subTot>0?'<tfoot><tr><td colspan="2" style="font-weight:700">Total</td><td style="text-align:right;font-weight:800;color:#0d9488">'+fmt(subTot)+'</td><td style="text-align:right;color:#6b7280">'+fmt(subTot*12)+'</td></tr></tfoot>':'')
+    +(subTot>0?'<tfoot><tr><td style="font-weight:700">Total</td><td style="text-align:right;font-weight:800;color:#0d9488">'+fmt(subTot)+'</td></tr></tfoot>':'')
     +'</table></div>'
     +'<div class="sec">'
     +'<div class="sec-title">🏦 Patrimoine — total : '+fmt(actifsT)+'</div>'
