@@ -874,6 +874,8 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 .txn-cat.sel{border-color:var(--accent);background:rgba(13,148,136,.15)}
 .txn-cat-ico{font-size:20px}
 .txn-cat-lbl{font-size:10px;color:var(--text2)}
+.arg-pill{opacity:.45;transition:opacity .15s,box-shadow .15s}
+.arg-pill.sel{opacity:1;box-shadow:inset 0 0 0 2px currentColor}
 
 /* ════ LOGIN / REGISTER PAGE ════ */
 #pg-login{align-items:center;justify-content:center;padding:32px 24px;background:var(--bg);overflow-y:auto}
@@ -956,7 +958,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.48';
+window.APP_VERSION = '5.49';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1354,15 +1356,16 @@ window.APP_VERSION = '5.48';
                 <span style="font-size:16px;line-height:1">+</span> Ajouter une ligne
               </button>
               <div id="argAddForm" style="display:none;gap:6px;margin-top:10px;flex-wrap:wrap">
-                <select id="argJournalType" style="flex:1;min-width:100px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-weight:600;padding:8px 6px">
-                  <option value="revenus_items">💼 Revenu</option>
-                  <option value="besoins_items">🏠 Besoin</option>
-                  <option value="envies_items">🎉 Envie</option>
-                  <option value="epargne_items">🏦 Épargne</option>
-                  <option value="invest_items">📈 Investissement</option>
-                </select>
+                <div id="argTypePills" style="display:flex;gap:6px;flex-wrap:wrap;width:100%">
+                  <button type="button" class="arg-pill sel" onclick="selArgentType(this,'revenus_items')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--green);background:var(--green2)">💼 Revenu</button>
+                  <button type="button" class="arg-pill" onclick="selArgentType(this,'besoins_items')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:#3b82f6;background:rgba(59,130,246,.15)">🏠 Besoin</button>
+                  <button type="button" class="arg-pill" onclick="selArgentType(this,'envies_items')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--orange);background:var(--orange2)">🎉 Envie</button>
+                  <button type="button" class="arg-pill" onclick="selArgentType(this,'epargne_items')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--accent2);background:rgba(13,148,136,.15)">🏦 Épargne</button>
+                  <button type="button" class="arg-pill" onclick="selArgentType(this,'invest_items')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:#8b5cf6;background:rgba(139,92,246,.15)">📈 Investissement</button>
+                </div>
                 <input id="argJournalLbl" placeholder="Libellé (ex: Loyer)" maxlength="40" style="flex:1.6;min-width:110px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:8px"/>
                 <input id="argJournalAmt" type="text" inputmode="decimal" placeholder="Montant €" style="width:88px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:8px"/>
+                <input id="argJournalDate" type="date" style="flex:1;min-width:130px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:8px"/>
                 <button onclick="addArgentItem()" style="background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:0 16px;font-size:18px;font-weight:700;cursor:pointer">+</button>
               </div>
             </div>
@@ -1680,7 +1683,7 @@ window.APP_VERSION = '5.48';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.48</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.49</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -3831,6 +3834,14 @@ function renderArgentJournal(){
       +'</div>';
   }).join('');
 }
+// Pastille de type sélectionnée dans le formulaire d'ajout — mêmes couleurs/libellés que
+// ARGENT_TYPES, pour que la sélection ressemble visuellement aux lignes du tableau.
+var _selArgentType='revenus_items';
+function selArgentType(el, key){
+  document.querySelectorAll('#argTypePills .arg-pill').forEach(function(b){b.classList.remove('sel');});
+  el.classList.add('sel');
+  _selArgentType=key;
+}
 function toggleArgentAddForm(){
   var form=document.getElementById('argAddForm');
   var btn=document.getElementById('argAddBtn');
@@ -3838,23 +3849,29 @@ function toggleArgentAddForm(){
   var show = form.style.display==='none' || !form.style.display;
   form.style.display = show ? 'flex' : 'none';
   btn.style.display = show ? 'none' : 'flex';
-  if(show){ var lblEl=document.getElementById('argJournalLbl'); if(lblEl) lblEl.focus(); }
+  if(show){
+    var lblEl=document.getElementById('argJournalLbl'); if(lblEl) lblEl.focus();
+    var dateEl=document.getElementById('argJournalDate'); if(dateEl && !dateEl.value) dateEl.value=today();
+  }
 }
 function addArgentItem(){
-  var key=document.getElementById('argJournalType').value;
+  var key=_selArgentType;
   var lbl=document.getElementById('argJournalLbl').value.trim();
   var amt=parseMontant(document.getElementById('argJournalAmt').value);
+  var dateEl=document.getElementById('argJournalDate');
+  var dt=(dateEl && dateEl.value) ? dateEl.value : today();
   if(!lbl){ toast('Ajoute un libellé (ex: Loyer)','#ef4444'); return; }
   if(!amt||amt<=0){ toast('Entre un montant valide (ex: 45,90)','#ef4444'); return; }
   if(!S.fin) S.fin={};
   var items=parseItems(S.fin[key]);
   var existing=items.filter(function(i){return i.n===lbl;});
-  if(existing.length){ existing[0].v=Math.round((existing[0].v+amt)*100)/100; existing[0].d=today(); }
-  else { items.push({n:lbl,v:amt,d:today()}); }
+  if(existing.length){ existing[0].v=Math.round((existing[0].v+amt)*100)/100; existing[0].d=dt; }
+  else { items.push({n:lbl,v:amt,d:dt}); }
   S.fin[key]=JSON.stringify(items);
   syncTotals(); save();
   document.getElementById('argJournalLbl').value='';
   document.getElementById('argJournalAmt').value='';
+  if(dateEl) dateEl.value=today();
   toggleArgentAddForm();
   renderArgentJournal(); renderBudget();
   toast('Ligne ajoutée ✓','#10b981');
