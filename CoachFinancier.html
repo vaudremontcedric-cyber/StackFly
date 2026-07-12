@@ -958,7 +958,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.53';
+window.APP_VERSION = '5.55';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1190,13 +1190,14 @@ window.APP_VERSION = '5.53';
               </button>
               <div id="argAddForm" style="display:none;gap:6px;margin-top:10px;flex-wrap:wrap">
                 <div id="argTypePills" style="display:flex;gap:6px;flex-wrap:wrap;width:100%">
-                  <button type="button" class="arg-pill sel" onclick="selArgentType(this,'revenus_items')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--green);background:var(--green2)">💼 Revenu</button>
-                  <button type="button" class="arg-pill" onclick="selArgentType(this,'besoins_items')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:#3b82f6;background:rgba(59,130,246,.15)">🏠 Besoin</button>
-                  <button type="button" class="arg-pill" onclick="selArgentType(this,'envies_items')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--orange);background:var(--orange2)">🎉 Envie</button>
-                  <button type="button" class="arg-pill" onclick="selArgentType(this,'epargne_items')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--accent2);background:rgba(13,148,136,.15)">🏦 Épargne</button>
-                  <button type="button" class="arg-pill" onclick="selArgentType(this,'invest_items')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:#8b5cf6;background:rgba(139,92,246,.15)">📈 Investissement</button>
+                  <button type="button" class="arg-pill sel" onclick="selArgentType(this,'revenu')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--green);background:var(--green2)">💼 Revenu</button>
+                  <button type="button" class="arg-pill" onclick="selArgentType(this,'courses')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:#3b82f6;background:rgba(59,130,246,.15)">🛒 Courses</button>
+                  <button type="button" class="arg-pill" onclick="selArgentType(this,'plaisirs')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--orange);background:var(--orange2)">🎉 Plaisirs &amp; loisirs</button>
+                  <button type="button" class="arg-pill" onclick="selArgentType(this,'imprevus')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:#ef4444;background:rgba(239,68,68,.15)">⚠️ Imprévus</button>
+                  <button type="button" class="arg-pill" onclick="selArgentType(this,'epargne')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:var(--accent2);background:rgba(13,148,136,.15)">🏦 Épargne</button>
+                  <button type="button" class="arg-pill" onclick="selArgentType(this,'invest')" style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:#8b5cf6;background:rgba(139,92,246,.15)">📈 Investissement</button>
                 </div>
-                <input id="argJournalLbl" placeholder="Libellé (ex: Loyer)" maxlength="40" style="flex:1.6;min-width:110px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:8px"/>
+                <input id="argJournalLbl" placeholder="Libellé (ex: Courses Carrefour)" maxlength="40" style="flex:1.6;min-width:110px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:8px"/>
                 <input id="argJournalAmt" type="text" inputmode="decimal" placeholder="Montant €" style="width:88px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:8px"/>
                 <input id="argJournalDate" type="date" style="flex:1;min-width:130px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:8px"/>
                 <button onclick="addArgentItem()" style="background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:0 16px;font-size:18px;font-weight:700;cursor:pointer">+</button>
@@ -1556,7 +1557,7 @@ window.APP_VERSION = '5.53';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.53</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.55</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -1719,16 +1720,16 @@ window.APP_VERSION = '5.53';
       <!-- 50/30/20 -->
       <div class="tuto-card" id="tc3">
         <div class="tuto-card-hdr" onclick="toggleTuto(3)">
-          <span class="tuto-card-ico">📈</span>
-          <span class="tuto-card-ttl">Répartition 50/30/20</span>
+          <span class="tuto-card-ico">📍</span>
+          <span class="tuto-card-ttl">Fixe, variable, épargne</span>
           <span class="tuto-card-arr">&#9662;</span>
         </div>
         <div class="tuto-card-body"><div class="tuto-card-content">
-          <div class="tuto-step"><div class="tuto-step-num">1</div><div><b>Besoins (50%)</b> : loyer, alimentation, transport, assurances — ce que tu ne peux pas éviter.</div></div>
-          <div class="tuto-step"><div class="tuto-step-num">2</div><div><b>Envies (30%)</b> : restaurants, loisirs, streaming, shopping — ce qui te fait plaisir.</div></div>
-          <div class="tuto-step"><div class="tuto-step-num">3</div><div><b>Épargne (20%)</b> : livret, investissement, remboursement de dettes — ton avenir.</div></div>
-          <div class="tuto-step"><div class="tuto-step-num">4</div><div>Léo classe automatiquement chaque dépense. Retrouve-les dans <b>Où va mon argent ?</b> : chaque ligne affiche une pastille de couleur selon sa catégorie (bleu = Besoin, orange = Envie, etc.).</div></div>
-          <div class="tuto-tip">💡 L'idéal est de respecter les 50/30/20, mais adapte selon ta situation personnelle.</div>
+          <div class="tuto-step"><div class="tuto-step-num">1</div><div><b>Dépenses fixes</b> : loyer, crédit, abonnements — tout ce que tu déclares une fois dans <b>Abonnements</b> apparaît ici automatiquement chaque mois.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">2</div><div><b>Variable au quotidien</b> : tout le reste, réparti en 3 enveloppes seulement — Courses, Plaisirs & loisirs, Imprévus.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">3</div><div><b>Épargne & investissement</b> : ce que tu mets de côté (livret, PEA, ETF…).</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">4</div><div>La jauge en haut de <b>Où va mon argent ?</b> affiche en un coup d'œil ce qu'il te reste à dépenser pour finir le mois.</div></div>
+          <div class="tuto-tip">💡 Léo classe tout automatiquement quand tu lui parles. Tu peux aussi ajouter une ligne toi-même, avec sa date.</div>
         </div></div>
       </div>
 
@@ -2490,7 +2491,7 @@ async function saveProfileEdit(){
 var _infoTips = {
   'synth':   { title:'📊 Synthèse budget',      body:'Vue d\'ensemble de tes revenus, dépenses et épargne du mois en cours. Change la période (Mensuel / Journalier / Annuel) pour adapter l\'affichage.' },
   'revenus':  { title:'💼 Revenus du jour',       body:'Journal de tous tes revenus (salaire, freelance, remboursements…). Appuie sur + pour en ajouter un. Chaque revenu logué s\'ajoute automatiquement à ton revenu mensuel total.' },
-  'argent':  { title:'📍 Où va mon argent ?',      body:'Le journal complet de ton mois : tous tes revenus et dépenses, classés par catégorie (pastille de couleur), remplis automatiquement quand tu en parles à Léo. Tu peux aussi ajouter une ligne toi-même avec le formulaire en bas, ou supprimer une ligne avec le ×.' },
+  'argent':  { title:'📍 Où va mon argent ?',      body:'La jauge en haut montre ce qu\'il te reste à dépenser ce mois-ci. En dessous : Entrées, Dépenses fixes (remplies automatiquement depuis Abonnements), Variable au quotidien (Courses / Plaisirs & loisirs / Imprévus), et Épargne & investissement. Rempli automatiquement quand tu parles à Léo, ou ajoute/supprime une ligne toi-même.' },
   'abos':    { title:'🔄 Abonnements',           body:'Toutes tes charges récurrentes (Netflix, salle de sport, assurances…). Ils sont déduits automatiquement de tes revenus. Choisis mensuel ou annuel.' },
   'actifs':  { title:'💰 Mes actifs',            body:'Valeur totale de ton patrimoine : compte épargne, immobilier, investissements, crypto… Permet à Léo de te donner des conseils plus précis.' },
   'leo':     { title:'💡 Léo recommande',        body:'Conseils personnalisés générés par Léo selon ta situation actuelle. Mis à jour à chaque modification de ton budget. Appuie pour en discuter avec lui.' },
@@ -2806,7 +2807,12 @@ function syncTotals(){
   var ri=parseItems(f.revenus_items||'[]').reduce(function(s,i){return s+(parseFloat(i.v)||0);},0);
   if(bi+ei>0) S.fin.depenses=Math.round((bi+ei)*100)/100;
   if(si>0)    S.fin.epargne =Math.round(si*100)/100;
-  S.fin.invest=Math.round(ii*100)/100; // toujours sync (même si 0)
+  // BUG corrigé (v5.54) : cette ligne écrasait TOUJOURS S.fin.invest par la somme d'invest_items,
+  // y compris quand cette somme valait 0 — contrairement à depenses/epargne/revenus, qui gardent
+  // une valeur déclarée par Léo tant qu'aucun item détaillé n'existe. Concrètement : si l'utilisateur
+  // disait "j'investis 150€/mois" sans détailler (Léo remplit alors le champ invest seul), la valeur
+  // était effacée dès le syncTotals() suivant (appelé très souvent), faussant le Reste à vivre.
+  if(ii>0)    S.fin.invest  =Math.round(ii*100)/100;
   // Revenus : ne resynchronise QUE si des revenus rapides ont été loggés (ri>0), sinon on garde
   // la valeur que Léo a renseignée en conversation — même logique prudente que besoins/epargne,
   // pour ne jamais écraser une saisie manuelle par une liste vide.
@@ -3175,7 +3181,13 @@ function delSub(i){
   var sub=S.subs[i];
   if(sub){ removeSubFromItems(sub.name,sub.amt); }
   S.subs.splice(i,1);
-  save(); renderSubs(); renderPoche(); renderTriCards();
+  // BUG corrigé (v5.54) : removeSubFromItems() modifie les tableaux d'items mais ne recalcule pas
+  // les totaux. Ce recalcul reposait jusqu'ici sur renderPoche() (calcRAV() y était appelé en
+  // interne) — mais renderPoche() est un no-op depuis la suppression de la carte "Poche du jour"
+  // (v5.51), car elle retourne dès que #pocheCard est introuvable. Résultat : supprimer un
+  // abonnement ne rafraîchissait plus dépenses/épargne/investissements/Reste à vivre à l'écran.
+  S.fin.rav=calcRAV();
+  save(); renderSubs(); renderPoche(); renderTriCards(); renderBudget();
 }
 function openSubModal(){ document.getElementById('ovSub').classList.add('open'); }
 function closeSubModal(){
@@ -3648,22 +3660,21 @@ function renderSynthTable(){
 }
 
 // ══════════════════════════════════════════════
-// OÙ VA MON ARGENT ? — journal unique éditable
-// Liste chronologique-catégorielle de TOUTES les entrées du mois (revenus + dépenses),
-// remplie automatiquement par Léo en conversation (besoins_items/envies_items/epargne_items/
-// invest_items/revenus_items, via son bloc [FD]) et éditable à la main ci-dessous
-// (ajout via le mini-formulaire, suppression via le × sur chaque ligne).
+// OÙ VA MON ARGENT ? — tableau de suivi mensuel simplifié (v5.55)
+// Structure : jauge "reste à vivre variable" en tête, puis Entrées / Dépenses fixes (auto =
+// tout ce qui vient de la section Abonnements) / Variable au quotidien (Courses, Plaisirs &
+// loisirs, Imprévus) / Épargne & investissement, et un bloc de formules automatiques.
+// Le stockage sous-jacent ne change pas (besoins_items/envies_items/epargne_items/
+// invest_items/revenus_items) — seule la façon de classer et d'afficher change, pour rester
+// compatible avec calcRAV()/syncTotals() et le reste de l'app (Synthèse, score, alertes) sans
+// migration de données. Le classement Fixe/Variable se fait par correspondance de nom avec les
+// abonnements actifs (S.subs) ; le sous-classement Variable (Courses/Plaisirs/Imprévus) est posé
+// à la saisie via un champ b sur chaque item, avec un repli pour les lignes plus anciennes qui
+// n'ont pas ce tag (besoins→Courses, envies→Plaisirs & loisirs).
 // ══════════════════════════════════════════════
-var ARGENT_TYPES = [
-  {key:'revenus_items', lbl:'Revenu',         col:'var(--green)',   bg:'var(--green2)',           sign:1},
-  {key:'besoins_items', lbl:'Besoin',         col:'#3b82f6',        bg:'rgba(59,130,246,.15)',    sign:-1},
-  {key:'envies_items',  lbl:'Envie',          col:'var(--orange)',  bg:'var(--orange2)',           sign:-1},
-  {key:'epargne_items', lbl:'Épargne',        col:'var(--accent2)', bg:'rgba(13,148,136,.15)',     sign:-1},
-  {key:'invest_items',  lbl:'Investissement', col:'#8b5cf6',        bg:'rgba(139,92,246,.15)',     sign:-1}
-];
-// Les 5 clés d'items concernées par le journal — utilisées à la fois pour le rendu et pour
-// le merge date-préservant appliqué aux mises à jour envoyées par Léo (bloc [FD]).
-var ARGENT_ITEM_KEYS = ARGENT_TYPES.map(function(t){ return t.key; });
+// Les 5 clés d'items concernées par le journal — utilisées pour le merge date-préservant
+// appliqué aux mises à jour envoyées par Léo (bloc [FD]).
+var ARGENT_ITEM_KEYS = ['revenus_items','besoins_items','envies_items','epargne_items','invest_items'];
 var MOIS_ABR = ['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
 function fmtShortDate(iso){
   if(!iso) return '';
@@ -3672,9 +3683,9 @@ function fmtShortDate(iso){
   return d.getDate()+' '+MOIS_ABR[d.getMonth()];
 }
 // Fusionne un nouveau tableau d'items (envoyé par Léo via [FD]) avec l'ancien, en préservant
-// la date (d) de chaque ligne déjà connue et inchangée. Une ligne nouvelle, ou dont le montant
-// a changé (nouvelle contribution/mouvement), est datée d'aujourd'hui — c'est bien ce jour-là
-// que le mouvement d'argent a été enregistré.
+// la date (d) et le sous-classement variable (b) de chaque ligne déjà connue et inchangée. Une
+// ligne nouvelle, ou dont le montant a changé (nouvelle contribution/mouvement), est datée
+// d'aujourd'hui — c'est bien ce jour-là que le mouvement d'argent a été enregistré.
 function mergeItemsPreservingDates(oldRaw, newItems){
   var oldByName={};
   parseItems(oldRaw).forEach(function(i){ if(i.n) oldByName[i.n]=i; });
@@ -3682,77 +3693,140 @@ function mergeItemsPreservingDates(oldRaw, newItems){
   return newItems.map(function(i){
     var prev=oldByName[i.n];
     var sameValue = prev && Math.abs((parseFloat(prev.v)||0)-(parseFloat(i.v)||0))<0.005;
-    return {n:i.n, v:i.v, d:(sameValue && prev.d) ? prev.d : td};
+    var out={n:i.n, v:i.v, d:(sameValue && prev.d) ? prev.d : td};
+    var b=(prev&&prev.b)?prev.b:i.b;
+    if(b) out.b=b;
+    return out;
   });
 }
-// v5.53 — repère 50/30/20 discret : depuis la suppression de l'accordéon "Répartition 50/30/20"
-// (v5.51), il n'y avait plus nulle part un rappel visuel du poids de chaque catégorie par rapport
-// aux revenus. Une ligne compacte de badges (pas une section entière) suffit à garder la pédagogie
-// 50/30/20 sans réintroduire la lourdeur de l'ancienne section à 4 cartes détaillées.
-var ARGENT_SUMMARY_DEFS = [
-  {key:'besoins_items', lbl:'Besoins',  col:'#3b82f6',        bg:'rgba(59,130,246,.15)', ideal:50, dir:'max'},
-  {key:'envies_items',  lbl:'Envies',   col:'var(--orange)',  bg:'var(--orange2)',       ideal:30, dir:'max'},
-  {key:'epargne_items', lbl:'Épargne',  col:'var(--accent2)', bg:'rgba(13,148,136,.15)', ideal:10, dir:'min'},
-  {key:'invest_items',  lbl:'Invest.',  col:'#8b5cf6',        bg:'rgba(139,92,246,.15)', ideal:10, dir:'min'}
+// Types proposés dans le formulaire d'ajout manuel. "Fixe" n'y figure pas volontairement : une
+// dépense fixe (loyer, crédit, abonnement) se déclare une fois dans la section Abonnements, qui
+// la fait ensuite apparaître automatiquement ici — pas de double saisie chaque mois.
+var ARGENT_ADD_TYPES = [
+  {id:'revenu',   lbl:'Revenu',             key:'revenus_items', b:null,       col:'var(--green)',  bg:'var(--green2)'},
+  {id:'courses',  lbl:'Courses',            key:'besoins_items', b:'courses',  col:'#3b82f6',        bg:'rgba(59,130,246,.15)'},
+  {id:'plaisirs', lbl:'Plaisirs & loisirs', key:'envies_items',  b:'plaisirs', col:'var(--orange)',  bg:'var(--orange2)'},
+  {id:'imprevus', lbl:'Imprévus',           key:'besoins_items', b:'imprevus', col:'#ef4444',        bg:'rgba(239,68,68,.15)'},
+  {id:'epargne',  lbl:'Épargne',            key:'epargne_items', b:null,       col:'var(--accent2)', bg:'rgba(13,148,136,.15)'},
+  {id:'invest',   lbl:'Investissement',     key:'invest_items',  b:null,       col:'#8b5cf6',        bg:'rgba(139,92,246,.15)'}
 ];
+// Classe les lignes besoins_items/envies_items en FIXE (libellé = nom d'un abonnement actif) ou
+// VARIABLE (dans l'une des 3 enveloppes Courses/Plaisirs & loisirs/Imprévus, via le tag b posé
+// à la saisie, avec repli si absent).
+function getFixedVariableSplit(){
+  var f=S.fin||{};
+  var subNames={};
+  (S.subs||[]).forEach(function(s){ if(s.name) subNames[s.name]=true; });
+  var fixed=[], buckets={courses:[], plaisirs:[], imprevus:[]};
+  [['besoins_items','courses'],['envies_items','plaisirs']].forEach(function(pair){
+    parseItems(f[pair[0]]).forEach(function(it,i){
+      var row={n:it.n, v:parseFloat(it.v)||0, d:it.d||'', idx:i, key:pair[0]};
+      if(subNames[it.n]){ fixed.push(row); }
+      else {
+        var b=it.b; if(b!=='courses'&&b!=='plaisirs'&&b!=='imprevus') b=pair[1];
+        buckets[b].push(row);
+      }
+    });
+  });
+  return {fixed:fixed, buckets:buckets};
+}
+function sumRows(rows){ return rows.reduce(function(s,r){return s+r.v;},0); }
+function renderArgentRows(rows, col){
+  return rows.slice().sort(function(a,b){
+    if(!a.d && !b.d) return 0;
+    if(!a.d) return 1;
+    if(!b.d) return -1;
+    return a.d<b.d?1:(a.d>b.d?-1:0);
+  }).map(function(r){
+    var dateTxt=fmtShortDate(r.d);
+    return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">'
+      +'<div style="flex:1;min-width:0">'
+        +'<div style="font-size:13.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.n)+'</div>'
+        +(dateTxt?'<div style="font-size:10.5px;color:var(--text3);margin-top:1px">'+dateTxt+'</div>':'')
+      +'</div>'
+      +'<div style="font-size:13.5px;font-weight:700;color:'+col+';flex-shrink:0">'+euro(r.v)+'</div>'
+      +'<div onclick="deleteRepItem(\''+r.key+'\','+r.idx+')" style="cursor:pointer;color:var(--text3);font-size:16px;padding:2px 4px;flex-shrink:0" title="Supprimer">×</div>'
+      +'</div>';
+  }).join('');
+}
+function renderArgentSection(title, icon, col, total, rowsHtml, emptyTxt){
+  return '<div style="margin-bottom:14px">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">'
+      +'<span style="font-size:12.5px;font-weight:700;color:var(--text2)">'+icon+' '+title+'</span>'
+      +'<span style="font-size:13px;font-weight:800;color:'+col+'">'+euro(total)+'</span>'
+    +'</div>'
+    +(rowsHtml || '<div style="color:var(--text3);font-size:12.5px;padding:8px 0">'+emptyTxt+'</div>')
+  +'</div>';
+}
+// Jauge "reste à vivre variable" : théorique = ce qu'il reste une fois les charges fixes et
+// l'épargne/investissement mis de côté (l'enveloppe prévue pour le quotidien) ; réel = calcRAV()
+// (déjà utilisé partout ailleurs dans l'app) = théorique moins ce qui a déjà été dépensé dans les
+// 3 enveloppes variables. Aucune nouvelle donnée à saisir : tout est déjà connu de l'app.
 function renderArgentSummary(){
   var el=document.getElementById('argentSummary'); if(!el) return;
   var f=S.fin||{}; var rev=f.revenus||0;
   if(!rev){ el.innerHTML=''; return; }
-  el.innerHTML='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">'
-    +ARGENT_SUMMARY_DEFS.map(function(d){
-      var total=parseItems(f[d.key]).reduce(function(s,x){return s+(parseFloat(x.v)||0);},0);
-      var pct=Math.round(total/rev*100);
-      var ok = d.dir==='max' ? pct<=d.ideal : pct>=d.ideal;
-      return '<span style="font-size:10.5px;font-weight:700;padding:4px 9px;border-radius:20px;color:'+d.col+';background:'+d.bg+'" title="Idéal '+(d.dir==='max'?'≤':'≥')+d.ideal+'%">'
-        +d.lbl+' '+pct+'%'+(ok?'':' &#9888;')
-        +'</span>';
-    }).join('')
-    +'</div>';
+  var split=getFixedVariableSplit();
+  var fixedTot=sumRows(split.fixed);
+  var theorique=rev-fixedTot-(f.epargne||0)-(f.invest||0);
+  var reel=calcRAV();
+  var pct=theorique>0?Math.max(0,Math.min(100,Math.round(reel/theorique*100))):0;
+  var cl = reel<0 ? 'r' : (theorique>0 && reel<theorique*0.2) ? 'o' : 'g';
+  var colors={g:'var(--green)',o:'#f59e0b',r:'var(--red)'};
+  var bgs={g:'var(--green2)',o:'rgba(245,158,11,.15)',r:'var(--red2)'};
+  var msgs={g:'Zone confortable pour finir le mois',o:'Enveloppe qui se resserre — reste vigilant',r:'Enveloppe dépassée ce mois-ci'};
+  el.innerHTML='<div style="background:'+bgs[cl]+';border-radius:12px;padding:12px 14px;margin-bottom:14px">'
+    +'<div style="font-size:11.5px;color:var(--text2);margin-bottom:4px">Reste à vivre variable</div>'
+    +'<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px">'
+      +'<span style="font-size:22px;font-weight:800;color:'+colors[cl]+'">'+euro(reel)+'</span>'
+      +'<span style="font-size:11.5px;color:var(--text3)">sur '+euro(theorique)+' prévus</span>'
+    +'</div>'
+    +'<div style="height:7px;border-radius:4px;background:rgba(0,0,0,.12);overflow:hidden">'
+      +'<div style="height:100%;width:'+pct+'%;background:'+colors[cl]+';border-radius:4px"></div>'
+    +'</div>'
+    +'<div style="font-size:11px;color:'+colors[cl]+';margin-top:6px">'+msgs[cl]+'</div>'
+  +'</div>';
 }
 function renderArgentJournal(){
   var el=document.getElementById('argentJournal'); if(!el) return;
   renderArgentSummary();
   var f=S.fin||{};
-  var rows=[];
-  ARGENT_TYPES.forEach(function(t){
-    parseItems(f[t.key]).forEach(function(it,i){
-      rows.push({type:t, n:it.n, v:parseFloat(it.v)||0, d:it.d||'', idx:i});
-    });
-  });
-  if(!rows.length){
+  var revRows=parseItems(f.revenus_items).map(function(it,i){ return {n:it.n, v:parseFloat(it.v)||0, d:it.d||'', idx:i, key:'revenus_items'}; });
+  var split=getFixedVariableSplit();
+  var epRows=parseItems(f.epargne_items).map(function(it,i){ return {n:it.n, v:parseFloat(it.v)||0, d:it.d||'', idx:i, key:'epargne_items'}; });
+  var invRows=parseItems(f.invest_items).map(function(it,i){ return {n:it.n, v:parseFloat(it.v)||0, d:it.d||'', idx:i, key:'invest_items'}; });
+  var hasAny = revRows.length||split.fixed.length||split.buckets.courses.length||split.buckets.plaisirs.length||split.buckets.imprevus.length||epRows.length||invRows.length;
+  if(!hasAny){
     el.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:10px 0">Parle à Léo de tes revenus et dépenses, ou ajoute une ligne ci-dessous.</div>';
     return;
   }
-  // Plus récent en premier ; les lignes sans date (anciennes, migrées avant l'ajout de la
-  // colonne date) sont reléguées en fin de liste plutôt que de se voir attribuer une fausse date.
-  rows.sort(function(a,b){
-    if(!a.d && !b.d) return 0;
-    if(!a.d) return 1;
-    if(!b.d) return -1;
-    return a.d<b.d?1:(a.d>b.d?-1:0);
+  var html='';
+  html+=renderArgentSection('Entrées', '💼', 'var(--green)', sumRows(revRows), renderArgentRows(revRows,'var(--green)'), 'Aucun revenu enregistré.');
+  html+=renderArgentSection('Dépenses fixes', '🔁', 'var(--red)', sumRows(split.fixed), renderArgentRows(split.fixed,'var(--red)'), 'Ajoute tes charges récurrentes (loyer, crédit…) dans Abonnements.');
+  var varTotal=sumRows(split.buckets.courses)+sumRows(split.buckets.plaisirs)+sumRows(split.buckets.imprevus);
+  var varHtml='';
+  [['Courses',split.buckets.courses,'#3b82f6'],['Plaisirs & loisirs',split.buckets.plaisirs,'var(--orange)'],['Imprévus',split.buckets.imprevus,'#ef4444']].forEach(function(g){
+    varHtml+='<div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--text2);padding:6px 0 2px;font-weight:700">'
+      +'<span>'+g[0]+'</span><span>'+euro(sumRows(g[1]))+'</span></div>'
+      +renderArgentRows(g[1],g[2]);
   });
-  el.innerHTML=rows.map(function(r){
-    var amtTxt=(r.type.sign>0?'+':'-')+euro(r.v);
-    var dateTxt=fmtShortDate(r.d);
-    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">'
-      +'<span style="flex-shrink:0;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;color:'+r.type.col+';background:'+r.type.bg+'">'+r.type.lbl+'</span>'
-      +'<div style="flex:1;min-width:0">'
-        +'<div style="font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.n)+'</div>'
-        +(dateTxt?'<div style="font-size:10.5px;color:var(--text3);margin-top:1px">'+dateTxt+'</div>':'')
-      +'</div>'
-      +'<div style="font-size:14px;font-weight:700;color:'+r.type.col+';flex-shrink:0">'+amtTxt+'</div>'
-      +'<div onclick="deleteRepItem(\''+r.type.key+'\','+r.idx+')" style="cursor:pointer;color:var(--text3);font-size:17px;padding:2px 4px;flex-shrink:0" title="Supprimer">×</div>'
-      +'</div>';
-  }).join('');
+  html+=renderArgentSection('Variable au quotidien', '🛒', 'var(--text)', varTotal, varHtml, 'Rien enregistré ce mois-ci.');
+  html+=renderArgentSection('Épargne et investissement', '🏦', 'var(--accent2)', sumRows(epRows)+sumRows(invRows), renderArgentRows(epRows.concat(invRows),'var(--accent2)'), 'Rien mis de côté ce mois-ci.');
+  var depTotal=sumRows(split.fixed)+varTotal;
+  var theorique=(f.revenus||0)-sumRows(split.fixed)-(f.epargne||0)-(f.invest||0);
+  html+='<div style="background:var(--card2);border-radius:12px;padding:10px 12px;margin-top:4px">'
+    +'<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span style="color:var(--text2)">Total dépenses</span><span>'+euro(depTotal)+'</span></div>'
+    +'<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span style="color:var(--text2)">Reste à vivre théorique</span><span>'+euro(theorique)+'</span></div>'
+    +'<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span style="color:var(--text2)">Reste à vivre réel</span><span style="font-weight:700;color:'+(calcRAV()>=0?'var(--green)':'var(--red)')+'">'+euro(calcRAV())+'</span></div>'
+  +'</div>';
+  el.innerHTML=html;
 }
-// Pastille de type sélectionnée dans le formulaire d'ajout — mêmes couleurs/libellés que
-// ARGENT_TYPES, pour que la sélection ressemble visuellement aux lignes du tableau.
-var _selArgentType='revenus_items';
-function selArgentType(el, key){
+var _selArgentType=ARGENT_ADD_TYPES[0];
+function selArgentType(el, id){
   document.querySelectorAll('#argTypePills .arg-pill').forEach(function(b){b.classList.remove('sel');});
   el.classList.add('sel');
-  _selArgentType=key;
+  var t=ARGENT_ADD_TYPES.filter(function(x){return x.id===id;})[0];
+  if(t) _selArgentType=t;
 }
 function toggleArgentAddForm(){
   var form=document.getElementById('argAddForm');
@@ -3767,18 +3841,25 @@ function toggleArgentAddForm(){
   }
 }
 function addArgentItem(){
-  var key=_selArgentType;
+  var t=_selArgentType;
+  var key=t.key;
   var lbl=document.getElementById('argJournalLbl').value.trim();
   var amt=parseMontant(document.getElementById('argJournalAmt').value);
   var dateEl=document.getElementById('argJournalDate');
   var dt=(dateEl && dateEl.value) ? dateEl.value : today();
-  if(!lbl){ toast('Ajoute un libellé (ex: Loyer)','#ef4444'); return; }
+  if(!lbl){ toast('Ajoute un libellé (ex: Courses Carrefour)','#ef4444'); return; }
   if(!amt||amt<=0){ toast('Entre un montant valide (ex: 45,90)','#ef4444'); return; }
   if(!S.fin) S.fin={};
   var items=parseItems(S.fin[key]);
   var existing=items.filter(function(i){return i.n===lbl;});
-  if(existing.length){ existing[0].v=Math.round((existing[0].v+amt)*100)/100; existing[0].d=dt; }
-  else { items.push({n:lbl,v:amt,d:dt}); }
+  if(existing.length){
+    existing[0].v=Math.round((existing[0].v+amt)*100)/100; existing[0].d=dt;
+    if(t.b) existing[0].b=t.b;
+  } else {
+    var newItem={n:lbl,v:amt,d:dt};
+    if(t.b) newItem.b=t.b;
+    items.push(newItem);
+  }
   S.fin[key]=JSON.stringify(items);
   syncTotals(); save();
   document.getElementById('argJournalLbl').value='';
