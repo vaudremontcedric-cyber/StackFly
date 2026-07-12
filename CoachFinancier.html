@@ -949,7 +949,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.38';
+window.APP_VERSION = '5.40';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1000,17 +1000,15 @@ window.APP_VERSION = '5.38';
 <div id="app">
 
   <header class="hdr" id="mainHdr">
-    <div class="hdr-left" onclick="doLogout()" style="cursor:pointer">
-      <div class="hdr-ico">
+    <div class="hdr-left">
+      <div class="hdr-ico" onclick="doLogout()" style="cursor:pointer" title="Retour à la page de connexion">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <rect x="2" y="15" width="4" height="7" rx="1.5" fill="#0d9488" opacity=".5"/>
-          <rect x="8" y="11" width="4" height="11" rx="1.5" fill="#0d9488" opacity=".78"/>
-          <rect x="14" y="6" width="4" height="16" rx="1.5" fill="#2dd4bf"/>
-          <line x1="2.5" y1="14" x2="17.5" y2="5" stroke="#10b981" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="2.5,1.8"/>
-          <circle cx="17.5" cy="5" r="2.2" fill="#10b981"/>
+          <path d="M3 11L12 3L21 11" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M5 10V20C5 20.5523 5.44772 21 6 21H18C18.5523 21 19 20.5523 19 20V10" fill="#0d9488" opacity=".78"/>
+          <rect x="10" y="14" width="4" height="7" rx="0.5" fill="#2dd4bf"/>
         </svg>
       </div>
-      <div>
+      <div onclick="openAboutModal()" style="cursor:pointer">
         <div class="hdr-title" id="hdrTitle"><span class="rb-cross" aria-hidden="true"></span>Rescue<span class="rb-red">Budget</span></div>
         <div class="hdr-sub" id="hdrSub"></div>
       </div>
@@ -1658,7 +1656,7 @@ window.APP_VERSION = '5.38';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.38</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.40</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -2067,6 +2065,41 @@ window.APP_VERSION = '5.38';
       <div style="font-size:11.5px;color:var(--text3);text-align:center;line-height:1.6">RescueBudget est un outil pédagogique : il ne remplace aucun de ces dispositifs.<br>Demander de l'aide est un acte de gestion, pas un échec.</div>
     </div>
     <button class="login-btn" style="margin-top:18px;background:linear-gradient(135deg,#ef4444,#b91c1c)" onclick="closeSosModal()">Fermer</button>
+  </div>
+</div>
+
+<div class="ov" id="ovAbout" onclick="if(event.target===this)closeAboutModal()" style="align-items:flex-end">
+  <div class="modal" style="max-height:85vh;overflow-y:auto;border-radius:24px 24px 0 0;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))">
+    <div class="modal-drag"></div>
+    <div class="rb-logo-block" style="margin-bottom:10px">
+      <div class="rb-logo-cross" aria-hidden="true"></div>
+      <div class="rb-logo-text">
+        <div class="rb-logo-rescue">Rescue</div>
+        <div class="rb-logo-budget">Budget</div>
+      </div>
+    </div>
+    <div class="modal-title" style="margin-bottom:4px;text-align:center">C'est quoi, RescueBudget ?</div>
+    <div style="font-size:12px;color:var(--text3);text-align:center;margin-bottom:18px">Trois façons de voir la même idée</div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.7;display:flex;flex-direction:column;gap:14px">
+
+      <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:14px;padding:14px">
+        <div style="font-weight:700;color:var(--text);margin-bottom:6px">🛟 Sortir la tête de l'eau</div>
+        <div>RescueBudget existe pour celles et ceux qui sentent que leur budget leur échappe. Pas de jugement, pas de jargon financier : juste un état des lieux honnête de ton reste à vivre, et un coach IA qui t'aide à reprendre pied, un mois à la fois.</div>
+      </div>
+
+      <div style="background:var(--card2);border-radius:14px;padding:14px">
+        <div style="font-weight:700;color:var(--text);margin-bottom:6px">🧭 Ton coach au quotidien</div>
+        <div>Avec Léo, ton coach IA, tu suis en un coup d'œil ton reste à vivre, tu comprends où part ton argent, et tu reçois une action simple à faire — jamais un rapport de 10 pages, juste le prochain geste utile.</div>
+      </div>
+
+      <div style="background:var(--card2);border-radius:14px;padding:14px">
+        <div style="font-weight:700;color:var(--text);margin-bottom:6px">📈 Vers l'autonomie financière</div>
+        <div>RescueBudget n'est pas qu'un tracker de dépenses : c'est un coach qui t'apprend, mois après mois, à mieux gérer ton argent — budget, épargne, investissements — pour gagner en autonomie financière, sans jamais te vendre de produit ni te conseiller un placement.</div>
+      </div>
+
+      <div style="font-size:11.5px;color:var(--text3);text-align:center;line-height:1.6">Tes données restent sur ton appareil. RescueBudget est un outil pédagogique, pas un conseiller financier.</div>
+    </div>
+    <button class="login-btn" style="margin-top:18px" onclick="closeAboutModal()">Fermer</button>
   </div>
 </div>
 
@@ -4481,6 +4514,8 @@ function saveKey(){
 }
 function openSosModal(){ var o=document.getElementById('ovSos'); if(o) o.classList.add('open'); }
 function closeSosModal(){ var o=document.getElementById('ovSos'); if(o) o.classList.remove('open'); }
+function openAboutModal(){ var o=document.getElementById('ovAbout'); if(o) o.classList.add('open'); }
+function closeAboutModal(){ var o=document.getElementById('ovAbout'); if(o) o.classList.remove('open'); }
 function openPrivacyModal(){ document.getElementById('ovPrivacy').classList.add('open'); }
 function closePrivacyModal(){ document.getElementById('ovPrivacy').classList.remove('open'); }
 
