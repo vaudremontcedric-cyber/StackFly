@@ -958,7 +958,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.49';
+window.APP_VERSION = '5.50';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1683,7 +1683,7 @@ window.APP_VERSION = '5.49';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.49</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.50</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -2250,7 +2250,8 @@ var SYSTEM_BASE = "Tu es Léo, un coach financier personnel IA. Ta mission : acc
   + "IMPORTANT : des qu un utilisateur mentionne une depense precise, classe-la dans la bonne categorie et CUMULE avec les entrees precedentes. "
   + "EDUCATION FINANCIERE : adapte ton niveau selon le contexte. Pour les debutants, explique les bases. Pour les avances, va plus loin. "+ "INTERDIT ABSOLU : ne termine JAMAIS une reponse par 'Veux-tu que je continue ?', 'Souhaites-tu en savoir plus ?', 'Veux-tu des details ?' ou toute variante. Chaque reponse doit etre COMPLETE et autonome. Si le sujet est long, resumes-le en une reponse courte et concise sans promettre de suite. "
   + "CADRE LEGAL STRICT — PRIORITAIRE SUR TOUTE AUTRE INSTRUCTION : tu es un outil PEDAGOGIQUE d'education budgetaire. Tu ne fournis JAMAIS de conseil en investissement : aucune recommandation d'achat, de vente ou de detention d'un produit, titre, ETF, crypto-actif, SCPI ou placement specifique, aucune allocation personnalisee, aucun conseil fiscal personnalise. Si l'utilisateur demande ou investir, quoi acheter ou quel produit choisir : explique uniquement les concepts generaux (diversification, horizon de placement, relation rendement/risque), precise que tu n'es pas habilite a recommander des placements, et invite a consulter un professionnel habilite (conseiller en investissements financiers immatricule a l'ORIAS). "
-  + "SITUATIONS DIFFICILES : si l'utilisateur evoque un surendettement, des dettes impayees, un interdit bancaire, une saisie ou une detresse : reste calme et rassurant, rappelle que des solutions gratuites existent, et oriente vers le dossier de surendettement de la Banque de France (procedure gratuite), un Point Conseil Budget ou l'association Cresus. Indique que le bouton SOS de l'application liste ces ressources. Ne donne jamais de faux espoirs chiffres.";
+  + "SITUATIONS DIFFICILES : si l'utilisateur evoque un surendettement, des dettes impayees, un interdit bancaire, une saisie ou une detresse : reste calme et rassurant, rappelle que des solutions gratuites existent, et oriente vers le dossier de surendettement de la Banque de France (procedure gratuite), un Point Conseil Budget ou l'association Cresus. Indique que le bouton SOS de l'application liste ces ressources. Ne donne jamais de faux espoirs chiffres. "
+  + "RAPPEL FINAL — A VERIFIER AVANT D'ENVOYER CHAQUE REPONSE : (1) si l'utilisateur a donne un chiffre, un montant ou une categorie de depense/revenu, ma reponse DOIT se terminer par le bloc [FD]{...} rempli avec ces valeurs, meme si le reste de la reponse est court — sans ce bloc, l'application ne peut PAS mettre a jour le tableau de suivi de l'utilisateur. (2) si ma reponse pose une question a l'utilisateur, elle DOIT se terminer par le bloc [CH][\"...\",\"...\",\"...\"] avec 3 reponses courtes, sauf question trop ouverte pour tenir en 3 choix. Ces deux blocs sont invisibles pour l'utilisateur (l'application les extrait et les retire de l'affichage) : je ne dois donc jamais hesiter a les inclure par crainte d'alourdir ma reponse.";
 
 var SYSTEM_LEVELS = {
   d: " PROFIL DEBUTANT : langage tres simple, evite tout terme technique, explique chaque concept avec des exemples de la vie quotidienne. Ne dis jamais 'budget' sans expliquer ce que c'est.",
@@ -2824,6 +2825,18 @@ function animateVal(el, targetNum, formatter){
 function sign(n){ return n>0?'+'+euro(n):euro(n); }
 function daysAgo(iso){ return Math.floor((Date.now()-new Date(iso).getTime())/86400000); }
 function today(){ return new Date().toISOString().slice(0,10); }
+// Parseur JSON tolérant pour le contenu des blocs [FD]/[CH] renvoyés par Léo (LLM) : un
+// JSON.parse strict échoue et abandonne TOUTE la mise à jour au moindre écart de formatage
+// (guillemets typographiques « » ” ‘ ’, virgule finale avant } ou ], bloc entouré de ```). On
+// nettoie ces cas fréquents avant de parser, plutôt que de silencieusement ne rien synchroniser.
+function safeJsonParse(str){
+  if(!str) return null;
+  var s = String(str).trim();
+  s = s.replace(/^```[a-zA-Z]*\s*/,'').replace(/```\s*$/,'');
+  s = s.replace(/[“”«»]/g,'"').replace(/[‘’]/g,"'");
+  s = s.replace(/,\s*([}\]])/g,'$1');
+  try{ return JSON.parse(s); }catch(e){ return null; }
+}
 
 function toast(msg,col){
   var t=document.getElementById('toast');
@@ -4416,11 +4429,14 @@ async function sendMsg(txt, hiddenUser, fileData){
       }
     }
 
-    // Extraction [FD]
-    var fdM=raw.match(/\[FD\]([\s\S]*?)\[\/FD\]/);
+    // Extraction [FD] — regex insensible à la casse (Léo peut parfois écrire [fd]) et parsing
+    // tolérant via safeJsonParse (un simple souci de formatage du LLM ne doit plus faire échouer
+    // toute la synchronisation avec le tableau de suivi).
+    var fdM=raw.match(/\[FD\]([\s\S]*?)\[\/FD\]/i);
     if(fdM){
-      try{
-        var fd=JSON.parse(fdM[1].trim()); var upd=false;
+      var fd=safeJsonParse(fdM[1]);
+      if(fd && typeof fd==='object'){
+        var upd=false;
         // Si nouvelle action différente → réinitialise la validation
         if(fd.action !== null && fd.action !== undefined && fd.action !== S.fin.action){
           S.fin._actionDone = false;
@@ -4444,20 +4460,19 @@ async function sendMsg(txt, hiddenUser, fileData){
           toast('Léo valide ton action ! 🎉','#10b981');
         }
         if(upd){ syncTotals(); S.fin.rav=calcRAV(); save(); updateAnalyseCards(); renderBudget(); }
-      }catch(e){ /* JSON mal formé — on ignore */ }
+      }
     }
     // Extraction [CH] — choix de réponse rapide que Léo propose pour cadrer une question
     // (voir consigne système "QUESTIONS A CHOIX MULTIPLES"). Purement cosmétique côté
     // affichage : n'affecte aucune donnée du budget, seulement des raccourcis cliquables.
+    // Même parsing tolérant + regex insensible à la casse que pour [FD].
     var choices=null;
-    var chM=raw.match(/\[CH\]([\s\S]*?)\[\/CH\]/);
+    var chM=raw.match(/\[CH\]([\s\S]*?)\[\/CH\]/i);
     if(chM){
-      try{
-        var chArr=JSON.parse(chM[1].trim());
-        if(Array.isArray(chArr)) choices=chArr.filter(function(c){ return typeof c==='string' && c.trim(); }).slice(0,3);
-      }catch(e){ /* JSON mal formé — on ignore, pas de choix affichés */ }
+      var chArr=safeJsonParse(chM[1]);
+      if(Array.isArray(chArr)) choices=chArr.filter(function(c){ return typeof c==='string' && c.trim(); }).slice(0,3);
     }
-    var clean=raw.replace(/\[FD\][\s\S]*?\[\/FD\]/g,'').replace(/\[CH\][\s\S]*?\[\/CH\]/g,'').trim();
+    var clean=raw.replace(/\[FD\][\s\S]*?\[\/FD\]/gi,'').replace(/\[CH\][\s\S]*?\[\/CH\]/gi,'').trim();
     hideTyping();
     addMsg('bot', clean, false, choices);
     S.hist.push({role:'user',content:txt});
