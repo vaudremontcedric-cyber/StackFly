@@ -979,7 +979,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.77';
+window.APP_VERSION = '5.78';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1558,7 +1558,7 @@ window.APP_VERSION = '5.77';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.77</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.78</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -1674,6 +1674,10 @@ window.APP_VERSION = '5.77';
       <button class="mb s" onclick="closeEditArgentItem()">Annuler</button>
       <button class="mb p" onclick="saveEditArgentItem()">Enregistrer</button>
     </div>
+    <!-- v5.78 : bouton Supprimer ajouté à cette fenêtre (unique point d'accès modification/suppression
+         d'une ligne depuis la corbeille retirée des sous-sections) — ouvre la même confirmation que
+         partout ailleurs dans l'app (showConfirm(), via deleteFromEditModal()). -->
+    <button onclick="deleteFromEditModal()" style="width:100%;margin-top:10px;padding:12px;background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.25);border-radius:13px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">&#128465;&#65039; Supprimer cette ligne</button>
   </div>
 </div>
 
@@ -3153,6 +3157,16 @@ function saveEditArgentItem(){
   renderTriCards(); renderScore(); renderPoche(); renderBudget();
   toast('Ligne modifiée ✓','#10b981');
 }
+// v5.78 : bouton Supprimer de la fenêtre Modifier la ligne — ferme d'abord cette fenêtre puis
+// ouvre la confirmation habituelle (confirmDeleteArgentRow(), même popup que pour un actif ou un
+// objectif) avant de supprimer réellement. Remplace la corbeille qui était directement dans les
+// sous-sections des mini-cartes, retirée pour ne garder qu'une seule icône (crayon) par ligne.
+function deleteFromEditModal(){
+  if(_editArgKey==null || _editArgIdx==null) return;
+  var key=_editArgKey, idx=_editArgIdx;
+  closeEditArgentItem();
+  confirmDeleteArgentRow(key, idx);
+}
 
 // ── Modal versement objectif ──
 var _depositGoalIdx = null;
@@ -3911,18 +3925,14 @@ function renderArgentRows(rows, col){
   }).map(function(r){
     var dateTxt=fmtShortDate(r.d);
     // Ligne synthétique (voir getRevenuRows()/getEpargneInvestRows()) : représente un montant
-    // déclaré globalement à Léo, sans détail par ligne — pas d'index réel à supprimer.
-    // v5.77 : la croix "×" est remplacée par une corbeille 🗑️ (plus explicite), et le clic passe
-    // désormais par confirmDeleteArgentRow() qui demande confirmation avant de supprimer réellement
-    // (au lieu d'un appel direct à deleteRepItem()), pour éviter une suppression accidentelle.
-    var delBtn=r.synthetic
+    // déclaré globalement à Léo, sans détail par ligne — pas d'index réel à modifier/supprimer.
+    // v5.78 : la corbeille 🗑️ à côté du crayon est retirée à la demande de l'utilisateur — une
+    // seule icône (crayon) reste visible, et c'est la fenêtre de modification qu'elle ouvre
+    // (openEditArgentItem() → #ovEditArgent) qui propose désormais AUSSI un bouton Supprimer
+    // (voir deleteFromEditModal()), avec la même confirmation qu'avant (confirmDeleteArgentRow()).
+    var editIco=r.synthetic
       ? '<span style="font-size:9.5px;color:var(--text3);flex-shrink:0;font-style:italic">déclaré</span>'
-      : '<div onclick="event.stopPropagation();confirmDeleteArgentRow(\''+r.key+'\','+r.idx+')" style="cursor:pointer;color:var(--text3);font-size:13px;padding:2px 4px;flex-shrink:0;display:flex;align-items:center" title="Supprimer">&#128465;&#65039;</div>';
-    // v5.72 : toute la ligne est déjà cliquable pour l'éditer depuis la v5.62 (openEditArgentItem),
-    // mais rien ne le montrait visuellement — un crayon explicite (même glyphe que "Modifier" sur
-    // Mes actifs) rend cette action découvrable. Absent sur les lignes "déclaré" (rien à éditer
-    // ligne par ligne, voir openEditArgentItem()).
-    var editIco=r.synthetic ? '' : '<div style="color:var(--text3);font-size:13px;flex-shrink:0;display:flex;align-items:center" title="Modifier">&#9998;</div>';
+      : '<div style="color:var(--text3);font-size:13px;flex-shrink:0;display:flex;align-items:center" title="Modifier / Supprimer">&#9998;</div>';
     return '<div onclick="openEditArgentItem(\''+r.key+'\','+r.idx+')" style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer">'
       +'<div style="flex:1;min-width:0">'
         +'<div style="font-size:13.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.n)+'</div>'
@@ -3930,7 +3940,6 @@ function renderArgentRows(rows, col){
       +'</div>'
       +'<div style="font-size:13.5px;font-weight:700;color:'+col+';flex-shrink:0">'+euro(r.v)+'</div>'
       +editIco
-      +delBtn
       +'</div>';
   }).join('');
 }
