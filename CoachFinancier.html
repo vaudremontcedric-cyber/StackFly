@@ -981,7 +981,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.67';
+window.APP_VERSION = '5.68';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1572,7 +1572,7 @@ window.APP_VERSION = '5.67';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.67</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.68</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -3594,9 +3594,21 @@ var ARGENT_ICON_PATHS = {
   assurance:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>',
   layers:   '<polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline>'
 };
+// v5.68 : jeu d'emoji unique (ARG_EMOJI) repris du style de "Synthèse budget" (💶 Revenus,
+// 💸 Dépenses, 🏦 Épargne, 📈 Investissements, ✅ Reste à vivre), généralisé à toute l'app —
+// c'est le style que l'utilisateur a choisi de conserver plutôt que les pictogrammes SVG
+// (trait fin ARGENT_ICON_PATHS et "3D léger" ARG3D_PATHS, désormais inutilisés mais laissés
+// ci-dessous pour permettre un retour en arrière facile si besoin). argIcon() et arg3dIcon()
+// pointent tous deux vers ce même dictionnaire pour qu'un futur changement de glyphe se
+// propage automatiquement partout (menu +, Dépense rapide, Où va mon argent, Mes actifs...).
+var ARG_EMOJI = {
+  revenu:'💶', fixe:'🧾', courses:'🛒', plaisirs:'🎉', imprevus:'☂️',
+  epargne:'🏦', invest:'📈', resto:'🍽️', transport:'🚗', shopping:'🛍️',
+  logement:'🏠', sante:'🩺', autre:'📦', assurance:'🛡️', layers:'💎'
+};
 function argIcon(name, size){
   size = size || 16;
-  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block">'+(ARGENT_ICON_PATHS[name]||'')+'</svg>';
+  return '<span style="font-size:'+size+'px;line-height:1;display:inline-block;text-align:center">'+(ARG_EMOJI[name]||'❔')+'</span>';
 }
 function argIconBadge(name, bg, col, size){
   size = size || 32;
@@ -3632,7 +3644,7 @@ var ARG3D_PATHS = {
 };
 function arg3dIcon(name, size){
   size = size || 16;
-  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" style="display:block">'+(ARG3D_PATHS[name]||'')+'</svg>';
+  return '<span style="font-size:'+size+'px;line-height:1;display:inline-block;text-align:center">'+(ARG_EMOJI[name]||'❔')+'</span>';
 }
 function arg3dBadge(name, bg, size){
   size = size || 32;
