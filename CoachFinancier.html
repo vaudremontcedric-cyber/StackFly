@@ -554,9 +554,15 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 .mb.s{background:var(--card);color:var(--text);border:1px solid var(--border)}
 
 /* TOAST */
+/* v5.80 : correction d'un bug de débordement signalé par l'utilisateur — white-space:nowrap sans
+   aucune limite de largeur forçait certains messages longs (ex: le toast affiché en touchant la
+   ligne synthétique "Épargne déclarée") à dépasser du bord de l'écran, illisibles au-delà de la
+   largeur visible. max-width + white-space:normal permettent au texte de passer à la ligne au
+   besoin, tout en gardant l'apparence "pilule" centrée pour les messages courts habituels. */
 .toast{position:fixed;top:80px;left:50%;transform:translateX(-50%) scale(.96);
-  color:#fff;padding:11px 22px;border-radius:22px;font-size:13px;font-weight:700;
-  z-index:300;opacity:0;transition:opacity .22s;pointer-events:none;white-space:nowrap;
+  color:#fff;padding:11px 22px;border-radius:18px;font-size:13px;font-weight:700;
+  z-index:300;opacity:0;transition:opacity .22s;pointer-events:none;
+  max-width:calc(100vw - 32px);white-space:normal;text-align:center;line-height:1.4;
   box-shadow:0 4px 24px rgba(0,0,0,.5)}
 .toast.show{opacity:1;animation:rbToastIn .45s cubic-bezier(.34,1.56,.64,1)}
 
@@ -979,7 +985,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.79';
+window.APP_VERSION = '5.80';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1563,7 +1569,7 @@ window.APP_VERSION = '5.79';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.79</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.80</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
