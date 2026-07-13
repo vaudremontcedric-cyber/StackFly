@@ -985,7 +985,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.81';
+window.APP_VERSION = '5.82';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1240,6 +1240,29 @@ window.APP_VERSION = '5.81';
                    cliquables ci-dessus (qui couvrent déjà consultation/édition/suppression par
                    catégorie) et avec les entrées du bouton + du bandeau bas (Ajouter un revenu /
                    Ajouter une dépense). L'ajout de ligne se fait via Léo (chat) ou le bouton +. -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 1bis. Mes enveloppes (v5.82) : budgets personnalisés (ex: Alimentation, Loisirs) avec
+             report du reliquat/dépassement au mois suivant. Alimentées manuellement ou via Léo
+             (tag "env" posé sur une ligne existante — jamais de création automatique, toujours
+             confirmée par l'utilisateur via cette modale, voir openEnvModal()/[ENVSUG]). -->
+        <div class="acc">
+          <div class="acc-hdr" onclick="toggleAcc(this)">
+            <span>&#9993;&#65039; Mes enveloppes</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <button class="info-btn" onclick="event.stopPropagation();showInfoTip(this,'enveloppes')" title="En savoir plus">i</button>
+              <span class="acc-arr">&#9660;</span>
+            </div>
+          </div>
+          <div class="acc-body">
+            <div class="acc-inner">
+              <div id="envEmpty" style="display:none;color:var(--text3);font-size:13px;text-align:center;padding:10px 0">Crée une enveloppe pour suivre un budget précis (alimentation, loisirs…), ou laisse Léo t'en proposer une au fil de la conversation.</div>
+              <div id="envList"></div>
+              <button onclick="openEnvModal()" style="width:100%;margin-top:12px;padding:12px;background:transparent;border:1.5px solid var(--border);border-radius:12px;color:var(--text2);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+                <span style="font-size:16px;line-height:1">+</span> Créer une enveloppe
+              </button>
             </div>
           </div>
         </div>
@@ -1569,7 +1592,7 @@ window.APP_VERSION = '5.81';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.81</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.82</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -1681,6 +1704,13 @@ window.APP_VERSION = '5.81';
     <input class="m-in" id="editArgAmt" type="text" inputmode="decimal"/>
     <div class="m-lbl">Date</div>
     <input class="m-in" id="editArgDate" type="date"/>
+    <!-- v5.82 : sélecteur d'enveloppe — affiché uniquement pour les lignes éligibles (dépenses
+         besoins/envies hors charges fixes, voir getEnvEligibleRows()). Masqué/vidé sinon par
+         openEditArgentItem(). -->
+    <div id="editArgEnvWrap" style="display:none">
+      <div class="m-lbl">Enveloppe (optionnel)</div>
+      <select class="m-in" id="editArgEnv"><option value="">Aucune</option></select>
+    </div>
     <div class="m-btns">
       <button class="mb s" onclick="closeEditArgentItem()">Annuler</button>
       <button class="mb p" onclick="saveEditArgentItem()">Enregistrer</button>
@@ -1817,6 +1847,21 @@ window.APP_VERSION = '5.81';
         </div></div>
       </div>
 
+      <!-- Mes enveloppes (v5.82) -->
+      <div class="tuto-card" id="tc7">
+        <div class="tuto-card-hdr" onclick="toggleTuto(7)">
+          <span class="tuto-card-ico">✉️</span>
+          <span class="tuto-card-ttl">Mes enveloppes</span>
+          <span class="tuto-card-arr">&#9662;</span>
+        </div>
+        <div class="tuto-card-body"><div class="tuto-card-content">
+          <div class="tuto-step"><div class="tuto-step-num">1</div><div>Dans <b>Où va mon argent ?</b>, ouvre la section <b>Mes enveloppes</b> et touche <b>+ Créer une enveloppe</b> : donne-lui un nom (ex: Alimentation, Loisirs), un emoji et un budget mensuel.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">2</div><div>Chaque dépense que tu rattaches à cette enveloppe (toi-même dans la fenêtre de modification d'une ligne, ou automatiquement via <b>Léo</b> en conversation) vient réduire le montant restant.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">3</div><div>Ce qu'il reste en fin de mois se <b>reporte en bonus</b> le mois suivant ; un dépassement se reporte aussi, en déficit à rattraper.</div></div>
+          <div class="tuto-tip">💡 Léo peut te <b>proposer</b> de créer une enveloppe s'il remarque une dépense récurrente, mais ne la crée jamais tout seul : un bouton apparaît sous son message, c'est toujours toi qui valides.</div>
+        </div></div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -1852,6 +1897,25 @@ window.APP_VERSION = '5.81';
     <div class="m-btns">
       <button class="mb s" onclick="closeGoalModal()">Annuler</button>
       <button class="mb p" id="goalModalSaveBtn" onclick="addGoal()">Cr&#233;er l'objectif</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Enveloppe budget (v5.82) — création ET modification (voir openEnvModal()/openEditEnvModal()).
+     C'est ICI, et uniquement ici, que S.fin.enveloppes est modifié : même quand Léo suggère une
+     enveloppe ([ENVSUG]), il ne fait qu'ouvrir cette modale pré-remplie — la création réelle exige
+     toujours que l'utilisateur clique sur "Créer l'enveloppe" lui-même (voir saveEnv()). -->
+<div class="ov" id="ovEnv" onclick="if(event.target===this)closeEnvModal()">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <div class="modal-title" id="envModalTitle">Nouvelle enveloppe</div>
+    <input class="m-in" id="envEmoji" placeholder="&#9993;&#65039; Emoji (optionnel, ex: &#127831; &#127918;)" maxlength="4" style="font-size:24px;text-align:center"/>
+    <input class="m-in" id="envNom" placeholder="Nom (ex: Alimentation, Loisirs)" maxlength="40"/>
+    <div class="m-lbl">Budget mensuel (&#8364;)</div>
+    <input class="m-in" id="envBudget" type="text" inputmode="decimal" placeholder="300"/>
+    <div class="m-btns">
+      <button class="mb s" onclick="closeEnvModal()">Annuler</button>
+      <button class="mb p" id="envModalSaveBtn" onclick="saveEnv()">Cr&#233;er l'enveloppe</button>
     </div>
   </div>
 </div>
@@ -2064,6 +2128,7 @@ var SYSTEM_BASE = "Tu es Léo, un coach financier personnel IA. Ta mission : acc
   + "besoins_items = tableau JSON des depenses BESOINS, format EXACT : [{\"n\":\"Loyer\",\"v\":800},{\"n\":\"Alimentation\",\"v\":300}]. "
   + "envies_items = meme format pour ENVIES. epargne_items = meme format pour EPARGNE (livret, fonds urgence). invest_items = meme format pour INVESTISSEMENTS (PEA, CTO, ETF, actions). "
   + "CHARGES FIXES — IMPORTANT : quand une depense est recurrente et automatique chaque mois, montant et date fixes (loyer, credit immobilier ou conso, assurance, abonnement Netflix/Spotify/salle de sport, forfait mobile, facture internet/energie recurrente...), ajoute \"b\":\"fixe\" a sa ligne dans besoins_items ou envies_items, format : [{\"n\":\"Loyer\",\"v\":800,\"b\":\"fixe\"}]. Sans ce tag, la depense est comptee comme variable au quotidien dans l'application. Ne mets JAMAIS \"b\":\"fixe\" pour une depense ponctuelle meme habituelle (restaurant, courses, sortie, achat) : fixe = un engagement recurrent au montant stable, pas juste une habitude de consommation. "
+  + "ENVELOPPES BUDGET — l'utilisateur peut creer des enveloppes personnalisees (ex: Alimentation, Loisirs) avec un budget mensuel cible ; la liste EXACTE de ses enveloppes actuelles (avec leur id, leur disponible et leur deja-depense ce mois-ci) t'est donnee dans le contexte ci-dessous. Quand une depense correspond clairement a une enveloppe EXISTANTE, ajoute \"env\":\"<id exact>\" a sa ligne dans besoins_items ou envies_items en reprenant l'id tel quel (jamais traduit, jamais invente), format : [{\"n\":\"Courses Carrefour\",\"v\":60,\"env\":\"alimentation\"}]. N'utilise JAMAIS un id qui n'est pas dans la liste fournie : sans enveloppe existante correspondante, laisse simplement le champ \"env\" absent, la depense reste comptee normalement (besoins/envies, variable au quotidien). INTERDICTION ABSOLUE : tu ne crees JAMAIS toi-meme une enveloppe, quoi qu'il arrive — seul l'utilisateur peut le faire en cliquant sur Creer l'enveloppe dans l'application. Si une categorie de depense revient plusieurs fois sans enveloppe existante et que cela semble utile a l'utilisateur, tu peux au maximum le LUI PROPOSER en ajoutant EXACTEMENT ce bloc en fin de message (en plus de [FD] et [CH] si presents) : [ENVSUG]{\"nom\":\"Nom propose\"}[/ENVSUG]. L'application affichera alors un bouton que l'utilisateur devra cliquer lui-meme pour confirmer et creer l'enveloppe : ne dis JAMAIS dans ton texte que l'enveloppe est deja creee, dis plutot quelque chose comme Je te propose de creer une enveloppe X, tu peux valider juste en dessous. N'utilise ce bloc que rarement (pas a chaque message), uniquement quand cela apporte une vraie valeur. "
   + "revenus_items = meme format pour les REVENUS, uniquement si l'utilisateur donne plusieurs sources distinctes (ex: [{\"n\":\"Salaire\",\"v\":2200},{\"n\":\"Freelance\",\"v\":300}]) — sinon laisse ce champ a null et utilise simplement le champ revenus (un seul chiffre). Ne jamais remplir les deux a la fois pour la meme source : si tu detailles via revenus_items, ne remets pas aussi le total dans revenus, l'application le recalcule automatiquement depuis la somme des lignes. "
   + "IMPORTANT : des qu un utilisateur mentionne une depense precise, classe-la dans la bonne categorie et CUMULE avec les entrees precedentes. "
   + "EDUCATION FINANCIERE : adapte ton niveau selon le contexte. Pour les debutants, explique les bases. Pour les avances, va plus loin. "+ "INTERDIT ABSOLU : ne termine JAMAIS une reponse par 'Veux-tu que je continue ?', 'Souhaites-tu en savoir plus ?', 'Veux-tu des details ?' ou toute variante. Chaque reponse doit etre COMPLETE et autonome. Si le sujet est long, resumes-le en une reponse courte et concise sans promettre de suite. "
@@ -2437,6 +2502,7 @@ var _infoTips = {
   'synth':   { title:'📊 Synthèse budget',      body:'Vue d\'ensemble de tes revenus, dépenses et épargne du mois en cours. Change la période (Mensuel / Journalier / Annuel) pour adapter l\'affichage. Les boutons CSV et PDF en bas exportent ton bilan complet (synthèse, catégories, transactions, objectifs, charges fixes, patrimoine).' },
   'argent':  { title:'📍 Où va mon argent ?',      body:'La jauge en haut montre ce qu\'il te reste à dépenser ce mois-ci. En dessous, 4 mini-cartes à toucher : Revenus, Charges fixes (loyer, crédit, abonnements — dis-les à Léo pour qu\'il les classe automatiquement), Quotidien (Courses / Plaisirs & loisirs / Imprévus) et Épargne & investissement. Touche une mini-carte pour voir ses lignes, puis une ligne pour la modifier ou la supprimer. Rempli automatiquement quand tu parles à Léo, ou via le bouton + du bandeau bas.' },
   'actifs':  { title:'💰 Mes actifs',            body:'Valeur totale de ton patrimoine : compte épargne, immobilier, investissements, crypto… Permet à Léo de te donner des conseils plus précis.' },
+  'enveloppes': { title:'✉️ Mes enveloppes',      body:'Des budgets personnalisés (Alimentation, Loisirs…) avec un montant cible par mois. Crée-en une avec le bouton +, ou laisse Léo t\'en proposer une en conversation — il ne fait que proposer, c\'est toujours toi qui confirmes la création. Ce qui n\'est pas dépensé se reporte en bonus le mois suivant ; un dépassement se reporte aussi, en déficit à rattraper.' },
   'leo':     { title:'💡 Léo recommande',        body:'Conseils personnalisés générés par Léo selon ta situation actuelle. Mis à jour à chaque modification de ton budget. Appuie pour en discuter avec lui.' },
   'rav':     { title:'✅ Reste à vivre',          body:'Calcul : Revenus − Dépenses (Besoins + Envies) − Épargne du mois − Investissements (PEA, ETF, CTO…). Ces montants restent "à toi", mais dès que tu les diriges vers l\'épargne ou l\'investissement, ils ne sont plus disponibles pour tes dépenses courantes. Un reste à vivre négatif signifie que tes dépenses + ton épargne + tes investissements dépassent tes revenus.' }
 };
@@ -3144,6 +3210,21 @@ function openEditArgentItem(key, idx){
   document.getElementById('editArgLbl').value=it.n||'';
   document.getElementById('editArgAmt').value=(it.v!=null?String(it.v):'').replace('.',',');
   document.getElementById('editArgDate').value=it.d||today();
+  // v5.82 : sélecteur d'enveloppe, uniquement pour les dépenses variables (besoins_items/
+  // envies_items hors charges fixes) — même périmètre que getEnvEligibleRows().
+  var envWrap=document.getElementById('editArgEnvWrap');
+  var envSel=document.getElementById('editArgEnv');
+  var eligible=(key==='besoins_items'||key==='envies_items') && it.b!=='fixe';
+  if(eligible && envWrap && envSel){
+    var opts='<option value="">Aucune</option>';
+    (S.fin.enveloppes||[]).forEach(function(env){
+      opts+='<option value="'+env.id+'"'+(it.env===env.id?' selected':'')+'>'+esc(env.emoji||'✉️')+' '+esc(env.nom)+'</option>';
+    });
+    envSel.innerHTML=opts;
+    envWrap.style.display='block';
+  } else if(envWrap){
+    envWrap.style.display='none';
+  }
   document.getElementById('ovEditArgent').classList.add('open');
 }
 function closeEditArgentItem(){
@@ -3162,6 +3243,12 @@ function saveEditArgentItem(){
   items[_editArgIdx].n=lbl;
   items[_editArgIdx].v=amt;
   items[_editArgIdx].d=dt;
+  // v5.82 : persiste l'enveloppe choisie, seulement si le sélecteur était affiché (ligne éligible).
+  var envWrap=document.getElementById('editArgEnvWrap');
+  if(envWrap && envWrap.style.display!=='none'){
+    var envVal=document.getElementById('editArgEnv').value;
+    if(envVal) items[_editArgIdx].env=envVal; else delete items[_editArgIdx].env;
+  }
   S.fin[_editArgKey]=JSON.stringify(items);
   syncTotals(); S.fin.rav=calcRAV(); save();
   closeEditArgentItem();
@@ -3452,6 +3539,21 @@ function getSystem(){
   if(goals.length){
     ctx += ' OBJECTIFS : '+goals.map(function(g){return g.name+' (cible: '+g.target+'€, actuel: '+(g.current||0)+'€)';}).join(', ')+'.';
   }
+  // v5.82 : liste des enveloppes budget déjà créées par l'utilisateur (voir S.fin.enveloppes),
+  // avec leur id EXACT à réutiliser tel quel dans le champ "env" — jamais en inventer un nouveau,
+  // voir la règle ENVELOPPES BUDGET du prompt système.
+  if(typeof rolloverEnveloppes==='function') rolloverEnveloppes();
+  var envs = (f.enveloppes||[]);
+  if(envs.length){
+    ctx += ' ENVELOPPES BUDGET EXISTANTES (id exact entre parenthèses, à réutiliser tel quel dans "env") : '
+      + envs.map(function(env){
+          var dispo=(typeof getEnvDispo==='function') ? getEnvDispo(env) : (env.budget||0);
+          var spent=(typeof getEnvSpentInMonth==='function' && typeof curMonthKey==='function') ? getEnvSpentInMonth(env.id, curMonthKey()) : 0;
+          return env.nom+' (id='+env.id+', disponible ce mois: '+dispo+'€, déjà dépensé: '+spent+'€)';
+        }).join(', ') + '.';
+  } else {
+    ctx += ' ENVELOPPES BUDGET : l\'utilisateur n\'en a créé aucune pour l\'instant.';
+  }
   return SYSTEM_BASE + (SYSTEM_LEVELS[getLevel()]||'') + ctx;
 }
 
@@ -3623,6 +3725,12 @@ function mergeItemsPreservingDates(oldRaw, newItems){
     var out={n:i.n, v:i.v, d:(sameValue && prev.d) ? prev.d : td};
     var b=(prev&&prev.b)?prev.b:i.b;
     if(b) out.b=b;
+    // v5.82 : même logique de préservation que pour "b" — si l'utilisateur a déjà assigné une
+    // enveloppe manuellement (voir saveEditArgentItem()), on la garde même si Léo renvoie la ligne
+    // sans "env" (il ne connaît pas forcément l'assignation manuelle). Sinon on prend celle que
+    // Léo propose, le cas échéant.
+    var env=(prev&&prev.env)?prev.env:i.env;
+    if(env) out.env=env;
     return out;
   });
 }
@@ -3885,6 +3993,204 @@ function getFixedVariableSplit(){
   return {fixed:fixed, buckets:buckets};
 }
 function sumRows(rows){ return rows.reduce(function(s,r){return s+r.v;},0); }
+
+// ══════════════════════════════════════════════
+// ENVELOPPES BUDGET (v5.82)
+// ══════════════════════════════════════════════
+// Fonctionnalité demandée par l'utilisateur : des enveloppes personnalisées (ex: "Alimentation",
+// "Loisirs") avec un budget mensuel cible, alimentées soit manuellement, soit via le tag "env" posé
+// sur une ligne besoins_items/envies_items (par l'utilisateur ou par Léo en conversation). Conçue
+// en couche ADDITIVE et non-intrusive : le tag existant "b" (fixe/courses/plaisirs/imprevus, voir
+// getFixedVariableSplit()) reste totalement inchangé — la jauge, le bento "Quotidien"/"Charges
+// fixes" et les exports CSV/PDF continuent de fonctionner exactement comme avant. Une enveloppe ne
+// s'applique qu'aux lignes besoins_items/envies_items qui NE sont PAS des charges fixes (b!=='fixe')
+// : c'est le même périmètre "dépenses variables" que couvrait déjà le bento "Quotidien".
+// Modèle : S.fin.enveloppes = [{id, nom, emoji, budget, report, moisRef}].
+//   - id : slug stable (ex: "alimentation"), généré une fois à la création, jamais modifié ensuite.
+//   - budget : montant cible mensuel fixé par l'utilisateur.
+//   - report : solde reporté du/des mois précédents (positif = reliquat non dépensé, négatif =
+//     dépassement) — voir rolloverEnveloppes(). Disponible ce mois-ci = budget + report.
+//   - moisRef : dernier mois ('AAAA-MM') pour lequel le report a été calculé.
+function slugifyEnv(nom){
+  var s=(nom||'').toLowerCase().normalize('NFD').replace(new RegExp('[\\u0300-\\u036f]','g'),'');
+  s=s.replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  return s||'enveloppe';
+}
+function uniqueEnvId(nom){
+  var base=slugifyEnv(nom);
+  var existing={}; (S.fin.enveloppes||[]).forEach(function(e){ existing[e.id]=true; });
+  if(!existing[base]) return base;
+  var n=2;
+  while(existing[base+'-'+n]) n++;
+  return base+'-'+n;
+}
+function curMonthKey(){
+  var d=new Date();
+  return d.getFullYear()+'-'+(d.getMonth()<9?'0':'')+(d.getMonth()+1);
+}
+function nextMonthKey(key){
+  var parts=String(key||'').split('-');
+  var y=parseInt(parts[0],10), m=parseInt(parts[1],10);
+  if(isNaN(y)||isNaN(m)) return curMonthKey();
+  m++; if(m>12){ m=1; y++; }
+  return y+'-'+(m<10?'0':'')+m;
+}
+// Lignes éligibles à une enveloppe : besoins_items/envies_items hors charges fixes (b!=='fixe'),
+// même périmètre que le bento "Quotidien" de renderArgentStatDetail().
+function getEnvEligibleRows(){
+  var f=S.fin||{};
+  var rows=[];
+  [['besoins_items'],['envies_items']].forEach(function(pair){
+    parseItems(f[pair[0]]).forEach(function(it,i){
+      if(it.b==='fixe') return;
+      rows.push({n:it.n, v:parseFloat(it.v)||0, d:it.d||'', idx:i, key:pair[0], env:it.env||null});
+    });
+  });
+  return rows;
+}
+function getEnvSpentInMonth(envId, monthKey){
+  return getEnvEligibleRows().filter(function(r){
+    if(r.env!==envId) return false;
+    var d=r.d||today(); // pas de date connue -> comptée sur le mois en cours par convention
+    return d.slice(0,7)===monthKey;
+  }).reduce(function(s,r){ return s+r.v; },0);
+}
+// Disponible ce mois-ci pour une enveloppe = budget cible + solde reporté des mois précédents
+// (déjà calculé et figé dans .report par rolloverEnveloppes() — jamais recalculé à la volée ici,
+// pour que le report reste stable même si de vieilles lignes sont éditées après coup).
+function getEnvDispo(env){ return (env.budget||0)+(env.report||0); }
+// Fait avancer .moisRef mois par mois jusqu'au mois courant, en accumulant le report à chaque
+// passage (reliquat non dépensé ou dépassement du mois qui vient de se terminer). Boucle plutôt
+// qu'un simple "delta" pour rester correct même après une longue absence (plusieurs mois sans
+// ouvrir l'app) : chaque mois traversé est reporté individuellement. Idempotent — ne fait rien si
+// déjà à jour, peut être appelée à chaque rendu sans risque.
+function rolloverEnveloppes(){
+  var list=S.fin && S.fin.enveloppes;
+  if(!Array.isArray(list) || !list.length) return;
+  var cur=curMonthKey();
+  var changed=false;
+  list.forEach(function(env){
+    if(!env.moisRef){ env.moisRef=cur; return; }
+    if(env.report==null) env.report=0;
+    var guard=0;
+    while(env.moisRef!==cur && guard<36){
+      var spentThatMonth=getEnvSpentInMonth(env.id, env.moisRef);
+      var dispoThatMonth=(env.budget||0)+(env.report||0);
+      env.report=Math.round((dispoThatMonth-spentThatMonth)*100)/100;
+      env.moisRef=nextMonthKey(env.moisRef);
+      changed=true;
+      guard++;
+    }
+  });
+  if(changed) save();
+}
+// ── CRUD enveloppes — seule cette modale (#ovEnv) écrit dans S.fin.enveloppes. Même quand Léo
+// suggère une enveloppe via [ENVSUG] (voir sendMsg()), il se contente d'ouvrir cette modale
+// pré-remplie : la création réelle exige toujours un clic explicite de l'utilisateur sur
+// "Créer l'enveloppe" (saveEnv()), jamais une écriture directe depuis la réponse de l'IA.
+var _editEnvId=null;
+function openEnvModal(prefillNom){
+  _editEnvId=null;
+  document.getElementById('envModalTitle').textContent='Nouvelle enveloppe';
+  document.getElementById('envModalSaveBtn').textContent='Créer l\'enveloppe';
+  document.getElementById('envEmoji').value='';
+  document.getElementById('envNom').value=prefillNom||'';
+  document.getElementById('envBudget').value='';
+  document.getElementById('ovEnv').classList.add('open');
+  setTimeout(function(){ var el=document.getElementById('envNom'); if(el) el.focus(); },100);
+}
+function openEditEnvModal(id){
+  var env=(S.fin.enveloppes||[]).filter(function(e){ return e.id===id; })[0]; if(!env) return;
+  _editEnvId=id;
+  document.getElementById('envModalTitle').textContent='Modifier l\'enveloppe';
+  document.getElementById('envModalSaveBtn').textContent='Enregistrer';
+  document.getElementById('envEmoji').value=env.emoji||'';
+  document.getElementById('envNom').value=env.nom||'';
+  document.getElementById('envBudget').value=env.budget||'';
+  document.getElementById('ovEnv').classList.add('open');
+}
+function closeEnvModal(){
+  var m=document.getElementById('ovEnv'); if(m) m.classList.remove('open');
+  _editEnvId=null;
+}
+function saveEnv(){
+  var emoji=(document.getElementById('envEmoji').value||'').trim();
+  var nom=(document.getElementById('envNom').value||'').trim();
+  var budget=parseMontant(document.getElementById('envBudget').value)||0;
+  if(!nom){ toast('Donne un nom à ton enveloppe','#ef4444'); return; }
+  if(!S.fin.enveloppes) S.fin.enveloppes=[];
+  if(!emoji) emoji=guessItemEmoji(nom,'✉️');
+  if(_editEnvId){
+    var env=S.fin.enveloppes.filter(function(e){ return e.id===_editEnvId; })[0];
+    if(!env){ closeEnvModal(); return; }
+    env.nom=nom; env.emoji=emoji; env.budget=budget;
+    save(); closeEnvModal(); renderEnveloppes();
+    toast('Enveloppe mise à jour ✅','#0d9488');
+    return;
+  }
+  var id=uniqueEnvId(nom);
+  S.fin.enveloppes.push({id:id, nom:nom, emoji:emoji, budget:budget, report:0, moisRef:curMonthKey()});
+  save(); closeEnvModal(); renderEnveloppes();
+  toast('Enveloppe créée '+emoji,'#0d9488');
+}
+function deleteEnv(id){
+  var env=(S.fin.enveloppes||[]).filter(function(e){ return e.id===id; })[0]; if(!env) return;
+  showConfirm('Supprimer l\'enveloppe "'+env.nom+'" ?', function(){
+    S.fin.enveloppes=(S.fin.enveloppes||[]).filter(function(e){ return e.id!==id; });
+    // Détache les lignes qui pointaient vers cette enveloppe — elles restent dans besoins_items/
+    // envies_items, simplement sans enveloppe associée (rien n'est supprimé côté dépenses).
+    ['besoins_items','envies_items'].forEach(function(k){
+      var items=parseItems(S.fin[k]);
+      var ch=false;
+      items.forEach(function(it){ if(it.env===id){ delete it.env; ch=true; } });
+      if(ch) S.fin[k]=JSON.stringify(items);
+    });
+    save(); renderEnveloppes();
+    toast('Enveloppe supprimée','#64748b');
+  }, 'Supprimer');
+}
+// Rendu de la liste d'enveloppes — réutilise les classes .goal-card/.goal-bar-track/.goal-amounts
+// déjà en place pour "Mes objectifs", pour une cohérence visuelle immédiate sans nouveau CSS.
+function renderEnveloppes(){
+  var el=document.getElementById('envList'); if(!el) return;
+  rolloverEnveloppes();
+  var list=S.fin.enveloppes||[];
+  var emptyEl=document.getElementById('envEmpty');
+  if(!list.length){
+    el.innerHTML='';
+    if(emptyEl) emptyEl.style.display='block';
+    return;
+  }
+  if(emptyEl) emptyEl.style.display='none';
+  var cur=curMonthKey();
+  el.innerHTML=list.map(function(env){
+    var dispo=getEnvDispo(env);
+    var spent=getEnvSpentInMonth(env.id, cur);
+    var reste=Math.round((dispo-spent)*100)/100;
+    var pct=dispo>0 ? Math.min(100,Math.round(spent/dispo*100)) : (spent>0?100:0);
+    var over=reste<0;
+    var col=over ? '#f97316' : (dispo>0 && spent>=dispo*0.8) ? '#f59e0b' : 'var(--green)';
+    var reportTxt = env.report ? (env.report>0
+        ? '<span style="color:var(--green)">+'+euro(env.report)+' reporté du mois dernier</span>'
+        : '<span style="color:#f97316">'+euro(env.report)+' reporté du mois dernier</span>')
+      : ('Budget mensuel : '+euro(env.budget||0));
+    return '<div class="goal-card" style="margin-bottom:12px">'
+      +'<div class="goal-head">'
+        +'<div class="goal-ico">'+esc(env.emoji||'✉️')+'</div>'
+        +'<div class="goal-meta-wrap"><div class="goal-name">'+esc(env.nom)+'</div>'
+          +'<div class="goal-deadline">'+reportTxt+'</div>'
+        +'</div>'
+        +'<div><div class="goal-target" style="color:'+col+'">'+euro(Math.max(0,reste))+'</div><div class="goal-pct">'+(over?'dépassé':'restant')+'</div></div>'
+      +'</div>'
+      +'<div class="goal-bar-track"><div class="goal-bar-fill" style="width:'+pct+'%;background:'+col+'"></div></div>'
+      +'<div class="goal-amounts"><span>Dépensé : '+euro(spent)+'</span><span>Disponible : '+euro(dispo)+'</span></div>'
+      +'<div style="display:flex;gap:8px">'
+        +'<button class="goal-cta" style="flex:1;padding:10px 14px;background:rgba(99,102,241,.12);color:#818cf8;border:1px solid rgba(99,102,241,.28)" onclick="openEditEnvModal(\''+env.id+'\')" title="Modifier">&#9997;&#65039; Modifier</button>'
+        +'<button class="goal-cta" style="flex:0;padding:10px 14px;background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.25)" onclick="deleteEnv(\''+env.id+'\')" title="Supprimer">&#128465;&#65039;</button>'
+      +'</div>'
+    +'</div>';
+  }).join('');
+}
 // Base "dépenses fixes" pour le reste à vivre théorique (jauge + mini-carte Charges fixes).
 // BUG corrigé (v5.63) : theorique = revenus - sumRows(split.fixed) - epargne - invest utilisait
 // TOUJOURS sumRows(split.fixed), qui vaut 0 si l'utilisateur n'a jamais détaillé de ligne
@@ -4312,6 +4618,9 @@ function renderBudget(){
   // Zone 4: Mes actifs
   renderActifs();
 
+  // v5.82 : Mes enveloppes (budgets personnalisés avec report mensuel)
+  renderEnveloppes();
+
   // Zone 5: Message coach
   var msgEl = document.getElementById('coachMsgTxt');
   if(f.coach_message){
@@ -4353,7 +4662,7 @@ function doAction(){
 // ══════════════════════════════════════════════
 // CHAT
 // ══════════════════════════════════════════════
-function addMsg(role, txt, hidden, choices){
+function addMsg(role, txt, hidden, choices, envSug){
   if(hidden) return;
   var isU = role==='user';
   var d = document.createElement('div');
@@ -4379,6 +4688,22 @@ function addMsg(role, txt, hidden, choices){
       cWrap.appendChild(b);
     });
     if(cWrap.childNodes.length) msgs.appendChild(cWrap);
+  }
+  // v5.82 : suggestion d'enveloppe budget (bloc [ENVSUG] du prompt système) — Léo ne fait que
+  // PROPOSER un nom, jamais créer l'enveloppe lui-même (voir prompt système, règle ENVELOPPES
+  // BUDGET) : ce bouton ouvre la vraie modale de création (#ovEnv) pré-remplie avec le nom
+  // suggéré, et c'est seulement là, en cliquant "Créer l'enveloppe", que l'utilisateur confirme
+  // réellement. Aucune écriture dans S.fin.enveloppes ne se produit avant ce clic explicite.
+  if(!isU && envSug){
+    var eWrap=document.createElement('div');
+    eWrap.className='msg-choices';
+    var eb=document.createElement('button');
+    eb.type='button'; eb.className='msg-choice-btn';
+    eb.style.borderColor='#818cf8'; eb.style.color='#818cf8';
+    eb.textContent='✉️ Créer l\'enveloppe "'+envSug+'" ?';
+    eb.onclick=function(){ eWrap.remove(); openEnvModal(envSug); };
+    eWrap.appendChild(eb);
+    msgs.appendChild(eWrap);
   }
   scrollChat();
 }
@@ -4732,17 +5057,26 @@ async function sendMsg(txt, hiddenUser, fileData){
       var chArr=safeJsonParse(chM[1]);
       if(Array.isArray(chArr)) choices=chArr.filter(function(c){ return typeof c==='string' && c.trim(); }).slice(0,3);
     }
-    var clean=raw.replace(/\[FD\][\s\S]*?\[\/FD\]/gi,'').replace(/\[CH\][\s\S]*?\[\/CH\]/gi,'').trim();
+    // v5.82 : suggestion d'enveloppe budget — bloc purement indicatif, jamais une écriture réelle
+    // (voir prompt système, règle ENVELOPPES BUDGET, et addMsg() qui affiche le bouton correspondant).
+    var envSug=null;
+    var esM=raw.match(/\[ENVSUG\]([\s\S]*?)\[\/ENVSUG\]/i);
+    if(esM){
+      var esObj=safeJsonParse(esM[1]);
+      if(esObj && typeof esObj==='object' && typeof esObj.nom==='string' && esObj.nom.trim()) envSug=esObj.nom.trim().slice(0,40);
+    }
+    var clean=raw.replace(/\[FD\][\s\S]*?\[\/FD\]/gi,'').replace(/\[CH\][\s\S]*?\[\/CH\]/gi,'').replace(/\[ENVSUG\][\s\S]*?\[\/ENVSUG\]/gi,'').trim();
     // v5.81 : filet de sécurité pour un bug signalé par l'utilisateur — quand Léo tronque ou oublie
     // la balise fermante [/FD] ou [/CH] (réponse coupée pendant la génération du bloc JSON en toute
     // fin de message, ou LLM qui oublie de la refermer), le bloc ouvrant restait tel quel (JSON brut
     // visible : accolades, guillemets...) collé à la dernière phrase, puisque les deux .replace()
     // ci-dessus exigent une balise fermante pour matcher. Ces balises sont TOUJOURS en toute fin de
     // réponse (voir prompt système, "EXTRACTION JSON OBLIGATOIRE... en fin de message") : si un
-    // [FD] ou [CH] non refermé traîne encore après le nettoyage normal, on coupe tout à partir de là.
-    clean = clean.replace(/\[FD\][\s\S]*$/i,'').replace(/\[CH\][\s\S]*$/i,'').trim();
+    // [FD], [CH] ou [ENVSUG] non refermé traîne encore après le nettoyage normal, on coupe tout à
+    // partir de là.
+    clean = clean.replace(/\[FD\][\s\S]*$/i,'').replace(/\[CH\][\s\S]*$/i,'').replace(/\[ENVSUG\][\s\S]*$/i,'').trim();
     hideTyping();
-    addMsg('bot', clean, false, choices);
+    addMsg('bot', clean, false, choices, envSug);
     S.hist.push({role:'user',content:txt});
     S.hist.push({role:'assistant',content:clean});
     // Garde 60 messages max en mémoire
