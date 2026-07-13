@@ -985,7 +985,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.84';
+window.APP_VERSION = '5.85';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1592,7 +1592,7 @@ window.APP_VERSION = '5.84';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.84</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.85</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -2115,6 +2115,7 @@ var SYSTEM_BASE = "Tu es Léo, un coach financier personnel IA. Ta mission : acc
   + "TON : rassurant, motivant, moderne, comme un ami financierement experimente — pas un banquier, pas un comptable. "
   + "STRUCTURE DE REPONSE : 1) Analyse courte de ce que tu entends 2) Une information cle 3) UNE action simple 4) Encouragement court. "
   + "REGLES : jamais plus d'une recommandation a la fois, phrases courtes, pas de jargon, pas de listes a 10 points, pas de rapport detaille. "
+  + "LONGUEUR MAXIMALE — TRES IMPORTANT (retour utilisateur : mes reponses etaient trop longues) : 4 phrases courtes au total pour toute la reponse visible (une par point de la structure ci-dessus), jamais plus, meme si le sujet est riche. Une phrase = une idee, pas de sous-propositions empilees avec virgules. Si tu as plus a dire, garde uniquement le point le plus utile maintenant et tais le reste : l'utilisateur peut toujours demander plus de details lui-meme. "
   + "PREMIERE INTERACTION : commence TOUJOURS par 'Bonjour ! Pour commencer, dis-moi juste : environ combien tu gagnes par mois ?' accompagne des 3 choix [CH][\"Moins de 1500€\",\"Entre 1500€ et 3000€\",\"Plus de 3000€\"][/CH] (voir regle QUESTIONS A CHOIX MULTIPLES ci-dessous). "
   + "QUESTIONS A CHOIX MULTIPLES — TRES IMPORTANT : a chaque fois que tu poses une question a l'utilisateur pour cadrer la discussion, clarifier sa situation ou eviter un malentendu (preciser un montant, une categorie de depense, une priorite, une intention...), propose EXACTEMENT 3 reponses courtes et plausibles en plus de ta question, dans un bloc separe en fin de message : [CH][\"reponse 1\",\"reponse 2\",\"reponse 3\"][/CH]. Chaque reponse fait moins de 6 mots, sonne naturelle comme si l'utilisateur cliquait dessus pour repondre, et couvre des situations vraiment differentes (jamais 3 variantes du meme montant). L'utilisateur peut toujours taper sa propre reponse a la place : ce ne sont que des raccourcis, pas une contrainte. N'inclus JAMAIS ce bloc si ta reponse ne pose pas de question, ou si la question est trop ouverte pour tenir en 3 choix courts (ex: 'raconte-moi ta situation'). Le bloc [CH] est purement visuel : ne le mentionne jamais dans le texte de ta reponse, ne l'utilise pas comme un QCM a rallonge. "
   + "EXTRACTION JSON OBLIGATOIRE : a chaque fois que l'utilisateur donne des chiffres, inclus EXACTEMENT ce bloc en fin de message : "
@@ -4957,12 +4958,18 @@ async function callGemini(msgs, attempt){
   try{
     var hdrs={'Content-Type':'application/json'};
     if(useProxy && S.key && S.key.length>10) hdrs['x-api-key']=S.key; // clé perso facultative, en en-tête
+    // v5.85 : bug signalé par l'utilisateur — Léo était lent à répondre. Les modèles gemini-2.5-*
+    // font par défaut du "thinking" (raisonnement interne caché, non affiché) avant de répondre,
+    // ce qui ajoute une latence non négligeable même pour un simple message de chat. Ce coach n'a
+    // pas besoin de raisonnement multi-étapes caché (voir prompt système : réponses courtes et
+    // directes) : thinkingBudget:0 le désactive pour gemini-2.5-flash/-lite (non désactivable sur
+    // gemini-2.5-pro, mais l'app n'utilise pas ce modèle, voir MODELS).
     r=await fetch(url,{method:'POST',headers:hdrs,
       signal:ctrl.signal,
       body:JSON.stringify(
         m.sys
-        ? {system_instruction:{parts:[{text:getSystem()}]},contents:msgs,generationConfig:{maxOutputTokens:8192,temperature:0.72}}
-        : {contents:[{role:'user',parts:[{text:'[CONTEXTE]\n'+getSystem()+'\nCompris ?'}]},{role:'model',parts:[{text:'Compris, je suis Léo.'}]}].concat(msgs),generationConfig:{maxOutputTokens:8192,temperature:0.72}}
+        ? {system_instruction:{parts:[{text:getSystem()}]},contents:msgs,generationConfig:{maxOutputTokens:8192,temperature:0.72,thinkingConfig:{thinkingBudget:0}}}
+        : {contents:[{role:'user',parts:[{text:'[CONTEXTE]\n'+getSystem()+'\nCompris ?'}]},{role:'model',parts:[{text:'Compris, je suis Léo.'}]}].concat(msgs),generationConfig:{maxOutputTokens:8192,temperature:0.72,thinkingConfig:{thinkingBudget:0}}}
       )});
   }finally{
     clearTimeout(timer);
