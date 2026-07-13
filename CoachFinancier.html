@@ -985,7 +985,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.93';
+window.APP_VERSION = '5.94';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1594,7 +1594,7 @@ window.APP_VERSION = '5.93';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.93</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.94</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -1686,7 +1686,7 @@ window.APP_VERSION = '5.93';
     <div class="modal-drag"></div>
     <div class="modal-title" id="depositModalTitle">+ Versement</div>
     <div class="actif-modal-lbl">Montant (€)</div>
-    <input class="actif-modal-in" id="depositModalIn" type="number" inputmode="decimal" placeholder="0" min="0" step="0.01"/>
+    <input class="actif-modal-in" id="depositModalIn" type="number" inputmode="decimal" placeholder="0" min="0" step="0.01" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();saveGoalDeposit();}"/>
     <div style="font-size:12px;color:var(--text3);margin-top:8px;margin-bottom:20px" id="depositModalSub"></div>
     <button class="login-btn" onclick="saveGoalDeposit()">Enregistrer ✓</button>
     <div style="text-align:center;margin-top:10px">
@@ -1703,7 +1703,7 @@ window.APP_VERSION = '5.93';
     <div class="m-lbl">Libellé</div>
     <input class="m-in" id="editArgLbl" maxlength="40"/>
     <div class="m-lbl">Montant (€)</div>
-    <input class="m-in" id="editArgAmt" type="text" inputmode="decimal"/>
+    <input class="m-in" id="editArgAmt" type="text" inputmode="decimal" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();saveEditArgentItem();}"/>
     <div class="m-lbl">Date</div>
     <input class="m-in" id="editArgDate" type="date"/>
     <!-- v5.82 : sélecteur d'enveloppe — affiché uniquement pour les lignes éligibles (dépenses
@@ -1890,9 +1890,9 @@ window.APP_VERSION = '5.93';
     <input class="m-in" id="goalName" placeholder="Nom de l'objectif (ex: Achat voiture)" maxlength="60"/>
     <div class="m-row">
       <div><div class="m-lbl">Montant cible (&#8364;)</div>
-        <input class="m-in" id="goalTarget" type="number" placeholder="8000" min="0" style="margin:0"/></div>
+        <input class="m-in" id="goalTarget" type="number" placeholder="8000" min="0" style="margin:0" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('goalCurrent').focus();}"/></div>
       <div><div class="m-lbl">D&#233;j&#224; &#233;pargn&#233; (&#8364;)</div>
-        <input class="m-in" id="goalCurrent" type="number" placeholder="0" min="0" style="margin:0"/></div>
+        <input class="m-in" id="goalCurrent" type="number" placeholder="0" min="0" style="margin:0" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();addGoal();}"/></div>
     </div>
     <div class="m-lbl">&#201;ch&#233;ance</div>
     <input class="m-in" id="goalDeadline" type="month"/>
@@ -1917,7 +1917,7 @@ window.APP_VERSION = '5.93';
     <input class="m-in" id="envEmoji" placeholder="&#9993;&#65039; Emoji (optionnel, ex: &#127831; &#127918;)" maxlength="4" style="font-size:24px;text-align:center" oninput="_envEmojiAuto=false"/>
     <input class="m-in" id="envNom" placeholder="Nom (ex: Alimentation, Loisirs)" maxlength="40" oninput="refreshEnvEmojiGuess()"/>
     <div class="m-lbl">Budget mensuel (&#8364;)</div>
-    <input class="m-in" id="envBudget" type="text" inputmode="decimal" placeholder="300"/>
+    <input class="m-in" id="envBudget" type="text" inputmode="decimal" placeholder="300" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();saveEnv();}"/>
     <!-- v5.88 : catégories liées — rattachement 100% fiable et automatique des dépenses futures
          reconnues dans ces catégories (voir detectExpenseCategory()/autoLinkEnveloppes()), sans
          dépendre de Léo. Facultatif : une enveloppe sans catégorie reste utilisable manuellement
@@ -1939,7 +1939,7 @@ window.APP_VERSION = '5.93';
     <div class="m-lbl">Libellé</div>
     <input class="m-in" id="revLbl" placeholder="Ex: Salaire, Freelance, Prime" maxlength="40"/>
     <div class="m-lbl">Montant (&#8364;)</div>
-    <input class="m-in" id="revAmt" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" style="font-size:24px;text-align:center;font-weight:700"/>
+    <input class="m-in" id="revAmt" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" style="font-size:24px;text-align:center;font-weight:700" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();saveRevenuRapide();}"/>
     <div class="m-lbl">Date</div>
     <input class="m-in" id="revDate" type="date"/>
     <div class="m-btns">
@@ -1960,7 +1960,7 @@ window.APP_VERSION = '5.93';
          la mise à jour v5.63 de son icône ailleurs dans l'app). -->
     <div class="txn-cats" id="txnCats"></div>
     <div class="m-lbl">Montant (&#8364;)</div>
-    <input class="m-in" id="txnAmt" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" style="font-size:24px;text-align:center;font-weight:700"/>
+    <input class="m-in" id="txnAmt" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" style="font-size:24px;text-align:center;font-weight:700" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();saveTxn();}"/>
     <div class="m-lbl">Description (optionnel)</div>
     <input class="m-in" id="txnDesc" placeholder="Ex: D&#233;jeuner avec Paul" maxlength="60"/>
     <!-- v5.83 : sélecteur d'enveloppe — corrige le bug signalé par l'utilisateur (une dépense
