@@ -985,7 +985,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.92';
+window.APP_VERSION = '5.93';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1594,7 +1594,7 @@ window.APP_VERSION = '5.92';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.92</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.93</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -1783,7 +1783,7 @@ window.APP_VERSION = '5.92';
           <div class="tuto-step"><div class="tuto-step-num">3</div><div>Renseigne le montant cible, ce que tu as déjà épargné et l'échéance.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">4</div><div>Utilise <b>+ Versement</b> pour ajouter chaque fois que tu mets de côté.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">5</div><div>Clique <b>Voir mon plan</b> pour que Léo génère un plan d'action personnalisé.</div></div>
-          <div class="tuto-tip">💡 Léo calcule automatiquement combien de mois il te faut pour atteindre ton objectif. Un nouvel objectif se crée uniquement depuis cet onglet — le bouton + du bandeau du bas sert uniquement aux revenus et dépenses.</div>
+          <div class="tuto-tip">💡 Léo calcule automatiquement combien de mois il te faut pour atteindre ton objectif à ton rythme actuel — et si tu donnes une échéance, l'application affiche aussi la <b>mensualité conseillée</b> pour la tenir (en orange si elle dépasse ta capacité d'épargne actuelle). Léo reprend toujours ce même chiffre dans ses conseils. Un nouvel objectif se crée uniquement depuis cet onglet, ou en cliquant sur le bouton de suggestion que Léo peut proposer en discussion — dans les deux cas, tu dois toujours confirmer la création toi-même. Le bouton + du bandeau du bas sert uniquement aux revenus et dépenses.</div>
         </div></div>
       </div>
 
@@ -2148,6 +2148,7 @@ var SYSTEM_BASE = "Tu es Léo, un coach financier personnel IA. Ta mission : acc
   + "CHARGES FIXES — IMPORTANT : quand une depense est recurrente et automatique chaque mois, montant et date fixes (loyer, credit immobilier ou conso, assurance, abonnement Netflix/Spotify/salle de sport, forfait mobile, facture internet/energie recurrente...), ajoute \"b\":\"fixe\" a sa ligne dans besoins_items ou envies_items, format : [{\"n\":\"Loyer\",\"v\":800,\"b\":\"fixe\"}]. Sans ce tag, la depense est comptee comme variable au quotidien dans l'application. Ne mets JAMAIS \"b\":\"fixe\" pour une depense ponctuelle meme habituelle (restaurant, courses, sortie, achat) : fixe = un engagement recurrent au montant stable, pas juste une habitude de consommation. "
   + "ENVELOPPES BUDGET — l'utilisateur peut creer des enveloppes personnalisees (ex: Alimentation, Loisirs) avec un budget mensuel cible ; la liste EXACTE de ses enveloppes actuelles (avec leur id, leur disponible et leur deja-depense ce mois-ci) t'est donnee dans le contexte ci-dessous. Quand une depense correspond clairement a une enveloppe EXISTANTE, ajoute \"env\":\"<id exact>\" a sa ligne dans besoins_items ou envies_items en reprenant l'id tel quel (jamais traduit, jamais invente), format : [{\"n\":\"Courses Carrefour\",\"v\":60,\"env\":\"alimentation\"}]. N'utilise JAMAIS un id qui n'est pas dans la liste fournie : sans enveloppe existante correspondante, laisse simplement le champ \"env\" absent, la depense reste comptee normalement (besoins/envies, variable au quotidien). INTERDICTION ABSOLUE : tu ne crees JAMAIS toi-meme une enveloppe, quoi qu'il arrive — seul l'utilisateur peut le faire en cliquant sur Creer l'enveloppe dans l'application. Si une categorie de depense revient plusieurs fois sans enveloppe existante et que cela semble utile a l'utilisateur, tu peux au maximum le LUI PROPOSER en ajoutant EXACTEMENT ce bloc en fin de message (en plus de [FD] et [CH] si presents) : [ENVSUG]{\"nom\":\"Nom propose\"}[/ENVSUG]. L'application affichera alors un bouton que l'utilisateur devra cliquer lui-meme pour confirmer et creer l'enveloppe : ne dis JAMAIS dans ton texte que l'enveloppe est deja creee, dis plutot quelque chose comme Je te propose de creer une enveloppe X, tu peux valider juste en dessous. N'utilise ce bloc que rarement (pas a chaque message), uniquement quand cela apporte une vraie valeur. "
   + "revenus_items = meme format pour les REVENUS, uniquement si l'utilisateur donne plusieurs sources distinctes (ex: [{\"n\":\"Salaire\",\"v\":2200},{\"n\":\"Freelance\",\"v\":300}]) — sinon laisse ce champ a null et utilise simplement le champ revenus (un seul chiffre). Ne jamais remplir les deux a la fois pour la meme source : si tu detailles via revenus_items, ne remets pas aussi le total dans revenus, l'application le recalcule automatiquement depuis la somme des lignes. "
+  + "OBJECTIFS ET RECOMMANDATIONS DE MENSUALITE (v5.93) — l'utilisateur peut definir des objectifs d'epargne (ex: fonds urgence, apport, voyage) avec une cible, un deja-epargne et une echeance optionnelle. La liste EXACTE de ses objectifs, avec pour chacun (si une echeance est definie) la mensualite necessaire pour la tenir DEJA CALCULEE, et sa capacite d'epargne actuelle (epargne+invest par mois), te sont donnees dans le contexte ci-dessous (section OBJECTIFS) : reprends TOUJOURS ce chiffre tel quel dans ta reponse, ne le recalcule jamais toi-meme et n'en invente jamais un different. Si la mensualite necessaire depasse la capacite d'epargne actuelle, dis-le clairement a l'utilisateur et propose soit une echeance plus lointaine et realiste, soit un montant mensuel atteignable, plutot que d'insister sur l'echeance initiale. Si l'utilisateur semble vouloir se fixer un nouvel objectif (montant et/ou date en tete) sans en avoir encore cree un dans l'application, tu peux au maximum le LUI PROPOSER en ajoutant EXACTEMENT ce bloc en fin de message (en plus de [FD]/[CH]/[ENVSUG] si presents) : [GOALSUG]{\"nom\":\"Nom propose\",\"cible\":1000,\"echeance\":\"AAAA-MM\"}[/GOALSUG] (le champ echeance est optionnel, omets-le si aucune date n'est evoquee). INTERDICTION ABSOLUE : tu ne crees et ne modifies JAMAIS toi-meme un objectif, quoi qu'il arrive — seul l'utilisateur peut le faire en cliquant sur Creer l'objectif dans l'application. Ne dis JAMAIS que l'objectif est deja cree ; dis plutot quelque chose comme Je te propose de creer un objectif X, tu peux valider juste en dessous. N'utilise ce bloc que rarement, uniquement quand cela apporte une vraie valeur. "
   + "IMPORTANT : des qu un utilisateur mentionne une depense precise, classe-la dans la bonne categorie et CUMULE avec les entrees precedentes. "
   + "EDUCATION FINANCIERE : adapte ton niveau selon le contexte. Pour les debutants, explique les bases. Pour les avances, va plus loin. "+ "INTERDIT ABSOLU : ne termine JAMAIS une reponse par 'Veux-tu que je continue ?', 'Souhaites-tu en savoir plus ?', 'Veux-tu des details ?' ou toute variante. Chaque reponse doit etre COMPLETE et autonome. Si le sujet est long, resumes-le en une reponse courte et concise sans promettre de suite. "
   + "CADRE LEGAL STRICT — PRIORITAIRE SUR TOUTE AUTRE INSTRUCTION : tu es un outil PEDAGOGIQUE d'education budgetaire. Tu ne fournis JAMAIS de conseil en investissement : aucune recommandation d'achat, de vente ou de detention d'un produit, titre, ETF, crypto-actif, SCPI ou placement specifique, aucune allocation personnalisee, aucun conseil fiscal personnalise. Si l'utilisateur demande ou investir, quoi acheter ou quel produit choisir : explique uniquement les concepts generaux (diversification, horizon de placement, relation rendement/risque), precise que tu n'es pas habilite a recommander des placements, et invite a consulter un professionnel habilite (conseiller en investissements financiers immatricule a l'ORIAS). "
@@ -3616,7 +3617,20 @@ function getSystem(){
   }
   var goals = S.goals || [];
   if(goals.length){
-    ctx += ' OBJECTIFS : '+goals.map(function(g){return g.name+' (cible: '+g.target+'€, actuel: '+(g.current||0)+'€)';}).join(', ')+'.';
+    // v5.93 : échéance + mensualité nécessaire (calcMonthlyNeeded, déterministe) injectées ici pour
+    // que Léo raisonne toujours sur les MÊMES chiffres que ceux affichés sur la carte de l'objectif
+    // (demande utilisateur : adapter les recommandations aux chiffres réels de l'utilisateur).
+    var capaciteEpargne=(f.epargne||0)+(f.invest||0);
+    ctx += ' OBJECTIFS : '+goals.map(function(g){
+      var t=g.name+' (cible: '+g.target+'€, actuel: '+(g.current||0)+'€';
+      if(g.deadline){
+        t+=', échéance: '+g.deadline;
+        var mn=(typeof calcMonthlyNeeded==='function') ? calcMonthlyNeeded(g) : null;
+        if(mn!=null) t+=', mensualité nécessaire pour tenir cette échéance: '+mn+'€/mois';
+      }
+      t+=')';
+      return t;
+    }).join(', ')+'. Capacité d\'épargne actuelle de l\'utilisateur (épargne+invest par mois) : '+capaciteEpargne+'€. Si une mensualité nécessaire dépasse cette capacité, dis-le clairement et propose une échéance plus réaliste ou un montant mensuel atteignable plutôt que d\'insister sur l\'échéance initiale.';
   }
   // v5.82 : liste des enveloppes budget déjà créées par l'utilisateur (voir S.fin.enveloppes),
   // avec leur id EXACT à réutiliser tel quel dans le champ "env" — jamais en inventer un nouveau,
@@ -4930,7 +4944,7 @@ function doAction(){
 // ══════════════════════════════════════════════
 // CHAT
 // ══════════════════════════════════════════════
-function addMsg(role, txt, hidden, choices, envSug){
+function addMsg(role, txt, hidden, choices, envSug, goalSug){
   if(hidden) return;
   var isU = role==='user';
   var d = document.createElement('div');
@@ -4972,6 +4986,21 @@ function addMsg(role, txt, hidden, choices, envSug){
     eb.onclick=function(){ eWrap.remove(); openEnvModal(envSug); };
     eWrap.appendChild(eb);
     msgs.appendChild(eWrap);
+  }
+  // v5.93 : suggestion d'objectif d'épargne (bloc [GOALSUG] du prompt système) — même principe que
+  // [ENVSUG] ci-dessus : Léo ne fait que PROPOSER, ce bouton ouvre uniquement la vraie modale de
+  // création (#ovGoal) pré-remplie, la création réelle exige toujours le clic explicite de
+  // l'utilisateur sur "Créer l'objectif". Aucune écriture dans S.goals ne se produit avant ce clic.
+  if(!isU && goalSug && goalSug.nom){
+    var gWrap=document.createElement('div');
+    gWrap.className='msg-choices';
+    var gb=document.createElement('button');
+    gb.type='button'; gb.className='msg-choice-btn';
+    gb.style.borderColor='#818cf8'; gb.style.color='#818cf8';
+    gb.textContent='🎯 Créer l\'objectif "'+goalSug.nom+'" ?';
+    gb.onclick=function(){ gWrap.remove(); openGoalModal({nom:goalSug.nom, cible:goalSug.cible, echeance:goalSug.echeance}); };
+    gWrap.appendChild(gb);
+    msgs.appendChild(gWrap);
   }
   scrollChat();
 }
@@ -5343,18 +5372,33 @@ async function sendMsg(txt, hiddenUser, fileData){
       var esObj=safeJsonParse(esM[1]);
       if(esObj && typeof esObj==='object' && typeof esObj.nom==='string' && esObj.nom.trim()) envSug=esObj.nom.trim().slice(0,40);
     }
-    var clean=raw.replace(/\[FD\][\s\S]*?\[\/FD\]/gi,'').replace(/\[CH\][\s\S]*?\[\/CH\]/gi,'').replace(/\[ENVSUG\][\s\S]*?\[\/ENVSUG\]/gi,'').trim();
+    // v5.93 : suggestion d'objectif d'épargne — même garde-fou que [ENVSUG] (voir prompt système,
+    // règle OBJECTIFS ET RECOMMANDATIONS DE MENSUALITE, et addMsg() qui affiche le bouton correspondant).
+    var goalSug=null;
+    var gsM=raw.match(/\[GOALSUG\]([\s\S]*?)\[\/GOALSUG\]/i);
+    if(gsM){
+      var gsObj=safeJsonParse(gsM[1]);
+      if(gsObj && typeof gsObj==='object' && typeof gsObj.nom==='string' && gsObj.nom.trim()){
+        var gsCible=parseMontant(gsObj.cible);
+        goalSug={
+          nom: gsObj.nom.trim().slice(0,40),
+          cible: (gsCible>0) ? gsCible : 0,
+          echeance: (typeof gsObj.echeance==='string' && /^\d{4}-\d{2}$/.test(gsObj.echeance.trim())) ? gsObj.echeance.trim() : ''
+        };
+      }
+    }
+    var clean=raw.replace(/\[FD\][\s\S]*?\[\/FD\]/gi,'').replace(/\[CH\][\s\S]*?\[\/CH\]/gi,'').replace(/\[ENVSUG\][\s\S]*?\[\/ENVSUG\]/gi,'').replace(/\[GOALSUG\][\s\S]*?\[\/GOALSUG\]/gi,'').trim();
     // v5.81 : filet de sécurité pour un bug signalé par l'utilisateur — quand Léo tronque ou oublie
     // la balise fermante [/FD] ou [/CH] (réponse coupée pendant la génération du bloc JSON en toute
     // fin de message, ou LLM qui oublie de la refermer), le bloc ouvrant restait tel quel (JSON brut
     // visible : accolades, guillemets...) collé à la dernière phrase, puisque les deux .replace()
     // ci-dessus exigent une balise fermante pour matcher. Ces balises sont TOUJOURS en toute fin de
     // réponse (voir prompt système, "EXTRACTION JSON OBLIGATOIRE... en fin de message") : si un
-    // [FD], [CH] ou [ENVSUG] non refermé traîne encore après le nettoyage normal, on coupe tout à
+    // [FD], [CH], [ENVSUG] ou [GOALSUG] non refermé traîne encore après le nettoyage normal, on coupe tout à
     // partir de là.
-    clean = clean.replace(/\[FD\][\s\S]*$/i,'').replace(/\[CH\][\s\S]*$/i,'').replace(/\[ENVSUG\][\s\S]*$/i,'').trim();
+    clean = clean.replace(/\[FD\][\s\S]*$/i,'').replace(/\[CH\][\s\S]*$/i,'').replace(/\[ENVSUG\][\s\S]*$/i,'').replace(/\[GOALSUG\][\s\S]*$/i,'').trim();
     hideTyping();
-    addMsg('bot', clean, false, choices, envSug);
+    addMsg('bot', clean, false, choices, envSug, goalSug);
     S.hist.push({role:'user',content:txt});
     S.hist.push({role:'assistant',content:clean});
     // Garde 60 messages max en mémoire
@@ -5570,6 +5614,22 @@ function calcProjection(goal){
   if(rem<=0) return 0;
   return Math.ceil(rem/monthly);
 }
+// v5.93 : mensualité recommandée pour tenir l'échéance choisie — demande utilisateur ("Léo doit
+// adapter le montant des mensualités selon les chiffres indiqués"). calcProjection() ci-dessus
+// répond à "à mon rythme actuel, dans combien de temps ?" ; calcMonthlyNeeded() répond à la
+// question inverse, plus utile pour PLANIFIER : "pour arriver à telle date, combien dois-je mettre
+// de côté chaque mois ?" — calcul déterministe (pas une estimation de Léo), toujours à jour dès que
+// la cible, le déjà-épargné ou l'échéance changent. Retourne null si aucune échéance n'est définie.
+function calcMonthlyNeeded(goal){
+  if(!goal.deadline) return null;
+  var rem=goal.target-goal.current;
+  if(rem<=0) return 0;
+  var now=new Date();
+  var dl=new Date(goal.deadline+'-01');
+  var months=(dl.getFullYear()-now.getFullYear())*12+(dl.getMonth()-now.getMonth());
+  months=Math.max(1,months);
+  return Math.ceil(rem/months);
+}
 
 function monthName(offset){
   var d=new Date(); d.setMonth(d.getMonth()+offset);
@@ -5607,6 +5667,19 @@ function renderGoals(){
         +'<span class="step-txt '+(s.done?'done':'')+'">'+esc(s.txt)+'</span>'
         +'</div>';
     }).join('');
+    // v5.93 : mensualité conseillée pour tenir l'échéance choisie, demandée par l'utilisateur —
+    // toujours recalculée à partir des chiffres réels (cible, déjà épargné, capacité actuelle
+    // epargne+invest), jamais une estimation figée. Signale en orange si la mensualité nécessaire
+    // dépasse la capacité actuelle, pour que ce soit visible sans avoir à demander à Léo.
+    var monthlyNeeded=calcMonthlyNeeded(g);
+    var monthlyHtml='';
+    if(monthlyNeeded!=null && monthlyNeeded>0){
+      var capacity=(S.fin.epargne||0)+(S.fin.invest||0);
+      var tight=capacity>0 && monthlyNeeded>capacity;
+      monthlyHtml='<div class="goal-amounts" style="margin-top:2px"><span>Mensualité conseillée</span>'
+        +'<span style="font-weight:700;color:'+(tight?'#f97316':'var(--text)')+'">'+euro(monthlyNeeded)+'/mois</span></div>'
+        +(tight?'<div style="font-size:11px;color:#f97316;margin-top:2px">Au-dessus de ta capacité d\'épargne actuelle ('+euro(capacity)+'/mois) — vise une échéance plus lointaine ou augmente ton épargne.</div>':'');
+    }
     return '<div class="goal-card">'
       +'<div class="goal-head">'
         +'<div class="goal-ico">'+(g.emoji||'&#127919;')+'</div>'
@@ -5618,6 +5691,7 @@ function renderGoals(){
       +'</div>'
       +'<div class="goal-bar-track"><div class="goal-bar-fill" style="width:'+pct+'%"></div></div>'
       +'<div class="goal-amounts"><span>Épargne : '+euro(g.current)+'</span><span>Reste : '+euro(g.target-g.current)+'</span></div>'
+      +monthlyHtml
       +projHtml
       +(steps?'<div class="goal-steps-wrap"><div class="steps-lbl">Prochaines étapes</div>'+steps+'</div>':'')
       +'<div style="display:flex;gap:8px;margin-top:10px">'
@@ -5635,9 +5709,15 @@ function askCoachGoal(gi){
   go('chat');
   setTimeout(function(){
     var proj=calcProjection(g);
+    // v5.93 : mensualité calculée pour l'échéance choisie transmise à Léo, pour que sa
+    // recommandation soit adaptée aux vrais chiffres de l'utilisateur (demande utilisateur) plutôt
+    // qu'une estimation générique — voir calcMonthlyNeeded().
+    var monthlyNeeded=calcMonthlyNeeded(g);
     var msg='Donne-moi un plan détaillé pour atteindre mon objectif "'+g.name+'" de '+g.target+'€.'
       +(g.current>0?' J\'ai déjà épargné '+g.current+'€.':'')
-      +(proj?' D\'après mes données, j\'y serai dans environ '+proj+' mois.':'')
+      +(proj?' D\'après mes données, j\'y serai dans environ '+proj+' mois à mon rythme actuel.':'')
+      +(g.deadline?' Mon échéance visée est '+g.deadline+'.':'')
+      +(monthlyNeeded!=null?' Pour la tenir, il faudrait mettre '+monthlyNeeded+'€ de côté chaque mois : dis-moi si c\'est réaliste vu mes revenus/dépenses actuels, et adapte ta recommandation (mensualité ou échéance) si besoin.':'')
       +' Quelles étapes concrètes me recommandes-tu ?';
     sendMsg(msg);
   },100);
@@ -5737,13 +5817,17 @@ function updateKey(){
 // ══════════════════════════════════════════════
 var _editGoalIdx = null;
 
-function openGoalModal(){
+// v5.93 : prefill optionnel {nom, cible, echeance} — utilisé par le bouton de suggestion
+// d'objectif de Léo (bloc [GOALSUG], voir sendMsg()/addMsg()). Même garde-fou que pour les
+// enveloppes ([ENVSUG]) : Léo ne fait qu'ouvrir cette modale pré-remplie, la création réelle
+// exige toujours un clic explicite de l'utilisateur sur "Créer l'objectif".
+function openGoalModal(prefill){
   _editGoalIdx = null;
   document.getElementById('goalEmoji').value = '';
-  document.getElementById('goalName').value = '';
-  document.getElementById('goalTarget').value = '';
+  document.getElementById('goalName').value = (prefill && prefill.nom) || '';
+  document.getElementById('goalTarget').value = (prefill && prefill.cible) || '';
   document.getElementById('goalCurrent').value = '';
-  document.getElementById('goalDeadline').value = '';
+  document.getElementById('goalDeadline').value = (prefill && prefill.echeance) || '';
   document.getElementById('goalModalTitle').textContent = 'Nouvel objectif';
   document.getElementById('goalModalSaveBtn').textContent = 'Créer l\'objectif';
   document.getElementById('ovGoal').classList.add('open');
