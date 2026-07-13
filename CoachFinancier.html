@@ -985,7 +985,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.90';
+window.APP_VERSION = '5.91';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1248,15 +1248,17 @@ window.APP_VERSION = '5.90';
              report du reliquat/dépassement au mois suivant. Alimentées manuellement ou via Léo
              (tag "env" posé sur une ligne existante — jamais de création automatique, toujours
              confirmée par l'utilisateur via cette modale, voir openEnvModal()/[ENVSUG]). -->
+        <!-- v5.91 : ouverte par défaut à la place de Synthèse budget, à la demande de l'utilisateur —
+             Mes enveloppes est désormais la section la plus consultée à l'ouverture de la page. -->
         <div class="acc">
-          <div class="acc-hdr" onclick="toggleAcc(this)">
+          <div class="acc-hdr open" onclick="toggleAcc(this)">
             <span>&#9993;&#65039; Mes enveloppes</span>
             <div style="display:flex;align-items:center;gap:8px">
               <button class="info-btn" onclick="event.stopPropagation();showInfoTip(this,'enveloppes')" title="En savoir plus">i</button>
               <span class="acc-arr">&#9660;</span>
             </div>
           </div>
-          <div class="acc-body">
+          <div class="acc-body open">
             <div class="acc-inner">
               <div id="envEmpty" style="display:none;color:var(--text3);font-size:13px;text-align:center;padding:10px 0">Crée une enveloppe pour suivre un budget précis (alimentation, loisirs…), ou laisse Léo t'en proposer une au fil de la conversation.</div>
               <div id="envList"></div>
@@ -1267,16 +1269,16 @@ window.APP_VERSION = '5.90';
           </div>
         </div>
 
-        <!-- 2. Synthèse (ouvert) -->
+        <!-- 2. Synthèse (repliée par défaut depuis v5.91, à la demande de l'utilisateur) -->
         <div class="acc">
-          <div class="acc-hdr open" onclick="toggleAcc(this)">
+          <div class="acc-hdr" onclick="toggleAcc(this)">
             <span>&#128202; Synth&#232;se budget</span>
             <div style="display:flex;align-items:center;gap:8px">
               <button class="info-btn" onclick="event.stopPropagation();showInfoTip(this,'synth')" title="En savoir plus">i</button>
               <span class="acc-arr">&#9660;</span>
             </div>
           </div>
-          <div class="acc-body open">
+          <div class="acc-body">
             <div class="acc-inner">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
                 <span style="font-size:12px;font-weight:700;color:var(--text2)">P&#233;riode</span>
@@ -1592,7 +1594,7 @@ window.APP_VERSION = '5.90';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.90</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.91</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
