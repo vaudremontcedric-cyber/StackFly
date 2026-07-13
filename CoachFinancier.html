@@ -985,7 +985,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.89';
+window.APP_VERSION = '5.90';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1592,7 +1592,7 @@ window.APP_VERSION = '5.89';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.89</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.90</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -1909,8 +1909,11 @@ window.APP_VERSION = '5.89';
   <div class="modal">
     <div class="modal-drag"></div>
     <div class="modal-title" id="envModalTitle">Nouvelle enveloppe</div>
-    <input class="m-in" id="envEmoji" placeholder="&#9993;&#65039; Emoji (optionnel, ex: &#127831; &#127918;)" maxlength="4" style="font-size:24px;text-align:center"/>
-    <input class="m-in" id="envNom" placeholder="Nom (ex: Alimentation, Loisirs)" maxlength="40"/>
+    <!-- v5.90 : l'emoji se pré-remplit désormais tout seul (le plus adapté possible, voir
+         guessEnvEmoji()) dès que le nom ou les catégories liées changent — tant que l'utilisateur
+         n'a pas tapé lui-même dans ce champ (voir _envEmojiAuto/oninput ci-dessous). -->
+    <input class="m-in" id="envEmoji" placeholder="&#9993;&#65039; Emoji (optionnel, ex: &#127831; &#127918;)" maxlength="4" style="font-size:24px;text-align:center" oninput="_envEmojiAuto=false"/>
+    <input class="m-in" id="envNom" placeholder="Nom (ex: Alimentation, Loisirs)" maxlength="40" oninput="refreshEnvEmojiGuess()"/>
     <div class="m-lbl">Budget mensuel (&#8364;)</div>
     <input class="m-in" id="envBudget" type="text" inputmode="decimal" placeholder="300"/>
     <!-- v5.88 : catégories liées — rattachement 100% fiable et automatique des dépenses futures
@@ -4103,14 +4106,19 @@ function sumRows(rows){ return rows.reduce(function(s,r){return s+r.v;},0); }
 // volontairement une LISTE SÉPARÉE de ITEM_KEYWORD_ICONS (qui associe des mots-clés à un EMOJI, pas
 // à une catégorie) : les deux listes servent des besoins différents et n'ont pas à rester
 // synchronisées mot pour mot.
+// v5.90 : mots-clés enrichis avec les noms d'enveloppe les plus évidents (y compris le nom de la
+// catégorie elle-même, ex: "Transport", "Shopping", et des synonymes très courants comme
+// "Alimentation" ou "Vacances") — sans ça, l'exemple même suggéré par le placeholder de la modale
+// ("ex: Alimentation, Loisirs") ne se serait pas reconnu tout seul, ce qui aurait rendu la
+// détection de catégorie et le choix d'emoji bien moins utiles en pratique.
 var ENV_CATEGORY_KEYWORDS = [
-  [['restaurant','resto','snack','fast food','kebab','pizzeria','cafe','coffee','boisson','biere','vin','bar','brunch','livraison repas','uber eats','deliveroo'], 'Resto'],
-  [['supermarche','courses','carrefour','leclerc','auchan','lidl','intermarche','monoprix','epicerie','boulangerie','boucherie','primeur'], 'Courses'],
-  [['essence','carburant','station service','gazole','diesel','train','sncf','ter','tgv','bus','metro','tramway','tram','parking','stationnement','peage','moto','scooter','velo','trottinette','uber','taxi','vtc','covoiturage'], 'Transport'],
-  [['vetement','habillement','chaussure','zara','vinted','h&m','bijou','accessoire','maquillage','cosmetique'], 'Shopping'],
-  [['cinema','cine','loisir','sortie','concert','spectacle','musee','bowling','parc d attraction','jeu video','jeux video','abonnement jeu','livre','sport loisir','piscine','patinoire'], 'Loisirs'],
-  [['loyer','immobilier','maison','appartement','logement','hypotheque','pret immo','credit immo','electricite','edf','engie','gaz','eau','veolia','suez','internet','box','wifi','fibre','meuble','deco','bricolage'], 'Logement'],
-  [['medecin','docteur','pharmacie','dentiste','opticien','sante','mutuelle','hopital','clinique','kine','osteopathe'], 'Santé']
+  [['restaurant','resto','restos','snack','fast food','kebab','pizzeria','cafe','coffee','boisson','biere','vin','bar','brunch','livraison repas','uber eats','deliveroo'], 'Resto'],
+  [['supermarche','courses','course','carrefour','leclerc','auchan','lidl','intermarche','monoprix','epicerie','boulangerie','boucherie','primeur','alimentation','nourriture'], 'Courses'],
+  [['transport','transports','essence','carburant','station service','gazole','diesel','train','sncf','ter','tgv','bus','metro','tramway','tram','parking','stationnement','peage','moto','scooter','velo','trottinette','uber','taxi','vtc','covoiturage'], 'Transport'],
+  [['shopping','vetement','vetements','habillement','chaussure','chaussures','zara','vinted','h&m','bijou','accessoire','maquillage','cosmetique'], 'Shopping'],
+  [['loisir','loisirs','cinema','cine','sortie','sorties','concert','spectacle','musee','bowling','parc d attraction','jeu video','jeux video','abonnement jeu','livre','sport loisir','piscine','patinoire','vacances','voyage','voyages','weekend','divertissement'], 'Loisirs'],
+  [['logement','loyer','immobilier','maison','appartement','hypotheque','pret immo','credit immo','electricite','edf','engie','gaz','eau','veolia','suez','internet','box','wifi','fibre','meuble','deco','bricolage'], 'Logement'],
+  [['sante','medecin','docteur','pharmacie','dentiste','opticien','mutuelle','hopital','clinique','kine','osteopathe'], 'Santé']
 ];
 var _ENV_CAT_KW_RE = ENV_CATEGORY_KEYWORDS.map(function(entry){
   return entry[0].map(function(kw){ return new RegExp('(^|[^a-z0-9])'+escRe(kw)+'([^a-z0-9]|$)'); });
@@ -4259,6 +4267,18 @@ var _editEnvId=null;
 // un rattachement fiable (elle resterait toujours ambiguë entre plusieurs enveloppes).
 var ENV_CAT_OPTIONS=['Resto','Courses','Transport','Shopping','Loisirs','Logement','Santé'];
 var _envCatsSel=[];
+// v5.90 : true tant que l'utilisateur n'a pas tapé lui-même dans #envEmoji — dans cet état, le
+// champ se met à jour tout seul (voir refreshEnvEmojiGuess()) à chaque changement de nom ou de
+// catégorie cochée, pour toujours proposer l'emoji le plus adapté. Passe à false dès que
+// l'utilisateur édite le champ à la main (voir l'attribut oninput sur #envEmoji) : sa saisie
+// n'est alors plus jamais écrasée.
+var _envEmojiAuto=true;
+function refreshEnvEmojiGuess(){
+  if(!_envEmojiAuto) return;
+  var el=document.getElementById('envEmoji'); if(!el) return;
+  var nom=(document.getElementById('envNom').value||'').trim();
+  el.value = nom ? guessEnvEmoji(nom, _envCatsSel) : '';
+}
 function renderEnvCatsPicker(){
   var el=document.getElementById('envCatsPicker'); if(!el) return;
   el.innerHTML=ENV_CAT_OPTIONS.map(function(cat){
@@ -4272,9 +4292,11 @@ function toggleEnvCat(el, cat){
   var idx=_envCatsSel.indexOf(cat);
   if(idx>=0) _envCatsSel.splice(idx,1); else _envCatsSel.push(cat);
   el.classList.toggle('sel');
+  refreshEnvEmojiGuess();
 }
 function openEnvModal(prefillNom){
   _editEnvId=null;
+  _envEmojiAuto=true;
   document.getElementById('envModalTitle').textContent='Nouvelle enveloppe';
   document.getElementById('envModalSaveBtn').textContent='Créer l\'enveloppe';
   document.getElementById('envEmoji').value='';
@@ -4285,12 +4307,16 @@ function openEnvModal(prefillNom){
   var guessed=prefillNom ? detectExpenseCategory(prefillNom) : null;
   _envCatsSel = guessed ? [guessed] : [];
   renderEnvCatsPicker();
+  refreshEnvEmojiGuess();
   document.getElementById('ovEnv').classList.add('open');
   setTimeout(function(){ var el=document.getElementById('envNom'); if(el) el.focus(); },100);
 }
 function openEditEnvModal(id){
   var env=(S.fin.enveloppes||[]).filter(function(e){ return e.id===id; })[0]; if(!env) return;
   _editEnvId=id;
+  // v5.90 : ne jamais écraser un emoji déjà choisi pour une enveloppe existante — l'auto-suggestion
+  // ne s'active ici que si l'enveloppe n'en avait encore aucun.
+  _envEmojiAuto=!env.emoji;
   document.getElementById('envModalTitle').textContent='Modifier l\'enveloppe';
   document.getElementById('envModalSaveBtn').textContent='Enregistrer';
   document.getElementById('envEmoji').value=env.emoji||'';
@@ -4298,12 +4324,29 @@ function openEditEnvModal(id){
   document.getElementById('envBudget').value=env.budget||'';
   _envCatsSel=(env.cats||[]).slice();
   renderEnvCatsPicker();
+  refreshEnvEmojiGuess();
   document.getElementById('ovEnv').classList.add('open');
 }
 function closeEnvModal(){
   var m=document.getElementById('ovEnv'); if(m) m.classList.remove('open');
   _editEnvId=null;
   _envCatsSel=[];
+}
+// v5.90 : emoji auto-suggéré amélioré, demandé par l'utilisateur ("le plus adapté à l'enveloppe
+// créée"). Priorité 1 : la catégorie liée choisie par l'utilisateur (env.cats) — c'est le signal
+// le plus fiable puisque c'est un choix explicite, on reprend alors le même emoji que celui de
+// cette catégorie dans "Dépense rapide" (TXN_CAT_TYPES), pour une cohérence visuelle immédiate
+// dans toute l'app. Priorité 2 : si aucune catégorie n'est cochée, on détecte quand même la
+// catégorie à partir du nom (ex: "Alimentation" → Courses → 🛒). Priorité 3 (repli) : l'ancien
+// guessItemEmoji(), plus générique, pour les noms qui ne correspondent à aucune catégorie connue
+// (ex: "Cadeaux", "Anniversaire").
+function guessEnvEmoji(nom, cats){
+  var cat=(cats && cats.length) ? cats[0] : detectExpenseCategory(nom);
+  if(cat){
+    var t=TXN_CAT_TYPES.filter(function(c){ return c.name===cat; })[0];
+    if(t && t.ico) return t.ico;
+  }
+  return guessItemEmoji(nom,'✉️');
 }
 function saveEnv(){
   var emoji=(document.getElementById('envEmoji').value||'').trim();
@@ -4312,7 +4355,7 @@ function saveEnv(){
   var cats=_envCatsSel.slice();
   if(!nom){ toast('Donne un nom à ton enveloppe','#ef4444'); return; }
   if(!S.fin.enveloppes) S.fin.enveloppes=[];
-  if(!emoji) emoji=guessItemEmoji(nom,'✉️');
+  if(!emoji) emoji=guessEnvEmoji(nom, cats);
   if(_editEnvId){
     var env=S.fin.enveloppes.filter(function(e){ return e.id===_editEnvId; })[0];
     if(!env){ closeEnvModal(); return; }
