@@ -981,7 +981,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.66';
+window.APP_VERSION = '5.67';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1572,7 +1572,7 @@ window.APP_VERSION = '5.66';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.66</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.67</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -1831,6 +1831,24 @@ window.APP_VERSION = '5.66';
     <div class="m-btns">
       <button class="mb s" onclick="closeGoalModal()">Annuler</button>
       <button class="mb p" id="goalModalSaveBtn" onclick="addGoal()">Cr&#233;er l'objectif</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Revenu rapide (v5.67, accessible depuis le bouton + du bandeau bas) -->
+<div class="ov" id="ovRevenu" onclick="if(event.target===this)closeRevenuModal()">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <div class="modal-title">Ajouter un revenu</div>
+    <div class="m-lbl">Libellé</div>
+    <input class="m-in" id="revLbl" placeholder="Ex: Salaire, Freelance, Prime" maxlength="40"/>
+    <div class="m-lbl">Montant (&#8364;)</div>
+    <input class="m-in" id="revAmt" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" style="font-size:24px;text-align:center;font-weight:700"/>
+    <div class="m-lbl">Date</div>
+    <input class="m-in" id="revDate" type="date"/>
+    <div class="m-btns">
+      <button class="mb s" onclick="closeRevenuModal()">Annuler</button>
+      <button class="mb p" onclick="saveRevenuRapide()">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -3186,6 +3204,39 @@ function renderTxns(){
         +'<div><div class="txn-desc">'+esc(t.desc)+'</div><div class="txn-time">'+t.time+'</div>'+prevuLine+'</div>'
       +'</div><div class="txn-amt">-'+euro(t.amt)+'</div></div>';
   }).join('') : '<div class="txn-empty">Aucune dépense enregistrée aujourd\'hui</div>';
+}
+// Revenu rapide (v5.67, accessible depuis le bouton + du bandeau bas) : même circuit que
+// addArgentItem() (fusion par libellé si la ligne existe déjà ce mois-ci, sinon nouvelle ligne)
+// mais accessible en un clic depuis n'importe quelle page, sans passer par le Journal du Budget.
+function openRevenuModal(){
+  document.getElementById('revLbl').value='';
+  document.getElementById('revAmt').value='';
+  var d=document.getElementById('revDate'); if(d) d.value=today();
+  document.getElementById('ovRevenu').classList.add('open');
+}
+function closeRevenuModal(){
+  var m=document.getElementById('ovRevenu'); if(m) m.classList.remove('open');
+}
+function saveRevenuRapide(){
+  var lbl=document.getElementById('revLbl').value.trim();
+  var amt=parseMontant(document.getElementById('revAmt').value);
+  var dateEl=document.getElementById('revDate');
+  var dt=(dateEl && dateEl.value) ? dateEl.value : today();
+  if(!lbl){ toast('Ajoute un libellé (ex: Salaire)','#ef4444'); return; }
+  if(!amt||amt<=0){ toast('Entre un montant valide (ex: 2200)','#ef4444'); return; }
+  if(!S.fin) S.fin={};
+  var items=parseItems(S.fin.revenus_items);
+  var existing=items.filter(function(i){return i.n===lbl;});
+  if(existing.length){
+    existing[0].v=Math.round((existing[0].v+amt)*100)/100; existing[0].d=dt;
+  } else {
+    items.push({n:lbl,v:amt,d:dt});
+  }
+  S.fin.revenus_items=JSON.stringify(items);
+  syncTotals(); save();
+  closeRevenuModal();
+  renderPoche(); renderScore(); renderTriCards(); renderArgentJournal(); renderBudget();
+  toast('Revenu ajouté ✓','#10b981');
 }
 function openTxnModal(){
   document.getElementById('txnAmt').value='';
@@ -5122,15 +5173,18 @@ function renderProfil(){
 // ══════════════════════════════════════════════
 function openFabMenu(){
   var el = document.getElementById('fabOverlay');
-  if(el){ el.style.display='flex'; document.getElementById('ticketSubMenu').style.display='none'; }
+  if(el){ el.style.display='flex'; document.getElementById('depenseSubMenu').style.display='none'; }
 }
 function closeFabMenu(){
   var el = document.getElementById('fabOverlay');
   if(el) el.style.display='none';
 }
-function openTicketSubMenu(e){
+// Sous-menu "Ajouter une dépense" (v5.67, remplace l'ancien openTicketSubMenu) : regroupe la
+// saisie rapide par catégorie ET le scan de ticket de caisse (photo/fichier), qui n'a plus sa
+// propre entrée au premier niveau du menu.
+function openDepenseSubMenu(e){
   if(e){ e.stopPropagation(); }
-  var sm = document.getElementById('ticketSubMenu');
+  var sm = document.getElementById('depenseSubMenu');
   if(sm) sm.style.display = sm.style.display==='none' ? 'block' : 'none';
 }
 function triggerReceiptCamera(e){
@@ -5960,25 +6014,34 @@ if(isLoggedIn()){
   <!-- ════════ FAB MENU ════════ -->
   <div id="fabOverlay" style="display:none;position:fixed;inset:0;z-index:3500;background:rgba(0,0,0,.5)" onclick="closeFabMenu()">
     <div id="fabMenu" style="position:absolute;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 40px);max-width:400px;background:var(--card);border-radius:20px;padding:8px;box-shadow:0 8px 40px rgba(0,0,0,.4)">
-      <!-- Dépense rapide -->
-      <div class="fab-item" onclick="closeFabMenu();openTxnModal()">
-        <div class="fab-item-ico" style="background:rgba(16,185,129,.15);color:var(--green)">💰</div>
+      <!-- Revenu rapide (v5.67) -->
+      <div class="fab-item" onclick="closeFabMenu();openRevenuModal()">
+        <div class="fab-item-ico" id="fabRevenuIco" style="background:rgba(16,185,129,.15)"></div>
         <div class="fab-item-txt">
-          <div class="fab-item-lbl">Ajouter une dépense</div>
-          <div class="fab-item-sub">Saisie rapide par catégorie</div>
+          <div class="fab-item-lbl">Ajouter un revenu</div>
+          <div class="fab-item-sub">Salaire, freelance, prime…</div>
         </div>
       </div>
-      <!-- Ticket de caisse -->
-      <div class="fab-item" onclick="openTicketSubMenu(event)">
-        <div class="fab-item-ico" style="background:rgba(45,212,191,.15);color:var(--accent2)">🧾</div>
+      <!-- Dépense (v5.67 : extensible, regroupe la saisie rapide ET le scan de ticket, qui
+           n'est plus une entrée séparée au premier niveau du menu) -->
+      <div class="fab-item" onclick="openDepenseSubMenu(event)">
+        <div class="fab-item-ico" style="background:rgba(59,130,246,.15);color:#3b82f6">💸</div>
         <div class="fab-item-txt">
-          <div class="fab-item-lbl">Scanner un ticket de caisse</div>
-          <div class="fab-item-sub">Photo ou fichier — analysé par Léo</div>
+          <div class="fab-item-lbl">Ajouter une dépense</div>
+          <div class="fab-item-sub">Saisie rapide ou ticket de caisse</div>
         </div>
         <span style="color:var(--text3);font-size:14px">›</span>
       </div>
-      <!-- Sous-menu ticket -->
-      <div id="ticketSubMenu" style="display:none;border-top:1px solid var(--border);margin-top:4px;padding-top:4px">
+      <!-- Sous-menu dépense -->
+      <div id="depenseSubMenu" style="display:none;border-top:1px solid var(--border);margin-top:4px;padding-top:4px">
+        <div class="fab-item fab-sub" onclick="closeFabMenu();openTxnModal()">
+          <div class="fab-item-ico" style="background:rgba(16,185,129,.15);color:var(--green);width:36px;height:36px;font-size:18px">🛒</div>
+          <div class="fab-item-txt">
+            <div class="fab-item-lbl" style="font-size:14px">Saisie rapide par catégorie</div>
+            <div class="fab-item-sub">Resto, courses, transport…</div>
+          </div>
+        </div>
+        <div style="font-size:10.5px;color:var(--text3);font-weight:700;padding:8px 10px 2px;text-transform:uppercase;letter-spacing:.3px">Scanner un ticket de caisse</div>
         <label class="fab-item fab-sub" for="receiptCamera" onclick="event.stopPropagation();setTimeout(closeFabMenu,80)" style="cursor:pointer">
           <div class="fab-item-ico" style="background:rgba(245,158,11,.15);color:var(--orange);width:36px;height:36px;font-size:18px">📸</div>
           <div class="fab-item-txt">
@@ -6245,6 +6308,10 @@ window.addEventListener('DOMContentLoaded', function(){
   // des données utilisateur.
   renderArgTypePills();
   renderTxnCats();
+  // v5.67 : icône "3D léger" du nouvel item "Ajouter un revenu" du menu +, cohérente avec
+  // le reste des pastilles (arg3dIcon), posée une seule fois au chargement.
+  var fabRevIco=document.getElementById('fabRevenuIco');
+  if(fabRevIco) fabRevIco.innerHTML=arg3dIcon('revenu',24);
   // v5.66 : micro-animations "bouton qui rebondit" / "pastille qui pop", posées une seule fois via
   // délégation d'événement plutôt que dans chaque bouton un par un — couvre automatiquement tous
   // les boutons primaires (.mb.p, présent dans la quasi-totalité des modales : Enregistrer,
