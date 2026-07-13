@@ -985,7 +985,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.80';
+window.APP_VERSION = '5.81';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1569,7 +1569,7 @@ window.APP_VERSION = '5.80';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.80</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.81</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -4733,6 +4733,14 @@ async function sendMsg(txt, hiddenUser, fileData){
       if(Array.isArray(chArr)) choices=chArr.filter(function(c){ return typeof c==='string' && c.trim(); }).slice(0,3);
     }
     var clean=raw.replace(/\[FD\][\s\S]*?\[\/FD\]/gi,'').replace(/\[CH\][\s\S]*?\[\/CH\]/gi,'').trim();
+    // v5.81 : filet de sécurité pour un bug signalé par l'utilisateur — quand Léo tronque ou oublie
+    // la balise fermante [/FD] ou [/CH] (réponse coupée pendant la génération du bloc JSON en toute
+    // fin de message, ou LLM qui oublie de la refermer), le bloc ouvrant restait tel quel (JSON brut
+    // visible : accolades, guillemets...) collé à la dernière phrase, puisque les deux .replace()
+    // ci-dessus exigent une balise fermante pour matcher. Ces balises sont TOUJOURS en toute fin de
+    // réponse (voir prompt système, "EXTRACTION JSON OBLIGATOIRE... en fin de message") : si un
+    // [FD] ou [CH] non refermé traîne encore après le nettoyage normal, on coupe tout à partir de là.
+    clean = clean.replace(/\[FD\][\s\S]*$/i,'').replace(/\[CH\][\s\S]*$/i,'').trim();
     hideTyping();
     addMsg('bot', clean, false, choices);
     S.hist.push({role:'user',content:txt});
