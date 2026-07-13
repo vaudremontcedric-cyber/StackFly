@@ -979,7 +979,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.78';
+window.APP_VERSION = '5.79';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1258,6 +1258,16 @@ window.APP_VERSION = '5.78';
                 </select>
               </div>
               <div id="synthTable"></div>
+              <!-- v5.79 : export du bilan (CSV / PDF) intégré directement dans Synthèse budget, à la
+                   demande de l'utilisateur — déplacé du bas de la page Budget (une barre générique
+                   hors accordéon, redondante avec cette section) vers ici. Mêmes fonctions
+                   exportCSV()/exportPrint() qu'avant, totalement inchangées : elles génèrent déjà un
+                   bilan complet (synthèse + détail par catégorie + transactions + objectifs + charges
+                   fixes + patrimoine), pas seulement le tableau ci-dessus. -->
+              <div style="display:flex;gap:8px;margin-top:14px">
+                <button onclick="exportCSV()" style="flex:1;padding:10px 0;background:var(--card2);border:1.5px solid var(--border);border-radius:12px;color:var(--accent2);font-size:13px;font-weight:700;cursor:pointer">⬇ CSV</button>
+                <button onclick="exportPrint()" style="flex:1;padding:10px 0;background:var(--card2);border:1.5px solid var(--border);border-radius:12px;color:var(--text2);font-size:13px;font-weight:700;cursor:pointer">🖨 PDF</button>
+              </div>
             </div>
           </div>
         </div>
@@ -1316,11 +1326,6 @@ window.APP_VERSION = '5.78';
         </div>
 
       </div><!-- /acc-list -->
-      <!-- ── Export bilan ── -->
-      <div style="padding:0 16px 8px;display:flex;gap:8px">
-        <button onclick="exportCSV()" style="flex:1;padding:10px 0;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--accent2);font-size:13px;font-weight:700;cursor:pointer">⬇ CSV</button>
-        <button onclick="exportPrint()" style="flex:1;padding:10px 0;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--text2);font-size:13px;font-weight:700;cursor:pointer">🖨 PDF</button>
-      </div>
 
     </div><!-- /z1-data -->
 
@@ -1558,7 +1563,7 @@ window.APP_VERSION = '5.78';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.78</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.79</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -2423,7 +2428,7 @@ async function saveProfileEdit(){
 // BULLES INFO ⓘ
 // ═══════════════════════════════════════════════════
 var _infoTips = {
-  'synth':   { title:'📊 Synthèse budget',      body:'Vue d\'ensemble de tes revenus, dépenses et épargne du mois en cours. Change la période (Mensuel / Journalier / Annuel) pour adapter l\'affichage.' },
+  'synth':   { title:'📊 Synthèse budget',      body:'Vue d\'ensemble de tes revenus, dépenses et épargne du mois en cours. Change la période (Mensuel / Journalier / Annuel) pour adapter l\'affichage. Les boutons CSV et PDF en bas exportent ton bilan complet (synthèse, catégories, transactions, objectifs, charges fixes, patrimoine).' },
   'argent':  { title:'📍 Où va mon argent ?',      body:'La jauge en haut montre ce qu\'il te reste à dépenser ce mois-ci. En dessous, 4 mini-cartes à toucher : Revenus, Charges fixes (loyer, crédit, abonnements — dis-les à Léo pour qu\'il les classe automatiquement), Quotidien (Courses / Plaisirs & loisirs / Imprévus) et Épargne & investissement. Touche une mini-carte pour voir ses lignes, puis une ligne pour la modifier ou la supprimer. Rempli automatiquement quand tu parles à Léo, ou via le bouton + du bandeau bas.' },
   'actifs':  { title:'💰 Mes actifs',            body:'Valeur totale de ton patrimoine : compte épargne, immobilier, investissements, crypto… Permet à Léo de te donner des conseils plus précis.' },
   'leo':     { title:'💡 Léo recommande',        body:'Conseils personnalisés générés par Léo selon ta situation actuelle. Mis à jour à chaque modification de ton budget. Appuie pour en discuter avec lui.' },
