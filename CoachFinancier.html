@@ -979,7 +979,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.76';
+window.APP_VERSION = '5.77';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1558,7 +1558,7 @@ window.APP_VERSION = '5.76';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.76</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.77</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -3099,6 +3099,19 @@ function deleteRepItem(sectionKey, idx){
   syncTotals();
   S.fin.rav=calcRAV(); save(); renderTriCards(); renderScore(); renderPoche(); renderBudget();
 }
+// v5.77 : demande de confirmation (même modal que pour un actif ou un objectif, voir showConfirm())
+// avant de supprimer une ligne depuis les mini-cartes de "Où va mon argent" (corbeille 🗑️ dans
+// renderArgentRows()), pour éviter une suppression accidentelle en un seul clic.
+function confirmDeleteArgentRow(sectionKey, idx){
+  if(!S.fin) return;
+  var items = parseItems(S.fin[sectionKey]);
+  var it = items[idx];
+  var label = it ? it.n : 'cette ligne';
+  showConfirm('Supprimer "'+label+'" ?', function(){
+    deleteRepItem(sectionKey, idx);
+    toast('Ligne supprimée','#64748b');
+  }, 'Supprimer');
+}
 
 // ── Modifier une ligne (clic sur une ligne dans "Où va mon argent") ──
 var _editArgKey=null, _editArgIdx=null;
@@ -3899,9 +3912,12 @@ function renderArgentRows(rows, col){
     var dateTxt=fmtShortDate(r.d);
     // Ligne synthétique (voir getRevenuRows()/getEpargneInvestRows()) : représente un montant
     // déclaré globalement à Léo, sans détail par ligne — pas d'index réel à supprimer.
+    // v5.77 : la croix "×" est remplacée par une corbeille 🗑️ (plus explicite), et le clic passe
+    // désormais par confirmDeleteArgentRow() qui demande confirmation avant de supprimer réellement
+    // (au lieu d'un appel direct à deleteRepItem()), pour éviter une suppression accidentelle.
     var delBtn=r.synthetic
       ? '<span style="font-size:9.5px;color:var(--text3);flex-shrink:0;font-style:italic">déclaré</span>'
-      : '<div onclick="event.stopPropagation();deleteRepItem(\''+r.key+'\','+r.idx+')" style="cursor:pointer;color:var(--text3);font-size:16px;padding:2px 4px;flex-shrink:0" title="Supprimer">×</div>';
+      : '<div onclick="event.stopPropagation();confirmDeleteArgentRow(\''+r.key+'\','+r.idx+')" style="cursor:pointer;color:var(--text3);font-size:13px;padding:2px 4px;flex-shrink:0;display:flex;align-items:center" title="Supprimer">&#128465;&#65039;</div>';
     // v5.72 : toute la ligne est déjà cliquable pour l'éditer depuis la v5.62 (openEditArgentItem),
     // mais rien ne le montrait visuellement — un crayon explicite (même glyphe que "Modifier" sur
     // Mes actifs) rend cette action découvrable. Absent sur les lignes "déclaré" (rien à éditer
