@@ -981,7 +981,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.72';
+window.APP_VERSION = '5.73';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1572,7 +1572,7 @@ window.APP_VERSION = '5.72';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.72</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.73</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -3665,16 +3665,18 @@ var ITEM_KEYWORD_ICONS = [
   [['gaz'], '🔥'],
   [['eau','veolia','suez'], '💧'],
   [['internet','box','wifi','fibre'], '📶'],
-  [['telephone','mobile','forfait','orange','sfr','bouygues','free mobile'], '📱'],
+  // "orange" (l'opérateur) retiré : mot-clé bien trop ambigu (couleur, fruit...) même avec une
+  // recherche par mot entier — mobile/forfait/telephone suffisent à couvrir une facture téléphonique.
+  [['telephone','mobile','forfait','sfr','bouygues','free mobile'], '📱'],
   [['netflix','disney','prime video','canal+','streaming'], '🎬'],
   [['spotify','deezer','musique'], '🎵'],
   [['salle de sport','fitness','gym','musculation'], '🏋️'],
   [['moto','scooter'], '🏍️'],
   [['velo','trottinette'], '🚲'],
-  [['essence','carburant','station service'], '⛽'],
+  [['essence','carburant','station service','gazole','diesel'], '⛽'],
   [['train','sncf','ter','tgv'], '🚆'],
   [['bus','metro','tramway','tram'], '🚌'],
-  [['avion','vol ','voyage','vacances','hotel'], '✈️'],
+  [['avion','vol','voyage','vacances','hotel'], '✈️'],
   [['parking','stationnement','peage'], '🅿️'],
   [['voiture','auto','vehicule'], '🚗'],
   [['assurance','mutuelle'], '🛡️'],
@@ -3683,22 +3685,35 @@ var ITEM_KEYWORD_ICONS = [
   [['cafe','coffee'], '☕'],
   [['boisson','biere','vin','bar'], '🥤'],
   [['supermarche','courses','carrefour','leclerc','auchan','lidl','intermarche'], '🛒'],
-  [['vetement','habillement','chaussure','zara'], '👕'],
+  [['vetement','habillement','chaussure','zara','vinted'], '👕'],
   [['salaire','paie','paye'], '💶'],
   [['freelance','mission'], '💼'],
   [['prime','bonus'], '🎁'],
   [['livret','epargne'], '🏦'],
-  [['pea','bourse','action','etf','crypto'], '📈'],
+  // "action" (le placement boursier) retiré : identique au nom de l'enseigne de déstockage
+  // Action, très courante en France — pea/bourse/etf/crypto suffisent à couvrir l'investissement.
+  [['pea','bourse','etf','crypto'], '📈'],
   [['impot','impots','taxe'], '🧾'],
   [['cadeau','anniversaire'], '🎁']
 ];
+// v5.73 : recherche par MOT ENTIER (limite de mot) plutôt que simple sous-chaîne — un indexOf nu
+// faisait par exemple matcher "eau" dans "Cadeau", "vin" dans "Vinted", "ter" dans "acheter",
+// "bar" dans "embarquement" ou "prime" dans "primeur", donnant un emoji sans rapport avec le
+// libellé réel. La regex est construite une seule fois par mot-clé (pas à chaque appel de
+// guessItemEmoji) pour rester légère. Les deux seuls cas qu'une limite de mot ne peut pas
+// résoudre (mot entier réellement ambigu, ex: "orange" l'opérateur vs la couleur/le fruit,
+// "action" le placement vs l'enseigne Action) ont été retirés ci-dessus plutôt que mal détectés.
+function escRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+var _ITEM_KW_RE = ITEM_KEYWORD_ICONS.map(function(entry){
+  return entry[0].map(function(kw){ return new RegExp('(^|[^a-z0-9])'+escRe(kw)+'([^a-z0-9]|$)'); });
+});
 function guessItemEmoji(label, fallback){
   if(!label) return fallback||'❔';
   var norm=label.toLowerCase().normalize('NFD').replace(new RegExp('[\\u0300-\\u036f]','g'),'');
   for(var i=0;i<ITEM_KEYWORD_ICONS.length;i++){
-    var kws=ITEM_KEYWORD_ICONS[i][0];
-    for(var j=0;j<kws.length;j++){
-      if(norm.indexOf(kws[j])!==-1) return ITEM_KEYWORD_ICONS[i][1];
+    var res=_ITEM_KW_RE[i];
+    for(var j=0;j<res.length;j++){
+      if(res[j].test(norm)) return ITEM_KEYWORD_ICONS[i][1];
     }
   }
   return fallback||'❔';
