@@ -556,9 +556,19 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 /* TOAST */
 .toast{position:fixed;top:80px;left:50%;transform:translateX(-50%) scale(.96);
   color:#fff;padding:11px 22px;border-radius:22px;font-size:13px;font-weight:700;
-  z-index:300;opacity:0;transition:opacity .22s,transform .22s;pointer-events:none;white-space:nowrap;
+  z-index:300;opacity:0;transition:opacity .22s;pointer-events:none;white-space:nowrap;
   box-shadow:0 4px 24px rgba(0,0,0,.5)}
-.toast.show{opacity:1;transform:translateX(-50%) scale(1)}
+.toast.show{opacity:1;animation:rbToastIn .45s cubic-bezier(.34,1.56,.64,1)}
+
+/* MICRO-ANIMATIONS (v5.66) : petits retours visuels sur validation/sélection/erreur, cf.
+   toast()/click delegation plus bas dans le JS pour les points de déclenchement. */
+@keyframes rbToastIn{0%{transform:translateX(-50%) translateY(14px) scale(.9)}60%{transform:translateX(-50%) translateY(-4px) scale(1.03)}100%{transform:translateX(-50%) translateY(0) scale(1)}}
+@keyframes rbBounce{0%{transform:scale(1)}30%{transform:scale(.94)}55%{transform:scale(1.08)}75%{transform:scale(.98)}100%{transform:scale(1)}}
+@keyframes rbPop{0%{transform:scale(.55)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes rbShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.rb-bounce{animation:rbBounce .45s cubic-bezier(.34,1.56,.64,1)}
+.rb-pop{animation:rbPop .35s cubic-bezier(.34,1.56,.64,1)}
+.rb-shake{animation:rbShake .4s}
 
 /* ══════════════════════════════════════
    AMÉLIORATIONS VISUELLES v3
@@ -971,7 +981,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.65';
+window.APP_VERSION = '5.66';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1019,6 +1029,25 @@ window.APP_VERSION = '5.65';
 </script>
 </head>
 <body>
+<!-- Dégradés partagés par les icônes "3D léger" (v5.66, voir ARG3D_PATHS) : définis une seule fois
+     ici plutôt que dans chaque icône, pour éviter des id SVG dupliqués (invalides) quand la même
+     catégorie apparaît plusieurs fois sur une page (ex: plusieurs lignes "Courses"). -->
+<svg width="0" height="0" style="position:absolute">
+<defs>
+<linearGradient id="g3d-green" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6ee7c9"/><stop offset="1" stop-color="#10b981"/></linearGradient>
+<linearGradient id="g3d-red" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fca5a5"/><stop offset="1" stop-color="#ef4444"/></linearGradient>
+<linearGradient id="g3d-blue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#93c5fd"/><stop offset="1" stop-color="#3b82f6"/></linearGradient>
+<linearGradient id="g3d-amber" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fcd34d"/><stop offset="1" stop-color="#f59e0b"/></linearGradient>
+<linearGradient id="g3d-pink" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f9a8d4"/><stop offset="1" stop-color="#ec4899"/></linearGradient>
+<linearGradient id="g3d-teal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5eead4"/><stop offset="1" stop-color="#0d9488"/></linearGradient>
+<linearGradient id="g3d-purple" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c4b5fd"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient>
+<linearGradient id="g3d-orange" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fdba74"/><stop offset="1" stop-color="#f97316"/></linearGradient>
+<linearGradient id="g3d-slate" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#cbd5e1"/><stop offset="1" stop-color="#64748b"/></linearGradient>
+<linearGradient id="g3d-indigo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a5b4fc"/><stop offset="1" stop-color="#6366f1"/></linearGradient>
+<linearGradient id="g3d-emerald" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#86efac"/><stop offset="1" stop-color="#22c55e"/></linearGradient>
+<linearGradient id="g3d-gray" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#cbd5e1"/><stop offset="1" stop-color="#94a3b8"/></linearGradient>
+</defs>
+</svg>
 <div id="app">
 
   <header class="hdr" id="mainHdr">
@@ -1543,7 +1572,7 @@ window.APP_VERSION = '5.65';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.65</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.66</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -2588,8 +2617,20 @@ function safeJsonParse(str){
 function toast(msg,col){
   var t=document.getElementById('toast');
   t.textContent=msg; t.style.background=col||'#10b981';
-  t.classList.add('show');
+  // Retire puis rajoute 'show' (avec un reflow forcé) pour que l'animation d'entrée rbToastIn se
+  // rejoue à chaque appel, y compris si un toast précédent était encore affiché (v5.66).
+  t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
   setTimeout(function(){ t.classList.remove('show'); },2800);
+  // Secousse automatique du champ actif quand le toast signale une erreur de saisie (v5.66) :
+  // un seul point d'accroche pour toute l'app, plutôt que de modifier chaque fonction de
+  // validation une par une — toute erreur de saisie affiche déjà un toast rouge '#ef4444'.
+  if(col==='#ef4444'){
+    var ae=document.activeElement;
+    if(ae && (ae.tagName==='INPUT'||ae.tagName==='TEXTAREA')){
+      ae.classList.remove('rb-shake'); void ae.offsetWidth; ae.classList.add('rb-shake');
+      setTimeout(function(){ ae.classList.remove('rb-shake'); },420);
+    }
+  }
 }
 
 function switchTab(btn, tabId){
@@ -3511,6 +3552,43 @@ function argIconBadge(name, bg, col, size){
   var ic = Math.round(size*0.5);
   return '<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:'+bg+';color:'+col+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'+argIcon(name, ic)+'</div>';
 }
+// ══════════════════════════════════════════════
+// ICÔNES "3D léger" (v5.66) : jeu de pictogrammes pleins (dégradé + reflet), utilisé dans
+// "Où va mon argent" et "Dépense rapide" à la place du trait fin, sur validation de l'utilisateur.
+// Séparé d'ARGENT_ICON_PATHS (qui reste en trait fin, encore utilisé tel quel par "Mes actifs")
+// pour ne pas casser cette section, non concernée par ce changement.
+// ══════════════════════════════════════════════
+var ARG3D_GRADIENT = {
+  revenu:'g3d-green', fixe:'g3d-red', courses:'g3d-blue', plaisirs:'g3d-amber',
+  imprevus:'g3d-pink', epargne:'g3d-teal', invest:'g3d-purple',
+  resto:'g3d-orange', transport:'g3d-slate', shopping:'g3d-pink',
+  logement:'g3d-indigo', sante:'g3d-emerald', autre:'g3d-gray'
+};
+var ARG3D_PATHS = {
+  revenu:'<path fill="url(#g3d-green)" d="M4 6a2 2 0 0 1 2-2h11a1 1 0 0 1 1 1v3H6a2 2 0 1 0 0 4h12v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6z"/><circle cx="17" cy="13" r="1.4" fill="#fff" fill-opacity=".9"/><ellipse cx="9" cy="7.4" rx="3.2" ry="1" fill="#fff" fill-opacity=".4"/>',
+  fixe:'<path fill="url(#g3d-red)" d="M6 2h12a1 1 0 0 1 1 1v18l-2.5-1.5L14 21l-2-1.5L10 21l-2.5-1.5L5 21V3a1 1 0 0 1 1-1z"/><line x1="8" y1="7" x2="16" y2="7" stroke="#fff" stroke-opacity=".85" stroke-width="1.5"/><line x1="8" y1="11" x2="16" y2="11" stroke="#fff" stroke-opacity=".85" stroke-width="1.5"/><line x1="8" y1="15" x2="13" y2="15" stroke="#fff" stroke-opacity=".85" stroke-width="1.5"/><ellipse cx="9.5" cy="5.5" rx="2.8" ry=".9" fill="#fff" fill-opacity=".35"/>',
+  courses:'<path fill="url(#g3d-blue)" d="M5 9h14l-1.4 9.4a2 2 0 0 1-2 1.6H8.4a2 2 0 0 1-2-1.6L5 9z"/><path fill="none" stroke="url(#g3d-blue)" stroke-width="2" stroke-linecap="round" d="M9 9V7a3 3 0 0 1 6 0v2"/><ellipse cx="9.5" cy="11" rx="2.4" ry=".85" fill="#fff" fill-opacity=".4"/>',
+  plaisirs:'<path fill="url(#g3d-amber)" d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V8z"/><line x1="13" y1="6" x2="13" y2="18" stroke="#fff" stroke-opacity=".85" stroke-width="1.6" stroke-dasharray="2.2 2.2"/><ellipse cx="8" cy="9" rx="2.4" ry=".85" fill="#fff" fill-opacity=".4"/>',
+  imprevus:'<path fill="url(#g3d-pink)" d="M12 2a9 9 0 0 1 9 9H3a9 9 0 0 1 9-9z"/><line x1="12" y1="11" x2="12" y2="19" stroke="url(#g3d-pink)" stroke-width="2" stroke-linecap="round"/><path fill="none" stroke="url(#g3d-pink)" stroke-width="2" stroke-linecap="round" d="M8 19a2 2 0 0 0 4 0"/><ellipse cx="8.5" cy="8" rx="2.6" ry=".9" fill="#fff" fill-opacity=".4"/>',
+  epargne:'<path fill="url(#g3d-teal)" d="M20 9h-1.1a6 6 0 0 0-5.9-4c-2.8 0-5.2 1.7-6.2 4.2L4 10.5V13h1v3a2 2 0 0 0 2 2v2h2v-2h4v2h2v-2.3a6 6 0 0 0 2.6-2.7H20a1 1 0 0 0 1-1v-3a1.5 1.5 0 0 0-1-1.4V9z"/><circle cx="16" cy="12" r="1" fill="#fff" fill-opacity=".9"/><ellipse cx="9" cy="9" rx="2.4" ry=".85" fill="#fff" fill-opacity=".4"/>',
+  invest:'<path fill="none" stroke="url(#g3d-purple)" stroke-width="2" stroke-linecap="round" d="M12 22v-7"/><path fill="url(#g3d-purple)" d="M12 15c-4 0-7-3-7-7 4 0 7 3 7 7z"/><path fill="url(#g3d-purple)" d="M12 12c4 0 7-3 7-7-4 0-7 3-7 7z"/><ellipse cx="9" cy="10.5" rx="1.8" ry=".7" fill="#fff" fill-opacity=".4"/>',
+  resto:'<path fill="url(#g3d-orange)" d="M6 2v8a2 2 0 0 0 4 0V2H8v6H7V2H6z"/><path fill="url(#g3d-orange)" d="M8 12v10h2V12H8z"/><path fill="url(#g3d-orange)" d="M17 2c-2 0-3 2-3 5s1 4 2 4v11h2V2z"/>',
+  transport:'<path fill="url(#g3d-slate)" d="M5 11l1.4-4.2A2 2 0 0 1 8.3 5.5h7.4a2 2 0 0 1 1.9 1.3L19 11h1a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-1a2.5 2.5 0 0 1-5 0H9a2.5 2.5 0 0 1-5 0H3a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h2z"/><circle cx="7.5" cy="17.5" r="1.5" fill="#fff" fill-opacity=".9"/><circle cx="16.5" cy="17.5" r="1.5" fill="#fff" fill-opacity=".9"/><ellipse cx="9" cy="8.5" rx="2.6" ry=".85" fill="#fff" fill-opacity=".4"/>',
+  shopping:'<path fill="none" stroke="url(#g3d-pink)" stroke-width="2" stroke-linecap="round" d="M8 8V6a4 4 0 0 1 8 0v2"/><path fill="url(#g3d-pink)" d="M4 8h16l1 12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><ellipse cx="9" cy="12" rx="2.6" ry=".9" fill="#fff" fill-opacity=".4"/>',
+  logement:'<path fill="url(#g3d-indigo)" d="M3 9.5 12 2l9 7.5V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><rect x="9.5" y="13" width="5" height="9" rx="1" fill="#fff" fill-opacity=".9"/><ellipse cx="8" cy="9" rx="2.6" ry=".85" fill="#fff" fill-opacity=".35"/>',
+  sante:'<rect fill="url(#g3d-emerald)" x="3" y="9" width="18" height="6" rx="2"/><rect fill="url(#g3d-emerald)" x="9" y="3" width="6" height="18" rx="2"/><ellipse cx="10.5" cy="6" rx="1.6" ry=".7" fill="#fff" fill-opacity=".4"/>',
+  autre:'<circle cx="12" cy="12" r="1.8" fill="url(#g3d-gray)"/><circle cx="19" cy="12" r="1.8" fill="url(#g3d-gray)"/><circle cx="5" cy="12" r="1.8" fill="url(#g3d-gray)"/>'
+};
+function arg3dIcon(name, size){
+  size = size || 16;
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" style="display:block">'+(ARG3D_PATHS[name]||'')+'</svg>';
+}
+function arg3dBadge(name, bg, size){
+  size = size || 32;
+  var ic = Math.round(size*0.58);
+  var r = Math.round(size*0.32);
+  return '<div style="width:'+size+'px;height:'+size+'px;border-radius:'+r+'px;background:'+bg+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'+arg3dIcon(name, ic)+'</div>';
+}
 // Types proposés dans le formulaire d'ajout manuel. Depuis la v5.58 (suppression de la section
 // Abonnements), "Charge fixe" fait partie des types disponibles : une dépense fixe (loyer,
 // crédit, abonnement) se déclare directement ici, avec le tag b:'fixe' qui la classe dans
@@ -3536,7 +3614,7 @@ function renderArgTypePills(){
   el.innerHTML=ARGENT_ADD_TYPES.map(function(t,i){
     return '<button type="button" class="arg-pill'+(i===0?' sel':'')+'" onclick="selArgentType(this,\''+t.id+'\')" '
       +'style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:'+t.col+';background:'+t.bg+';display:inline-flex;align-items:center;gap:5px">'
-      +argIcon(t.id,12)+t.lbl+'</button>';
+      +arg3dIcon(t.id,12)+t.lbl+'</button>';
   }).join('');
 }
 // Sous-catégories de la modale "Dépense rapide" (v5.64, remplace un bloc HTML dupliqué à la main).
@@ -3560,7 +3638,7 @@ function renderTxnCats(){
   var el=document.getElementById('txnCats'); if(!el) return;
   el.innerHTML=TXN_CAT_TYPES.map(function(t,i){
     return '<div class="txn-cat'+(i===0?' sel':'')+'" onclick="selTxnCat(this,\''+t.ico+'\',\''+t.name+'\')">'
-      +argIconBadge(t.svgKey, t.bg, t.col, 34)
+      +arg3dBadge(t.svgKey, t.bg, 34)
       +'<div class="txn-cat-lbl">'+t.name+'</div>'
     +'</div>';
   }).join('');
@@ -3673,7 +3751,7 @@ function renderArgentRows(rows, col){
 function renderArgentSection(title, icon, col, total, rowsHtml, emptyTxt){
   return '<div style="margin-bottom:14px">'
     +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">'
-      +'<span style="font-size:12.5px;font-weight:700;color:var(--text2);display:flex;align-items:center;gap:6px"><span style="display:inline-flex;color:'+col+'">'+argIcon(icon,14)+'</span>'+title+'</span>'
+      +'<span style="font-size:12.5px;font-weight:700;color:var(--text2);display:flex;align-items:center;gap:6px"><span style="display:inline-flex">'+arg3dIcon(icon,14)+'</span>'+title+'</span>'
       +'<span style="font-size:13px;font-weight:800;color:'+col+'">'+euro(total)+'</span>'
     +'</div>'
     +(rowsHtml || '<div style="color:var(--text3);font-size:12.5px;padding:8px 0">'+emptyTxt+'</div>')
@@ -3698,15 +3776,37 @@ function renderArgentGauge(){
   var bgs={g:'var(--green2)',o:'rgba(245,158,11,.15)',r:'var(--red2)'};
   var msgs={g:'Zone confortable pour finir le mois',o:'Enveloppe qui se resserre — reste vigilant',r:'Enveloppe dépassée ce mois-ci'};
   var R=54, C=2*Math.PI*R, offset=C-(pct/100*C);
+  // v5.66 : la jauge se remplit progressivement au lieu d'apparaître déjà pleine (arc posé à
+  // stroke-dashoffset=C = 0% au premier rendu, puis animé vers sa vraie valeur juste après
+  // l'insertion dans le DOM), et le montant au centre compte de 0 jusqu'au montant réel.
   el.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;padding:4px 0 14px">'
     +'<svg width="132" height="132" viewBox="0 0 132 132">'
       +'<circle cx="66" cy="66" r="'+R+'" fill="none" stroke="'+bgs[cl]+'" stroke-width="12"></circle>'
-      +'<circle cx="66" cy="66" r="'+R+'" fill="none" stroke="'+colors[cl]+'" stroke-width="12" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+offset.toFixed(1)+'" transform="rotate(-90 66 66)"></circle>'
-      +'<text x="66" y="62" text-anchor="middle" font-size="19" font-weight="800" fill="'+colors[cl]+'">'+euro(reel)+'</text>'
+      +'<circle id="argGaugeArc" cx="66" cy="66" r="'+R+'" fill="none" stroke="'+colors[cl]+'" stroke-width="12" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+C.toFixed(1)+'" transform="rotate(-90 66 66)" style="transition:stroke-dashoffset 1s cubic-bezier(.22,.9,.34,1)"></circle>'
+      +'<text id="argGaugeAmt" x="66" y="62" text-anchor="middle" font-size="19" font-weight="800" fill="'+colors[cl]+'">'+euro(0)+'</text>'
       +'<text x="66" y="80" text-anchor="middle" font-size="10" fill="var(--text3)">sur '+euro(theorique)+'</text>'
     +'</svg>'
     +'<div style="font-size:11.5px;color:'+colors[cl]+';margin-top:4px;text-align:center">'+msgs[cl]+'</div>'
   +'</div>';
+  requestAnimationFrame(function(){
+    var arc=document.getElementById('argGaugeArc');
+    if(arc) arc.style.strokeDashoffset=offset.toFixed(1);
+    animateEuroText('argGaugeAmt', 0, reel, 700);
+  });
+}
+// Anime le texte d'un élément de 'from' à 'to' (ease-out cubic), formaté avec euro() — utilisé par
+// la jauge circulaire (v5.66) pour un effet "montant qui s'incrémente" au lieu d'un chiffre figé.
+function animateEuroText(elId, from, to, dur){
+  var el=document.getElementById(elId); if(!el) return;
+  var t0=null;
+  function step(ts){
+    if(!t0) t0=ts;
+    var p=Math.min(1,(ts-t0)/dur);
+    var e=1-Math.pow(1-p,3);
+    el.textContent=euro(from+(to-from)*e);
+    if(p<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
 }
 // 4 mini-cartes de synthèse (bento) : aperçu immédiat des 4 grandes masses du mois.
 function renderArgentStats(){
@@ -3728,7 +3828,7 @@ function renderArgentStats(){
       var sel=_argStatOpen===c.ico;
       return '<div onclick="toggleArgentStat(\''+c.ico+'\')" style="cursor:pointer;background:var(--card2);border-radius:12px;padding:10px 12px;box-shadow:'+(sel?'inset 0 0 0 1.5px '+c.col:'none')+';transition:box-shadow .15s">'
         +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
-          +argIconBadge(c.ico, c.bg, c.col, 26)
+          +arg3dBadge(c.ico, c.bg, 26)
           +'<span style="color:'+(sel?c.col:'var(--text3)')+';display:flex;transition:transform .15s;transform:rotate('+(sel?'180':'0')+'deg)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>'
         +'</div>'
         +'<div style="font-size:10.5px;color:var(--text2)">'+c.lbl+'</div>'
@@ -3779,7 +3879,7 @@ function renderArgentVarBar(){
   if(!tot){ el.innerHTML=''; return; }
   var pc=Math.round(c/tot*100), pp=Math.round(p/tot*100), pi=Math.max(0,100-pc-pp);
   el.innerHTML='<div style="margin-bottom:14px">'
-    +'<div style="font-size:12.5px;font-weight:700;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:6px"><span style="display:inline-flex">'+argIcon('courses',14)+'</span>Variable au quotidien</div>'
+    +'<div style="font-size:12.5px;font-weight:700;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:6px"><span style="display:inline-flex">'+arg3dIcon('courses',14)+'</span>Variable au quotidien</div>'
     +'<div style="display:flex;height:8px;border-radius:4px;overflow:hidden;margin-bottom:8px">'
       +(pc>0?'<div style="width:'+pc+'%;background:#3b82f6"></div>':'')
       +(pp>0?'<div style="width:'+pp+'%;background:var(--orange)"></div>':'')
@@ -3824,7 +3924,7 @@ function renderArgentRecent(){
       var dateTxt=fmtShortDate(r.d);
       var amtTxt=(r.sign>0?'+':'-')+euro(r.v);
       return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--border)">'
-        +argIconBadge(r.ico, r.bg, r.col, 32)
+        +arg3dBadge(r.ico, r.bg, 32)
         +'<div style="flex:1;min-width:0">'
           +'<div style="font-size:13.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.n)+'</div>'
           +(dateTxt?'<div style="font-size:10.5px;color:var(--text3)">'+dateTxt+'</div>':'')
@@ -6145,6 +6245,17 @@ window.addEventListener('DOMContentLoaded', function(){
   // des données utilisateur.
   renderArgTypePills();
   renderTxnCats();
+  // v5.66 : micro-animations "bouton qui rebondit" / "pastille qui pop", posées une seule fois via
+  // délégation d'événement plutôt que dans chaque bouton un par un — couvre automatiquement tous
+  // les boutons primaires (.mb.p, présent dans la quasi-totalité des modales : Enregistrer,
+  // Créer l'objectif, Verser...) et le bouton "+" d'ajout de ligne, ainsi que toutes les pastilles
+  // de catégorie déjà existantes ou générées dynamiquement plus tard.
+  document.addEventListener('click', function(e){
+    var b=e.target.closest('.mb.p, button[onclick^="addArgentItem"]');
+    if(b){ b.classList.remove('rb-bounce'); void b.offsetWidth; b.classList.add('rb-bounce'); }
+    var p=e.target.closest('.arg-pill, .txn-cat');
+    if(p){ p.classList.remove('rb-pop'); void p.offsetWidth; p.classList.add('rb-pop'); }
+  });
 });
 
 // ── Load from cloud after login ──────────────────────
