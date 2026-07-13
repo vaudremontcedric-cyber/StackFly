@@ -985,7 +985,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.87';
+window.APP_VERSION = '5.88';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1592,7 +1592,7 @@ window.APP_VERSION = '5.87';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.87</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.88</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -1855,8 +1855,8 @@ window.APP_VERSION = '5.87';
           <span class="tuto-card-arr">&#9662;</span>
         </div>
         <div class="tuto-card-body"><div class="tuto-card-content">
-          <div class="tuto-step"><div class="tuto-step-num">1</div><div>Dans <b>Où va mon argent ?</b>, ouvre la section <b>Mes enveloppes</b> et touche <b>+ Créer une enveloppe</b> : donne-lui un nom (ex: Alimentation, Loisirs), un emoji et un budget mensuel.</div></div>
-          <div class="tuto-step"><div class="tuto-step-num">2</div><div>Chaque dépense que tu rattaches à cette enveloppe vient réduire le montant restant : depuis <b>Saisie rapide par catégorie</b> (sélecteur dédié), depuis la fenêtre de modification d'une ligne existante, ou automatiquement via <b>Léo</b> en conversation.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">1</div><div>Dans <b>Où va mon argent ?</b>, ouvre la section <b>Mes enveloppes</b> et touche <b>+ Créer une enveloppe</b> : donne-lui un nom (ex: Alimentation, Loisirs), un emoji, un budget mensuel, et coche une ou plusieurs <b>catégories liées</b> (ex: Courses + Resto pour Alimentation).</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">2</div><div>Grâce aux catégories liées, chaque dépense reconnue dans cette catégorie vient réduire le montant restant <b>automatiquement et de façon fiable</b> — que ce soit une Saisie rapide, un ticket scanné ou une dépense dite à Léo en conversation. Tu peux aussi rattacher une ligne toi-même à tout moment depuis sa fenêtre de modification.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">3</div><div>Ce qu'il reste en fin de mois se <b>reporte en bonus</b> le mois suivant ; un dépassement se reporte aussi, en déficit à rattraper.</div></div>
           <div class="tuto-tip">💡 Léo peut te <b>proposer</b> de créer une enveloppe s'il remarque une dépense récurrente, mais ne la crée jamais tout seul : un bouton apparaît sous son message, c'est toujours toi qui valides.</div>
         </div></div>
@@ -1913,6 +1913,12 @@ window.APP_VERSION = '5.87';
     <input class="m-in" id="envNom" placeholder="Nom (ex: Alimentation, Loisirs)" maxlength="40"/>
     <div class="m-lbl">Budget mensuel (&#8364;)</div>
     <input class="m-in" id="envBudget" type="text" inputmode="decimal" placeholder="300"/>
+    <!-- v5.88 : catégories liées — rattachement 100% fiable et automatique des dépenses futures
+         reconnues dans ces catégories (voir detectExpenseCategory()/autoLinkEnveloppes()), sans
+         dépendre de Léo. Facultatif : une enveloppe sans catégorie reste utilisable manuellement
+         ou via le tag de Léo, comme avant. -->
+    <div class="m-lbl">Cat&#233;gories li&#233;es (optionnel — rattachement automatique et fiable)</div>
+    <div class="txn-cats" id="envCatsPicker" style="margin-bottom:14px"></div>
     <div class="m-btns">
       <button class="mb s" onclick="closeEnvModal()">Annuler</button>
       <button class="mb p" id="envModalSaveBtn" onclick="saveEnv()">Cr&#233;er l'enveloppe</button>
@@ -2511,7 +2517,7 @@ var _infoTips = {
   'synth':   { title:'📊 Synthèse budget',      body:'Vue d\'ensemble de tes revenus, dépenses et épargne du mois en cours. Change la période (Mensuel / Journalier / Annuel) pour adapter l\'affichage. Les boutons CSV et PDF en bas exportent ton bilan complet (synthèse, catégories, transactions, objectifs, charges fixes, patrimoine).' },
   'argent':  { title:'📍 Où va mon argent ?',      body:'La jauge en haut montre ce qu\'il te reste à dépenser ce mois-ci. En dessous, 4 mini-cartes à toucher : Revenus, Charges fixes (loyer, crédit, abonnements — dis-les à Léo pour qu\'il les classe automatiquement), Quotidien (Courses / Plaisirs & loisirs / Imprévus) et Épargne & investissement. Touche une mini-carte pour voir ses lignes, puis une ligne pour la modifier ou la supprimer. Rempli automatiquement quand tu parles à Léo, ou via le bouton + du bandeau bas.' },
   'actifs':  { title:'💰 Mes actifs',            body:'Valeur totale de ton patrimoine : compte épargne, immobilier, investissements, crypto… Permet à Léo de te donner des conseils plus précis.' },
-  'enveloppes': { title:'✉️ Mes enveloppes',      body:'Des budgets personnalisés (Alimentation, Loisirs…) avec un montant cible par mois. Crée-en une avec le bouton +, ou laisse Léo t\'en proposer une en conversation — il ne fait que proposer, c\'est toujours toi qui confirmes la création. Ce qui n\'est pas dépensé se reporte en bonus le mois suivant ; un dépassement se reporte aussi, en déficit à rattraper.' },
+  'enveloppes': { title:'✉️ Mes enveloppes',      body:'Des budgets personnalisés (Alimentation, Loisirs…) avec un montant cible par mois. Crée-en une avec le bouton +, ou laisse Léo t\'en proposer une en conversation — il ne fait que proposer, c\'est toujours toi qui confirmes la création. Coche des catégories liées (Courses, Resto…) pour un rattachement automatique et fiable des dépenses correspondantes, quelle que soit la façon dont elles sont ajoutées. Ce qui n\'est pas dépensé se reporte en bonus le mois suivant ; un dépassement se reporte aussi, en déficit à rattraper.' },
   'leo':     { title:'💡 Léo recommande',        body:'Conseils personnalisés générés par Léo selon ta situation actuelle. Mis à jour à chaque modification de ton budget. Appuie pour en discuter avec lui.' },
   'rav':     { title:'✅ Reste à vivre',          body:'Calcul : Revenus − Dépenses (Besoins + Envies) − Épargne du mois − Investissements (PEA, ETF, CTO…). Ces montants restent "à toi", mais dès que tu les diriges vers l\'épargne ou l\'investissement, ils ne sont plus disponibles pour tes dépenses courantes. Un reste à vivre négatif signifie que tes dépenses + ton épargne + tes investissements dépassent tes revenus.' }
 };
@@ -3342,9 +3348,11 @@ function selTxnCat(el,ico,name){
 }
 // v5.83 : affiche/peuple le sélecteur d'enveloppe de la Dépense rapide selon la section choisie —
 // masqué pour Épargne/Investiss. (non éligibles, voir getEnvEligibleRows()). Pré-sélectionne
-// l'enveloppe utilisée la dernière fois pour cette catégorie (S.fin._envCatPref), pour que le choix
-// se "synchronise" tout seul d'une fois sur l'autre sans jamais forcer un rattachement automatique
-// caché : la sélection reste visible et modifiable avant chaque enregistrement.
+// l'enveloppe utilisée la dernière fois pour cette catégorie (S.fin._envCatPref) si elle existe ;
+// sinon (v5.88), pré-sélectionne l'enveloppe liée à cette catégorie (env.cats) quand une seule
+// correspond — la catégorie est ici choisie explicitement par l'utilisateur (pas une supposition
+// de l'IA), donc ce croisement est fiable à 100%. Dans tous les cas la sélection reste visible et
+// modifiable avant chaque enregistrement, jamais un rattachement forcé en silence.
 function updateTxnEnvSelector(section, catName){
   var wrap=document.getElementById('txnEnvWrap');
   var sel=document.getElementById('txnEnv');
@@ -3359,6 +3367,10 @@ function updateTxnEnvSelector(section, catName){
     return;
   }
   var pref=(S.fin._envCatPref||{})[catName]||'';
+  if(!pref){
+    var catMatches=envs.filter(function(env){ return (env.cats||[]).indexOf(catName)>=0; });
+    if(catMatches.length===1) pref=catMatches[0].id;
+  }
   var opts='<option value="">Aucune</option>';
   envs.forEach(function(env){
     opts+='<option value="'+env.id+'"'+(pref===env.id?' selected':'')+'>'+esc(env.emoji||'✉️')+' '+esc(env.nom)+'</option>';
@@ -4064,19 +4076,63 @@ function sumRows(rows){ return rows.reduce(function(s,r){return s+r.v;},0); }
 // ENVELOPPES BUDGET (v5.82)
 // ══════════════════════════════════════════════
 // Fonctionnalité demandée par l'utilisateur : des enveloppes personnalisées (ex: "Alimentation",
-// "Loisirs") avec un budget mensuel cible, alimentées soit manuellement, soit via le tag "env" posé
-// sur une ligne besoins_items/envies_items (par l'utilisateur ou par Léo en conversation). Conçue
-// en couche ADDITIVE et non-intrusive : le tag existant "b" (fixe/courses/plaisirs/imprevus, voir
-// getFixedVariableSplit()) reste totalement inchangé — la jauge, le bento "Quotidien"/"Charges
-// fixes" et les exports CSV/PDF continuent de fonctionner exactement comme avant. Une enveloppe ne
-// s'applique qu'aux lignes besoins_items/envies_items qui NE sont PAS des charges fixes (b!=='fixe')
-// : c'est le même périmètre "dépenses variables" que couvrait déjà le bento "Quotidien".
-// Modèle : S.fin.enveloppes = [{id, nom, emoji, budget, report, moisRef}].
+// "Loisirs") avec un budget mensuel cible, alimentées manuellement, via des catégories liées
+// (v5.88, voir ENV_CATEGORY_KEYWORDS/detectExpenseCategory ci-dessous — mécanisme FIABLE, sans
+// dépendance à l'IA), ou via le tag "env" posé sur une ligne besoins_items/envies_items par Léo en
+// conversation. Conçue en couche ADDITIVE et non-intrusive : le tag existant "b"
+// (fixe/courses/plaisirs/imprevus, voir getFixedVariableSplit()) reste totalement inchangé — la
+// jauge, le bento "Quotidien"/"Charges fixes" et les exports CSV/PDF continuent de fonctionner
+// exactement comme avant. Une enveloppe ne s'applique qu'aux lignes besoins_items/envies_items qui
+// NE sont PAS des charges fixes (b!=='fixe') : c'est le même périmètre "dépenses variables" que
+// couvrait déjà le bento "Quotidien".
+// Modèle : S.fin.enveloppes = [{id, nom, emoji, budget, report, moisRef, cats}].
 //   - id : slug stable (ex: "alimentation"), généré une fois à la création, jamais modifié ensuite.
 //   - budget : montant cible mensuel fixé par l'utilisateur.
 //   - report : solde reporté du/des mois précédents (positif = reliquat non dépensé, négatif =
 //     dépassement) — voir rolloverEnveloppes(). Disponible ce mois-ci = budget + report.
 //   - moisRef : dernier mois ('AAAA-MM') pour lequel le report a été calculé.
+//   - cats (v5.88) : tableau de catégories liées parmi CAT_SECTION (ex: ['Courses','Resto']).
+//     Permet un rattachement 100% déterministe (aucune IA impliquée) : dès qu'une dépense — ajoutée
+//     par Léo, par Saisie rapide ou par ticket scanné — est reconnue comme appartenant à une de ces
+//     catégories (voir detectExpenseCategory()), elle est automatiquement rattachée à l'enveloppe.
+// ══════════════════════════════════════════════
+// v5.88 : DETECTION DE CATEGORIE FIABLE — bug signalé par l'utilisateur : le rattachement d'une
+// dépense à une enveloppe dépendait jusqu'ici soit de Léo (un LLM, jamais garanti fiable, voir
+// v5.86/v5.87), soit d'une correspondance de libellé (fonctionne seulement si le nom de la ligne
+// contient littéralement le nom de l'enveloppe, ex: "Courses" ne matche pas une enveloppe nommée
+// "Alimentation"). Solution robuste : chaque enveloppe peut désormais être liée à une ou plusieurs
+// catégories de dépense (les mêmes que celles de "Dépense rapide", voir CAT_SECTION), et
+// detectExpenseCategory() reconnaît la catégorie d'une dépense à partir de mots-clés dans son
+// libellé — mécanisme entièrement déterministe, sans aucune dépendance à l'IA. Cette détection est
+// volontairement une LISTE SÉPARÉE de ITEM_KEYWORD_ICONS (qui associe des mots-clés à un EMOJI, pas
+// à une catégorie) : les deux listes servent des besoins différents et n'ont pas à rester
+// synchronisées mot pour mot.
+var ENV_CATEGORY_KEYWORDS = [
+  [['restaurant','resto','snack','fast food','kebab','pizzeria','cafe','coffee','boisson','biere','vin','bar','brunch','livraison repas','uber eats','deliveroo'], 'Resto'],
+  [['supermarche','courses','carrefour','leclerc','auchan','lidl','intermarche','monoprix','epicerie','boulangerie','boucherie','primeur'], 'Courses'],
+  [['essence','carburant','station service','gazole','diesel','train','sncf','ter','tgv','bus','metro','tramway','tram','parking','stationnement','peage','moto','scooter','velo','trottinette','uber','taxi','vtc','covoiturage'], 'Transport'],
+  [['vetement','habillement','chaussure','zara','vinted','h&m','bijou','accessoire','maquillage','cosmetique'], 'Shopping'],
+  [['cinema','cine','loisir','sortie','concert','spectacle','musee','bowling','parc d attraction','jeu video','jeux video','abonnement jeu','livre','sport loisir','piscine','patinoire'], 'Loisirs'],
+  [['loyer','immobilier','maison','appartement','logement','hypotheque','pret immo','credit immo','electricite','edf','engie','gaz','eau','veolia','suez','internet','box','wifi','fibre','meuble','deco','bricolage'], 'Logement'],
+  [['medecin','docteur','pharmacie','dentiste','opticien','sante','mutuelle','hopital','clinique','kine','osteopathe'], 'Santé']
+];
+var _ENV_CAT_KW_RE = ENV_CATEGORY_KEYWORDS.map(function(entry){
+  return entry[0].map(function(kw){ return new RegExp('(^|[^a-z0-9])'+escRe(kw)+'([^a-z0-9]|$)'); });
+});
+// Retourne un nom de catégorie parmi CAT_SECTION (ex: 'Courses', 'Resto'...) ou null si le libellé
+// ne correspond à aucun mot-clé connu — dans ce cas, autoLinkEnveloppes() retombe sur la
+// correspondance de libellé (v5.87) plutôt que de deviner au hasard.
+function detectExpenseCategory(label){
+  if(!label) return null;
+  var norm=label.toLowerCase().normalize('NFD').replace(new RegExp('[\\u0300-\\u036f]','g'),'');
+  for(var i=0;i<ENV_CATEGORY_KEYWORDS.length;i++){
+    var res=_ENV_CAT_KW_RE[i];
+    for(var j=0;j<res.length;j++){
+      if(res[j].test(norm)) return ENV_CATEGORY_KEYWORDS[i][1];
+    }
+  }
+  return null;
+}
 function slugifyEnv(nom){
   var s=(nom||'').toLowerCase().normalize('NFD').replace(new RegExp('[\\u0300-\\u036f]','g'),'');
   s=s.replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
@@ -4114,17 +4170,21 @@ function getEnvEligibleRows(){
   });
   return rows;
 }
-// v5.87 : filet de sécurité côté code — malgré le renforcement du prompt (v5.86), Léo (un LLM,
-// jamais garanti à 100% fiable) continue par moments d'oublier le tag "env" sur une ligne qui
-// correspond pourtant clairement à une enveloppe existante. Plutôt que de dépendre uniquement de
-// l'IA, l'application elle-même recoupe désormais le libellé de chaque ligne SANS enveloppe avec
-// le nom des enveloppes existantes (même normalisation accents/casse que slugifyEnv) : si le nom
-// de l'enveloppe apparaît dans le libellé ou l'inverse (ex: ligne "Loisirs ciné" ↔ enveloppe
-// "Loisir"), on rattache automatiquement. Ne fait rien en cas d'ambiguïté (2 enveloppes
-// correspondraient) : mieux vaut ne pas rattacher que de rattacher au hasard. Appelée après chaque
-// fusion de données venant de Léo (sendMsg) et après chaque ajout/modif manuel, donc sans risque
-// de manquer un cas — au pire elle ne trouve rien et Léo ou l'utilisateur reprend la main comme
-// avant. N'écrase jamais un tag "env" déjà présent (manuel ou posé par Léo).
+// v5.87/v5.88 : filet de sécurité côté code, en 2 passes, pour ne plus dépendre uniquement de Léo
+// (un LLM, jamais garanti à 100% fiable — voir v5.86) pour rattacher une dépense à son enveloppe.
+// PASSE 1 (v5.88, FIABLE, prioritaire) : si l'enveloppe a des catégories liées (env.cats, voir la
+// modale #ovEnv) et que detectExpenseCategory() reconnaît la catégorie de la ligne à partir de
+// mots-clés dans son libellé, le rattachement est déterministe — aucune IA impliquée, ça marche
+// même quand le libellé ne contient pas du tout le nom de l'enveloppe (ex: ligne "Courses
+// Carrefour" ↔ enveloppe "Alimentation" liée à la catégorie Courses).
+// PASSE 2 (v5.87, fallback) : si aucune catégorie ne matche (enveloppe sans catégorie liée, ou
+// libellé non reconnu), on retombe sur la correspondance de libellé — le nom de l'enveloppe
+// apparaît dans le libellé ou l'inverse (ex: ligne "Loisirs ciné" ↔ enveloppe "Loisir").
+// Dans les deux passes : aucun rattachement en cas d'ambiguïté (plusieurs enveloppes
+// correspondraient) — mieux vaut ne rien faire que rattacher au hasard — et le tag "env" déjà
+// présent (manuel ou posé par Léo) n'est jamais écrasé. Appelée après chaque fusion de données
+// venant de Léo (sendMsg), après un ticket scanné, et après la création/modification d'une
+// enveloppe.
 function normEnvTxt(s){
   return (s||'').toLowerCase().normalize('NFD').replace(new RegExp('[\\u0300-\\u036f]','g'),'').trim();
 }
@@ -4137,6 +4197,14 @@ function autoLinkEnveloppes(){
     var touched=false;
     items.forEach(function(it){
       if(it.env || it.b==='fixe' || !it.n) return;
+      // Passe 1 : catégorie détectée + enveloppe(s) liée(s) à cette catégorie.
+      var cat=detectExpenseCategory(it.n);
+      if(cat){
+        var catMatches=envs.filter(function(env){ return (env.cats||[]).indexOf(cat)>=0; });
+        if(catMatches.length===1){ it.env=catMatches[0].id; touched=true; changed=true; return; }
+        if(catMatches.length>1) return; // ambigu entre plusieurs enveloppes de la même catégorie : on n'invente rien
+      }
+      // Passe 2 (fallback) : correspondance de libellé.
       var label=normEnvTxt(it.n);
       var matches=envs.filter(function(env){
         var nom=normEnvTxt(env.nom);
@@ -4189,6 +4257,26 @@ function rolloverEnveloppes(){
 // pré-remplie : la création réelle exige toujours un clic explicite de l'utilisateur sur
 // "Créer l'enveloppe" (saveEnv()), jamais une écriture directe depuis la réponse de l'IA.
 var _editEnvId=null;
+// v5.88 : sélecteur de catégories liées (voir #envCatsPicker). Catégories volontairement limitées
+// aux 7 pertinentes pour une enveloppe de dépenses variables — Épargne/Investiss. sont exclues
+// (jamais éligibles aux enveloppes, voir getEnvEligibleRows()) et "Autre" est trop générique pour
+// un rattachement fiable (elle resterait toujours ambiguë entre plusieurs enveloppes).
+var ENV_CAT_OPTIONS=['Resto','Courses','Transport','Shopping','Loisirs','Logement','Santé'];
+var _envCatsSel=[];
+function renderEnvCatsPicker(){
+  var el=document.getElementById('envCatsPicker'); if(!el) return;
+  el.innerHTML=ENV_CAT_OPTIONS.map(function(cat){
+    var t=TXN_CAT_TYPES.filter(function(c){ return c.name===cat; })[0]||{ico:'📦'};
+    var sel=_envCatsSel.indexOf(cat)>=0;
+    return '<div class="txn-cat'+(sel?' sel':'')+'" onclick="toggleEnvCat(this,\''+cat+'\')">'
+      +'<div class="txn-cat-ico">'+t.ico+'</div><div class="txn-cat-lbl">'+cat+'</div></div>';
+  }).join('');
+}
+function toggleEnvCat(el, cat){
+  var idx=_envCatsSel.indexOf(cat);
+  if(idx>=0) _envCatsSel.splice(idx,1); else _envCatsSel.push(cat);
+  el.classList.toggle('sel');
+}
 function openEnvModal(prefillNom){
   _editEnvId=null;
   document.getElementById('envModalTitle').textContent='Nouvelle enveloppe';
@@ -4196,6 +4284,11 @@ function openEnvModal(prefillNom){
   document.getElementById('envEmoji').value='';
   document.getElementById('envNom').value=prefillNom||'';
   document.getElementById('envBudget').value='';
+  // v5.88 : auto-suggère les catégories liées à partir du nom saisi (ex: "Alimentation" → Courses),
+  // toujours modifiable par l'utilisateur avant de créer — jamais imposé silencieusement.
+  var guessed=prefillNom ? detectExpenseCategory(prefillNom) : null;
+  _envCatsSel = guessed ? [guessed] : [];
+  renderEnvCatsPicker();
   document.getElementById('ovEnv').classList.add('open');
   setTimeout(function(){ var el=document.getElementById('envNom'); if(el) el.focus(); },100);
 }
@@ -4207,30 +4300,41 @@ function openEditEnvModal(id){
   document.getElementById('envEmoji').value=env.emoji||'';
   document.getElementById('envNom').value=env.nom||'';
   document.getElementById('envBudget').value=env.budget||'';
+  _envCatsSel=(env.cats||[]).slice();
+  renderEnvCatsPicker();
   document.getElementById('ovEnv').classList.add('open');
 }
 function closeEnvModal(){
   var m=document.getElementById('ovEnv'); if(m) m.classList.remove('open');
   _editEnvId=null;
+  _envCatsSel=[];
 }
 function saveEnv(){
   var emoji=(document.getElementById('envEmoji').value||'').trim();
   var nom=(document.getElementById('envNom').value||'').trim();
   var budget=parseMontant(document.getElementById('envBudget').value)||0;
+  var cats=_envCatsSel.slice();
   if(!nom){ toast('Donne un nom à ton enveloppe','#ef4444'); return; }
   if(!S.fin.enveloppes) S.fin.enveloppes=[];
   if(!emoji) emoji=guessItemEmoji(nom,'✉️');
   if(_editEnvId){
     var env=S.fin.enveloppes.filter(function(e){ return e.id===_editEnvId; })[0];
     if(!env){ closeEnvModal(); return; }
-    env.nom=nom; env.emoji=emoji; env.budget=budget;
+    env.nom=nom; env.emoji=emoji; env.budget=budget; env.cats=cats;
     save(); closeEnvModal(); renderEnveloppes();
+    // v5.88 : un changement de catégories liées peut désormais faire correspondre des dépenses
+    // déjà présentes — on relance donc le rattachement automatique tout de suite.
+    if(typeof autoLinkEnveloppes==='function' && autoLinkEnveloppes()) renderEnveloppes();
     toast('Enveloppe mise à jour ✅','#0d9488');
     return;
   }
   var id=uniqueEnvId(nom);
-  S.fin.enveloppes.push({id:id, nom:nom, emoji:emoji, budget:budget, report:0, moisRef:curMonthKey()});
+  S.fin.enveloppes.push({id:id, nom:nom, emoji:emoji, budget:budget, report:0, moisRef:curMonthKey(), cats:cats});
   save(); closeEnvModal(); renderEnveloppes();
+  // v5.88 : rattache tout de suite les dépenses déjà existantes qui correspondent aux catégories
+  // choisies (ex: une "Alimentation" créée avec la catégorie Courses récupère les lignes Courses
+  // déjà présentes, sans attendre une nouvelle dépense).
+  if(cats.length && typeof autoLinkEnveloppes==='function' && autoLinkEnveloppes()) renderEnveloppes();
   toast('Enveloppe créée '+emoji,'#0d9488');
 }
 function deleteEnv(id){
