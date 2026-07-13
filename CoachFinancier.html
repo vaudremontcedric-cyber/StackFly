@@ -985,7 +985,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.82';
+window.APP_VERSION = '5.83';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1592,7 +1592,7 @@ window.APP_VERSION = '5.82';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.82</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.83</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -1841,7 +1841,7 @@ window.APP_VERSION = '5.82';
         </div>
         <div class="tuto-card-body"><div class="tuto-card-content">
           <div class="tuto-step"><div class="tuto-step-num">1</div><div>Le plus simple : dis-le à <b>Léo</b> dans le Chat, il l'enregistre automatiquement.</div></div>
-          <div class="tuto-step"><div class="tuto-step-num">2</div><div>Ou appuie sur le bouton <b>+</b> flottant en bas de l'écran, puis <b>Ajouter une dépense</b> : choisis <b>Saisie rapide par catégorie</b>, ou <b>Scanner un ticket de caisse</b> (photo 📷 ou fichier 📁) pour une lecture automatique par Léo.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">2</div><div>Ou appuie sur le bouton <b>+</b> flottant en bas de l'écran, puis <b>Ajouter une dépense</b> : choisis <b>Saisie rapide par catégorie</b> (si tu as des enveloppes, un sélecteur te propose d'y rattacher la dépense), ou <b>Scanner un ticket de caisse</b> (photo 📷 ou fichier 📁) pour une lecture automatique par Léo.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">3</div><div>Pour modifier ou supprimer une dépense déjà enregistrée : dans <b>Où va mon argent ?</b>, touche la mini-carte concernée (Charges fixes ou Quotidien), puis la ligne à changer.</div></div>
           <div class="tuto-tip">💡 Toutes tes dépenses, quelle que soit la méthode, apparaissent au même endroit : Où va mon argent ?</div>
         </div></div>
@@ -1856,7 +1856,7 @@ window.APP_VERSION = '5.82';
         </div>
         <div class="tuto-card-body"><div class="tuto-card-content">
           <div class="tuto-step"><div class="tuto-step-num">1</div><div>Dans <b>Où va mon argent ?</b>, ouvre la section <b>Mes enveloppes</b> et touche <b>+ Créer une enveloppe</b> : donne-lui un nom (ex: Alimentation, Loisirs), un emoji et un budget mensuel.</div></div>
-          <div class="tuto-step"><div class="tuto-step-num">2</div><div>Chaque dépense que tu rattaches à cette enveloppe (toi-même dans la fenêtre de modification d'une ligne, ou automatiquement via <b>Léo</b> en conversation) vient réduire le montant restant.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">2</div><div>Chaque dépense que tu rattaches à cette enveloppe vient réduire le montant restant : depuis <b>Saisie rapide par catégorie</b> (sélecteur dédié), depuis la fenêtre de modification d'une ligne existante, ou automatiquement via <b>Léo</b> en conversation.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">3</div><div>Ce qu'il reste en fin de mois se <b>reporte en bonus</b> le mois suivant ; un dépassement se reporte aussi, en déficit à rattraper.</div></div>
           <div class="tuto-tip">💡 Léo peut te <b>proposer</b> de créer une enveloppe s'il remarque une dépense récurrente, mais ne la crée jamais tout seul : un bouton apparaît sous son message, c'est toujours toi qui valides.</div>
         </div></div>
@@ -1954,6 +1954,14 @@ window.APP_VERSION = '5.82';
     <input class="m-in" id="txnDesc" placeholder="Ex: D&#233;jeuner avec Paul" maxlength="60"/>
     <div class="m-lbl">Pr&#233;vu (optionnel)</div>
     <input class="m-in" id="txnPrevu" type="text" inputmode="decimal" placeholder="Ce que tu avais anticip&#233; pour cette d&#233;pense" autocomplete="off"/>
+    <!-- v5.83 : sélecteur d'enveloppe — corrige le bug signalé par l'utilisateur (une dépense
+         ajoutée ici n'était jamais déduite de son enveloppe). Masqué pour Épargne/Investiss., qui
+         ne sont pas éligibles aux enveloppes (voir getEnvEligibleRows()). Affiché/rempli par
+         updateTxnEnvSelector(), appelée depuis openTxnModal() et selTxnCat(). -->
+    <div id="txnEnvWrap" style="display:none">
+      <div class="m-lbl">Enveloppe (optionnel)</div>
+      <select class="m-in" id="txnEnv"><option value="">Aucune</option></select>
+    </div>
     <div class="m-btns">
       <button class="mb s" onclick="closeTxnModal()">Annuler</button>
       <button class="mb p" onclick="saveTxn()">Enregistrer</button>
@@ -3329,6 +3337,33 @@ function selTxnCat(el,ico,name){
     badge.textContent = CAT_SECTION_LABEL[section];
     badge.className = 'txn-section-badge txn-section-'+section;
   }
+  updateTxnEnvSelector(section, name);
+}
+// v5.83 : affiche/peuple le sélecteur d'enveloppe de la Dépense rapide selon la section choisie —
+// masqué pour Épargne/Investiss. (non éligibles, voir getEnvEligibleRows()). Pré-sélectionne
+// l'enveloppe utilisée la dernière fois pour cette catégorie (S.fin._envCatPref), pour que le choix
+// se "synchronise" tout seul d'une fois sur l'autre sans jamais forcer un rattachement automatique
+// caché : la sélection reste visible et modifiable avant chaque enregistrement.
+function updateTxnEnvSelector(section, catName){
+  var wrap=document.getElementById('txnEnvWrap');
+  var sel=document.getElementById('txnEnv');
+  if(!wrap||!sel) return;
+  if(section!=='besoins' && section!=='envies'){
+    wrap.style.display='none';
+    return;
+  }
+  var envs=(S.fin && S.fin.enveloppes) || [];
+  if(!envs.length){
+    wrap.style.display='none';
+    return;
+  }
+  var pref=(S.fin._envCatPref||{})[catName]||'';
+  var opts='<option value="">Aucune</option>';
+  envs.forEach(function(env){
+    opts+='<option value="'+env.id+'"'+(pref===env.id?' selected':'')+'>'+esc(env.emoji||'✉️')+' '+esc(env.nom)+'</option>';
+  });
+  sel.innerHTML=opts;
+  wrap.style.display='block';
 }
 function renderTxns(){
   var td=today(); var el=document.getElementById('txnList'); if(!el) return;
@@ -3392,6 +3427,7 @@ function openTxnModal(){
   document.getElementById('txnPrevu').value='';
   document.querySelectorAll('.txn-cat').forEach(function(c,i){c.classList.toggle('sel',i===0);});
   _selTxnCat={ico:'🍽️',name:'Resto'};
+  updateTxnEnvSelector(CAT_SECTION['Resto']||'envies', 'Resto');
   document.getElementById('ovTxn').classList.add('open');
 }
 function closeTxnModal(){ document.getElementById('ovTxn').classList.remove('open'); }
@@ -3414,19 +3450,40 @@ function saveTxn(){
   var key=section+'_items';
   if(!S.fin) S.fin={};
   var items=parseItems(S.fin[key]);
+  // v5.83 : enveloppe choisie dans le sélecteur (bug corrigé — une dépense ajoutée ici n'était
+  // jamais déduite de son enveloppe, faute de tag "env" posé sur la ligne). Absente/vide si la
+  // section n'est pas éligible (Épargne/Investiss., sélecteur alors masqué par
+  // updateTxnEnvSelector()) ou si l'utilisateur n'en a choisi aucune.
+  var envWrap=document.getElementById('txnEnvWrap');
+  var envVal=(envWrap && envWrap.style.display!=='none') ? document.getElementById('txnEnv').value : '';
   // Chercher si l'item existe déjà (même label), sinon créer
   var existing=items.filter(function(i){return i.n===label;});
   if(existing.length){
     existing[0].v=Math.round((existing[0].v+amt)*100)/100;
     existing[0].d=today();
+    if(envVal) existing[0].env=envVal; else if(!existing[0].env) delete existing[0].env;
   } else {
-    items.push({n:label,v:amt,d:today()});
+    var newItem={n:label,v:amt,d:today()};
+    if(envVal) newItem.env=envVal;
+    items.push(newItem);
   }
   S.fin[key]=JSON.stringify(items);
   syncTotals();
+  // Mémorise le choix pour cette catégorie (ex: "Courses" → enveloppe "Alimentation"), afin que le
+  // sélecteur se pré-remplisse tout seul la prochaine fois — voir updateTxnEnvSelector(). N'écrase
+  // pas un choix existant si l'utilisateur repasse volontairement sur "Aucune".
+  if(envVal){
+    if(!S.fin._envCatPref) S.fin._envCatPref={};
+    S.fin._envCatPref[_selTxnCat.name]=envVal;
+  }
   save(); closeTxnModal(); renderTxns(); renderPoche(); renderScore(); renderTriCards(); renderArgentJournal();
   var sLabel=CAT_SECTION_LABEL[section]||section;
-  toast(lineIco+' '+euro(amt)+' → '+sLabel,'#10b981');
+  var envLabel='';
+  if(envVal){
+    var envObj=(S.fin.enveloppes||[]).filter(function(e){ return e.id===envVal; })[0];
+    if(envObj) envLabel=' · '+(envObj.emoji||'✉️')+' '+envObj.nom;
+  }
+  toast(lineIco+' '+euro(amt)+' → '+sLabel+envLabel,'#10b981');
 }
 
 // Aide générique (utilisée par le scan de ticket de caisse, validateReceipt()) : ajoute ou
