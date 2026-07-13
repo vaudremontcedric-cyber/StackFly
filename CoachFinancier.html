@@ -155,19 +155,19 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
   box-shadow:0 8px 32px rgba(0,0,0,.3);transition:transform .2s ease,box-shadow .2s ease}
 .rav-card.g{background:linear-gradient(135deg,rgba(16,185,129,.18),rgba(16,185,129,.06));border:1.5px solid rgba(16,185,129,.35)}
 .rav-card.o{background:linear-gradient(135deg,rgba(245,158,11,.18),rgba(245,158,11,.06));border:1.5px solid rgba(245,158,11,.35)}
-.rav-card.r{background:linear-gradient(135deg,rgba(239,68,68,.2),rgba(239,68,68,.06));border:1.5px solid rgba(239,68,68,.4)}
+.rav-card.r{background:linear-gradient(135deg,rgba(249,115,22,.2),rgba(249,115,22,.06));border:1.5px solid rgba(249,115,22,.4)}
 .rav-lbl{font-size:11px;font-weight:700;color:var(--text2);
   text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;text-align:center}
 .rav-val{font-size:54px;font-weight:800;line-height:1;letter-spacing:-2px;margin-bottom:12px;text-align:center;
   font-variant-numeric:tabular-nums}
 .rav-card.g .rav-val{color:var(--green)}
 .rav-card.o .rav-val{color:var(--orange)}
-.rav-card.r .rav-val{color:var(--red)}
+.rav-card.r .rav-val{color:#f97316}
 .rav-status{display:inline-flex;align-items:center;gap:6px;
   padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700}
 .rav-card.g .rav-status{background:rgba(16,185,129,.2);color:var(--green)}
 .rav-card.o .rav-status{background:rgba(245,158,11,.2);color:var(--orange)}
-.rav-card.r .rav-status{background:rgba(239,68,68,.2);color:var(--red)}
+.rav-card.r .rav-status{background:rgba(249,115,22,.2);color:#f97316}
 .rav-msg{font-size:13px;color:var(--text2);margin-top:10px;line-height:1.5;text-align:center}
 .rav-row{display:flex;gap:10px;margin-top:14px;width:100%}
 .rav-mini{flex:1;background:var(--bg2);border-radius:10px;padding:10px 12px}
@@ -190,7 +190,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 .evol-stat-lbl{font-size:10px;color:var(--text2);margin-bottom:3px;
   text-transform:uppercase;font-weight:600}
 .evol-stat-val{font-size:15px;font-weight:800}
-.up{color:var(--green)}.dn{color:var(--red)}.neu{color:var(--text2)}
+.up{color:var(--green)}.dn{color:#f97316}.neu{color:var(--text2)}
 
 /* Zone 3 : Action du moment */
 .action-card{border-radius:var(--r);padding:20px;margin:10px 20px 0;
@@ -274,7 +274,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 .actif-item-name{flex:1;font-size:12px;color:var(--text2)}
 .actif-item-amt{font-size:13px;font-weight:700;color:var(--accent2)}
 .actif-item-del{background:none;border:none;color:var(--text3);font-size:17px;cursor:pointer;padding:0 2px;opacity:.45;transition:opacity .15s;flex-shrink:0;line-height:1}
-.actif-item-del:active{opacity:1;color:var(--red)}
+.actif-item-del:active{opacity:1;color:#f97316}
 .actif-add-row{display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(13,148,136,.05);border-top:1px solid var(--border)}
 .actif-select{flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:8px 10px;color:var(--text);font-size:12px;cursor:pointer;min-width:0}
 .actif-select:focus{border-color:var(--accent);outline:none}
@@ -786,7 +786,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 .txn-head{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;
   border-bottom:1px solid rgba(255,255,255,.05)}
 .txn-head-l{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700}
-.txn-today-total{font-size:13px;color:var(--red);font-weight:700}
+.txn-today-total{font-size:13px;color:#f97316;font-weight:700}
 .txn-fab-inline{background:none;border:none;color:var(--green);font-size:19px;cursor:pointer;
   width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%}
 .txn-row{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;
@@ -796,7 +796,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 .txn-ico{font-size:18px;width:30px;text-align:center}
 .txn-desc{font-size:13px;font-weight:500}
 .txn-time{font-size:10px;color:var(--text3)}
-.txn-amt{font-size:13px;font-weight:700;color:var(--red)}
+.txn-amt{font-size:13px;font-weight:700;color:#f97316}
 .txn-empty{padding:14px 16px;font-size:13px;color:var(--text3);text-align:center}
 
 /* ════ STREAK + BADGES (gamification) ════ */
@@ -962,7 +962,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 .ameliorer-status{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;margin-top:4px;display:inline-block}
 .status-ok{background:#10b98122;color:#10b981}
 .status-warn{background:#f59e0b22;color:#f59e0b}
-.status-bad{background:#ef444422;color:#ef4444}
+.status-bad{background:#f9731622;color:#f97316}
 
 .sugg-resume{background:linear-gradient(135deg,rgba(13,148,136,.25),rgba(15,118,110,.25));border-color:var(--accent2);color:var(--accent2);font-weight:800}
 
@@ -981,7 +981,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.71';
+window.APP_VERSION = '5.72';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1572,7 +1572,7 @@ window.APP_VERSION = '5.71';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.71</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.72</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -2639,6 +2639,15 @@ function animateVal(el, targetNum, formatter){
 function sign(n){ return n>0?'+'+euro(n):euro(n); }
 function daysAgo(iso){ return Math.floor((Date.now()-new Date(iso).getTime())/86400000); }
 function today(){ return new Date().toISOString().slice(0,10); }
+// v5.72 : affiche la date du jour dans le sous-titre du bandeau haut (#hdrSub, présent sur
+// toutes les pages), qui était réservé mais jamais rempli. Format complet et lisible
+// ("lundi 13 juillet 2026"), première lettre en majuscule (toLocaleDateString la rend en
+// minuscules). Appelée une fois au chargement — suffisant, l'app se recharge chaque jour.
+function renderHeaderDate(){
+  var el=document.getElementById('hdrSub'); if(!el) return;
+  var txt=new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  el.textContent=txt.charAt(0).toUpperCase()+txt.slice(1);
+}
 // Parseur JSON tolérant pour le contenu des blocs [FD]/[CH] renvoyés par Léo (LLM) : un
 // JSON.parse strict échoue et abandonne TOUTE la mise à jour au moindre écart de formatage
 // (guillemets typographiques « » ” ‘ ’, virgule finale avant } ou ], bloc entouré de ```). On
@@ -2819,7 +2828,7 @@ function scoreInfo(sc){
   if(sc>=80) return {lbl:'Excellent',col:'#10b981'};
   if(sc>=60) return {lbl:'Bien',col:'#0d9488'};
   if(sc>=40) return {lbl:'À améliorer',col:'#f59e0b'};
-  return {lbl:'Critique',col:'#ef4444'};
+  return {lbl:'Critique',col:'#f97316'};
 }
 function renderScore(){
   var f=S.fin;
@@ -2885,7 +2894,7 @@ function renderScoreTrend(){
   });
   var path=pts.map(function(p,i){return (i===0?'M':'L')+p.x.toFixed(1)+','+p.y.toFixed(1);}).join(' ');
   var last=pts[pts.length-1];
-  var lastCol=last.v>=10?'#10b981':last.v>=0?'#f59e0b':'#ef4444';
+  var lastCol=last.v>=10?'#10b981':last.v>=0?'#f59e0b':'#f97316';
   var svgHtml='<path d="'+path+'" fill="none" stroke="var(--accent2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
   pts.forEach(function(p,i){
     var isLast=i===pts.length-1;
@@ -3219,7 +3228,7 @@ function renderTxns(){
     var prevuLine='';
     if(t.prevu){
       var ecart=t.prevu-t.amt;
-      var col=ecart>=0?'var(--green)':'var(--red)';
+      var col=ecart>=0?'var(--green)':'#f97316';
       prevuLine='<div style="font-size:10.5px;color:'+col+'">prévu '+euro(t.prevu)+' · '+(ecart>=0?'+':'')+euro(ecart)+'</div>';
     }
     // v5.70 : icône devinée à partir du libellé exact (guessItemEmoji), pas seulement de la
@@ -3528,7 +3537,7 @@ function renderSynthTable(){
     {lbl:'💸 Dépenses',         val:dep, col:'var(--orange)',  pct:tauxDep+'%'},
     {lbl:'🏦 Épargne',          val:ep,  col:'var(--accent2)', pct:(f.revenus>0?Math.round((f.epargne||0)/f.revenus*100):0)+'%'},
     {lbl:'📈 Investissements',  val:inv, col:'#8b5cf6',        pct:(f.revenus>0?Math.round((f.invest||0)/f.revenus*100):0)+'%'},
-    {lbl:'✅ Reste à vivre',    val:rav, col:rav>=0?'var(--green)':'var(--red)', pct:tauxRav+'%'}
+    {lbl:'✅ Reste à vivre',    val:rav, col:rav>=0?'var(--green)':'#f97316', pct:tauxRav+'%'}
   ];
   el.innerHTML = rows.map(function(r){
     return '<div style="display:flex;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">'
@@ -3766,12 +3775,13 @@ function textAwareBadge(label, catKey, bg, size, col){
 // "Dépenses fixes" — ou se fait détecter automatiquement par Léo en conversation.
 var ARGENT_ADD_TYPES = [
   {id:'revenu',   lbl:'Revenu',             key:'revenus_items', b:null,       col:'var(--green)',  bg:'var(--green2)'},
-  {id:'fixe',     lbl:'Charge fixe',        key:'besoins_items', b:'fixe',     col:'var(--red)',     bg:'var(--red2)'},
+  // v5.72 : "Charge fixe" est passée du rouge #ef4444 à l'orange brûlé #f97316 (demande de
+  // l'utilisateur : plus de rouge dans la page Budget). Distincte de "Plaisirs & loisirs"
+  // (var(--orange) = ambre #f59e0b) malgré le même "camp" orange : les deux teintes sont assez
+  // éloignées pour rester lisibles côte à côte dans le bento/"Derniers mouvements".
+  {id:'fixe',     lbl:'Charge fixe',        key:'besoins_items', b:'fixe',     col:'#f97316',        bg:'rgba(249,115,22,.18)'},
   {id:'courses',  lbl:'Courses',            key:'besoins_items', b:'courses',  col:'#3b82f6',        bg:'rgba(59,130,246,.18)'},
   {id:'plaisirs', lbl:'Plaisirs & loisirs', key:'envies_items',  b:'plaisirs', col:'var(--orange)',  bg:'var(--orange2)'},
-  // Couleur distincte du rouge de "Charge fixe" (v5.63) : les deux étaient quasi identiques
-  // (var(--red) ≈ #ef4444), rendant "Imprévus" et "Charges fixes" difficiles à distinguer d'un
-  // coup d'œil dans le bento, "Derniers mouvements" et le détail par section.
   {id:'imprevus', lbl:'Imprévus',           key:'besoins_items', b:'imprevus', col:'#ec4899',        bg:'rgba(236,72,153,.18)'},
   {id:'epargne',  lbl:'Épargne',            key:'epargne_items', b:null,       col:'var(--accent2)', bg:'rgba(13,148,136,.18)'},
   {id:'invest',   lbl:'Investissement',     key:'invest_items',  b:null,       col:'#8b5cf6',        bg:'rgba(139,92,246,.18)'}
@@ -3917,12 +3927,18 @@ function renderArgentRows(rows, col){
     var delBtn=r.synthetic
       ? '<span style="font-size:9.5px;color:var(--text3);flex-shrink:0;font-style:italic">déclaré</span>'
       : '<div onclick="event.stopPropagation();deleteRepItem(\''+r.key+'\','+r.idx+')" style="cursor:pointer;color:var(--text3);font-size:16px;padding:2px 4px;flex-shrink:0" title="Supprimer">×</div>';
+    // v5.72 : toute la ligne est déjà cliquable pour l'éditer depuis la v5.62 (openEditArgentItem),
+    // mais rien ne le montrait visuellement — un crayon explicite (même glyphe que "Modifier" sur
+    // Mes actifs) rend cette action découvrable. Absent sur les lignes "déclaré" (rien à éditer
+    // ligne par ligne, voir openEditArgentItem()).
+    var editIco=r.synthetic ? '' : '<div style="color:var(--text3);font-size:13px;flex-shrink:0;display:flex;align-items:center" title="Modifier">&#9998;</div>';
     return '<div onclick="openEditArgentItem(\''+r.key+'\','+r.idx+')" style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer">'
       +'<div style="flex:1;min-width:0">'
         +'<div style="font-size:13.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.n)+'</div>'
         +(dateTxt?'<div style="font-size:10.5px;color:var(--text3);margin-top:1px">'+dateTxt+'</div>':'')
       +'</div>'
       +'<div style="font-size:13.5px;font-weight:700;color:'+col+';flex-shrink:0">'+euro(r.v)+'</div>'
+      +editIco
       +delBtn
       +'</div>';
   }).join('');
@@ -3951,8 +3967,8 @@ function renderArgentGauge(){
   var reel=calcRAV();
   var pct=theorique>0?Math.max(0,Math.min(100,Math.round(reel/theorique*100))):0;
   var cl = reel<0 ? 'r' : (theorique>0 && reel<theorique*0.2) ? 'o' : 'g';
-  var colors={g:'var(--green)',o:'#f59e0b',r:'var(--red)'};
-  var bgs={g:'var(--green2)',o:'rgba(245,158,11,.15)',r:'var(--red2)'};
+  var colors={g:'var(--green)',o:'#f59e0b',r:'#f97316'};
+  var bgs={g:'var(--green2)',o:'rgba(245,158,11,.15)',r:'rgba(249,115,22,.15)'};
   var msgs={g:'Zone confortable pour finir le mois',o:'Enveloppe qui se resserre — reste vigilant',r:'Enveloppe dépassée ce mois-ci'};
   var R=54, C=2*Math.PI*R, offset=C-(pct/100*C);
   // v5.66 : la jauge se remplit progressivement au lieu d'apparaître déjà pleine (arc posé à
@@ -3998,7 +4014,7 @@ function renderArgentStats(){
   if(!revTot && !fixedTot && !varTot && !epTot){ el.innerHTML=''; return; }
   var cards=[
     {ico:'revenu',  lbl:'Revenus',      v:revTot,   col:'var(--green)',  bg:'var(--green2)'},
-    {ico:'fixe',    lbl:'Charges fixes',v:fixedTot, col:'var(--red)',    bg:'var(--red2)'},
+    {ico:'fixe',    lbl:'Charges fixes',v:fixedTot, col:'#f97316',    bg:'rgba(249,115,22,.18)'},
     {ico:'courses', lbl:'Quotidien',    v:varTot,   col:'var(--text)',   bg:'rgba(148,163,184,.18)'},
     {ico:'epargne', lbl:'Épargne',      v:epTot,    col:'var(--accent2)',bg:'rgba(13,148,136,.18)'}
   ];
@@ -4034,7 +4050,7 @@ function renderArgentStatDetail(){
     rows=getRevenuRows();
     col='var(--green)'; emptyTxt='Aucun revenu enregistré.';
   } else if(_argStatOpen==='fixe'){
-    rows=split.fixed; col='var(--red)';
+    rows=split.fixed; col='#f97316';
     emptyTxt='Aucune charge fixe. Ajoute-en une avec la pastille "Charge fixe" ci-dessous, ou dis-la à Léo.';
   } else if(_argStatOpen==='courses'){
     rows=split.buckets.courses.concat(split.buckets.plaisirs, split.buckets.imprevus);
@@ -4082,7 +4098,7 @@ function renderArgentRecent(){
   var split=getFixedVariableSplit();
   var all=[];
   getRevenuRows().forEach(function(r){ all.push(argentRowMeta(r,'revenu','var(--green2)','var(--green)',1)); });
-  split.fixed.forEach(function(r){ all.push(argentRowMeta(r,'fixe','var(--red2)','var(--red)',-1)); });
+  split.fixed.forEach(function(r){ all.push(argentRowMeta(r,'fixe','rgba(249,115,22,.18)','#f97316',-1)); });
   split.buckets.courses.forEach(function(r){ all.push(argentRowMeta(r,'courses','rgba(59,130,246,.18)','#3b82f6',-1)); });
   split.buckets.plaisirs.forEach(function(r){ all.push(argentRowMeta(r,'plaisirs','var(--orange2)','var(--orange)',-1)); });
   split.buckets.imprevus.forEach(function(r){ all.push(argentRowMeta(r,'imprevus','rgba(236,72,153,.18)','#ec4899',-1)); });
@@ -4124,7 +4140,7 @@ function renderArgentDetail(){
   var epInvRows=getEpargneInvestRows();
   var html='';
   html+=renderArgentSection('Entrées', 'revenu', 'var(--green)', sumRows(revRows), renderArgentRows(revRows,'var(--green)'), 'Aucun revenu enregistré.');
-  html+=renderArgentSection('Dépenses fixes', 'fixe', 'var(--red)', sumRows(split.fixed), renderArgentRows(split.fixed,'var(--red)'), 'Ajoute tes charges récurrentes (loyer, crédit…) avec la pastille "Charge fixe" ci-dessous, ou dis-les à Léo.');
+  html+=renderArgentSection('Dépenses fixes', 'fixe', '#f97316', sumRows(split.fixed), renderArgentRows(split.fixed,'#f97316'), 'Ajoute tes charges récurrentes (loyer, crédit…) avec la pastille "Charge fixe" ci-dessous, ou dis-les à Léo.');
   var varTotal=sumRows(split.buckets.courses)+sumRows(split.buckets.plaisirs)+sumRows(split.buckets.imprevus);
   var varHtml='';
   [['Courses',split.buckets.courses,'#3b82f6'],['Plaisirs & loisirs',split.buckets.plaisirs,'var(--orange)'],['Imprévus',split.buckets.imprevus,'#ec4899']].forEach(function(g){
@@ -4143,7 +4159,7 @@ function renderArgentDetail(){
   html+='<div style="background:var(--card2);border-radius:12px;padding:10px 12px;margin-top:4px">'
     +'<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span style="color:var(--text2)">Total dépenses</span><span>'+euro(depTotal)+'</span></div>'
     +'<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span style="color:var(--text2)">Reste à vivre théorique</span><span>'+euro(theorique)+'</span></div>'
-    +'<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span style="color:var(--text2)">Reste à vivre réel</span><span style="font-weight:700;color:'+(calcRAV()>=0?'var(--green)':'var(--red)')+'">'+euro(calcRAV())+'</span></div>'
+    +'<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span style="color:var(--text2)">Reste à vivre réel</span><span style="font-weight:700;color:'+(calcRAV()>=0?'var(--green)':'#f97316')+'">'+euro(calcRAV())+'</span></div>'
   +'</div>';
   el.innerHTML=html;
 }
@@ -4237,7 +4253,7 @@ function buildMonthTrendHtml(){
   var max=Math.max(20,Math.max.apply(null,trend.map(function(t){return t.v;})));
   var bars=trend.map(function(t){
     var h=Math.max(3,Math.round(t.v/max*34));
-    var c=t.v>=20?'#10b981':t.v>=10?'#f59e0b':'#ef4444';
+    var c=t.v>=20?'#10b981':t.v>=10?'#f59e0b':'#f97316';
     return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">'
       +'<div style="font-size:9px;color:var(--text3)">'+t.v+'%</div>'
       +'<div class="spark-bar" style="width:100%;height:'+h+'px;background:'+c+'"></div>'
@@ -4343,7 +4359,7 @@ function renderBudget(){
     var range = max2 - min2 || 1;
     spark.innerHTML = vals.map(function(v,i){
       var h = Math.max(4, Math.round(((v-min2)/range)*32));
-      var c = v >= vals[0] ? '#10b981' : '#ef4444';
+      var c = v >= vals[0] ? '#10b981' : '#f97316';
       return '<div class="spark-bar" style="height:'+h+'px;background:'+c+';opacity:'+(0.5+i*0.08)+'"></div>';
     }).join('');
   } else {
@@ -6085,9 +6101,9 @@ function renderBudgetAlertBanner(){
   var dismissed=localStorage.getItem('cf_alertDismiss')||'';
   if(dismissed===key){ el.style.display='none'; el.innerHTML=''; return; }
   el.style.display='block';
-  el.innerHTML='<div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.28);border-radius:14px;padding:12px 14px">'
+  el.innerHTML='<div style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.28);border-radius:14px;padding:12px 14px">'
     +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
-      +'<span style="font-size:12px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.4px">Alertes budget</span>'
+      +'<span style="font-size:12px;font-weight:700;color:#f97316;text-transform:uppercase;letter-spacing:.4px">Alertes budget</span>'
       +'<button onclick="dismissBudgetAlerts(\''+key.replace(/'/g,"\\'")+'\')" style="background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;line-height:1;padding:2px 4px">&#215;</button>'
     +'</div>'
     +alerts.map(function(a){
@@ -6427,6 +6443,7 @@ save = function(){
 // ── Auto-init on page load ───────────────────────────
 window.addEventListener('DOMContentLoaded', function(){
   updateFbRows();
+  renderHeaderDate();
   // v5.64 : génère les pastilles/catégories jusqu'ici codées en dur dans le HTML (voir
   // renderArgTypePills()/renderTxnCats()) — une seule fois au chargement, elles ne dépendent pas
   // des données utilisateur.
