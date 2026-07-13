@@ -981,7 +981,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.74';
+window.APP_VERSION = '5.75';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1572,7 +1572,7 @@ window.APP_VERSION = '5.74';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.74</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.75</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -4055,6 +4055,7 @@ function toggleArgentStat(key){
   _argStatOpen = (_argStatOpen===key) ? null : key;
   renderArgentStats();
   renderArgentStatDetail();
+  renderArgentRecent();
 }
 function renderArgentStatDetail(){
   var el=document.getElementById('argentStatDetail'); if(!el) return;
@@ -4108,8 +4109,13 @@ function argentRowMeta(r,ico,bg,col,sign){
 // Flux "Derniers mouvements" : toutes catégories mélangées, triées par date, les 6 plus récentes
 // — façon appli bancaire, icône ronde par catégorie. Pas de × ici (déclutter) : la suppression se
 // fait dans le détail par section, replié en dessous.
+// v5.75 : masqué dès qu'une fenêtre (Revenus/Charges fixes/Quotidien/Épargne) est ouverte, pour
+// ne pas juxtaposer un flux non filtré juste sous le détail filtré de renderArgentStatDetail()
+// (source de confusion signalée par l'utilisateur : on croyait que "la sous-section" mélangeait
+// dépenses et revenus). Ne réapparaît (toutes catégories confondues) que fenêtre refermée.
 function renderArgentRecent(){
   var el=document.getElementById('argentRecent'); if(!el) return;
+  if(_argStatOpen){ el.innerHTML=''; return; }
   var split=getFixedVariableSplit();
   var all=[];
   getRevenuRows().forEach(function(r){ all.push(argentRowMeta(r,'revenu','var(--green2)','var(--green)',1)); });
