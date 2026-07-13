@@ -985,7 +985,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.86';
+window.APP_VERSION = '5.87';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1592,7 +1592,7 @@ window.APP_VERSION = '5.86';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.86</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.87</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -4114,6 +4114,40 @@ function getEnvEligibleRows(){
   });
   return rows;
 }
+// v5.87 : filet de sécurité côté code — malgré le renforcement du prompt (v5.86), Léo (un LLM,
+// jamais garanti à 100% fiable) continue par moments d'oublier le tag "env" sur une ligne qui
+// correspond pourtant clairement à une enveloppe existante. Plutôt que de dépendre uniquement de
+// l'IA, l'application elle-même recoupe désormais le libellé de chaque ligne SANS enveloppe avec
+// le nom des enveloppes existantes (même normalisation accents/casse que slugifyEnv) : si le nom
+// de l'enveloppe apparaît dans le libellé ou l'inverse (ex: ligne "Loisirs ciné" ↔ enveloppe
+// "Loisir"), on rattache automatiquement. Ne fait rien en cas d'ambiguïté (2 enveloppes
+// correspondraient) : mieux vaut ne pas rattacher que de rattacher au hasard. Appelée après chaque
+// fusion de données venant de Léo (sendMsg) et après chaque ajout/modif manuel, donc sans risque
+// de manquer un cas — au pire elle ne trouve rien et Léo ou l'utilisateur reprend la main comme
+// avant. N'écrase jamais un tag "env" déjà présent (manuel ou posé par Léo).
+function normEnvTxt(s){
+  return (s||'').toLowerCase().normalize('NFD').replace(new RegExp('[\\u0300-\\u036f]','g'),'').trim();
+}
+function autoLinkEnveloppes(){
+  var envs=(S.fin && S.fin.enveloppes) || [];
+  if(!envs.length) return false;
+  var changed=false;
+  ['besoins_items','envies_items'].forEach(function(key){
+    var items=parseItems(S.fin[key]);
+    var touched=false;
+    items.forEach(function(it){
+      if(it.env || it.b==='fixe' || !it.n) return;
+      var label=normEnvTxt(it.n);
+      var matches=envs.filter(function(env){
+        var nom=normEnvTxt(env.nom);
+        return nom && (label.indexOf(nom)>-1 || nom.indexOf(label)>-1);
+      });
+      if(matches.length===1){ it.env=matches[0].id; touched=true; changed=true; }
+    });
+    if(touched) S.fin[key]=JSON.stringify(items);
+  });
+  return changed;
+}
 function getEnvSpentInMonth(envId, monthKey){
   return getEnvEligibleRows().filter(function(r){
     if(r.env!==envId) return false;
@@ -5116,6 +5150,10 @@ async function sendMsg(txt, hiddenUser, fileData){
           checkBadges();
           toast('Léo valide ton action ! 🎉','#10b981');
         }
+        // v5.87 : filet de sécurité — si Léo a oublié de taguer "env" sur une ligne qui correspond
+        // pourtant clairement au nom d'une enveloppe existante, autoLinkEnveloppes() rattrape le
+        // rattachement par recoupement de libellé (voir sa définition, juste avant getEnvEligibleRows()).
+        if(upd && typeof autoLinkEnveloppes==='function') autoLinkEnveloppes();
         if(upd){ syncTotals(); S.fin.rav=calcRAV(); save(); updateAnalyseCards(); renderBudget(); }
       }
     }
@@ -5954,6 +5992,9 @@ function validateReceipt(){
   besoins.forEach(function(i){ injectSubToItems(i.nom, parseFloat(i.prix)||0, 'besoins'); });
   envies.forEach(function(i){   injectSubToItems(i.nom, parseFloat(i.prix)||0, 'envies'); });
 
+  // v5.87 : un ticket scanné n'a jamais eu de sélecteur d'enveloppe — recoupement automatique par
+  // libellé (voir autoLinkEnveloppes()) pour les articles dont le nom correspond à une enveloppe.
+  if(typeof autoLinkEnveloppes==='function') autoLinkEnveloppes();
   save();
   closeReceiptModal();
 
