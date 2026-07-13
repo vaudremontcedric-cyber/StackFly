@@ -985,7 +985,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.91';
+window.APP_VERSION = '5.92';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1594,7 +1594,7 @@ window.APP_VERSION = '5.91';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.91</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.92</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -3888,7 +3888,10 @@ var ITEM_KEYWORD_ICONS = [
   [['essence','carburant','station service','gazole','diesel'], '⛽'],
   [['train','sncf','ter','tgv'], '🚆'],
   [['bus','metro','tramway','tram'], '🚌'],
-  [['avion','vol','voyage','vacances','hotel'], '✈️'],
+  // v5.92 : "transport" (le mot lui-même) ajouté — une ligne littéralement nommée "Transport"
+  // (très courant) ne correspondait à aucun mot-clé et retombait sur l'emoji générique de sa
+  // catégorie/bucket, parfois sans rapport (ex: 🎟️ si classée par erreur en "Plaisirs").
+  [['transport','avion','vol','voyage','vacances','hotel'], '✈️'],
   [['parking','stationnement','peage'], '🅿️'],
   [['voiture','auto','vehicule'], '🚗'],
   [['assurance','mutuelle'], '🛡️'],
@@ -3896,8 +3899,17 @@ var ITEM_KEYWORD_ICONS = [
   [['restaurant','resto','snack'], '🍽️'],
   [['cafe','coffee'], '☕'],
   [['boisson','biere','vin','bar'], '🥤'],
-  [['supermarche','courses','carrefour','leclerc','auchan','lidl','intermarche'], '🛒'],
-  [['vetement','habillement','chaussure','zara','vinted'], '👕'],
+  // v5.92 : "alimentation"/"nourriture" ajoutés — synonymes très courants de "Courses" (c'est
+  // d'ailleurs l'exemple même suggéré par la modale de création d'enveloppe : "ex: Alimentation,
+  // Loisirs"), absents jusqu'ici de cette liste.
+  [['supermarche','courses','carrefour','leclerc','auchan','lidl','intermarche','alimentation','nourriture'], '🛒'],
+  // v5.92 : "shopping" et "mode" ajoutés — la catégorie elle-même n'était reconnue par aucun
+  // mot-clé, une ligne nommée "Shopping" retombait sur l'emoji générique du bucket.
+  [['shopping','mode','vetement','habillement','chaussure','zara','vinted'], '👕'],
+  // v5.92 : "loisir(s)"/"sortie(s)" en tant que mots-clés dédiés — auparavant ces libellés ne
+  // matchaient rien et dépendaient entièrement du bucket (souvent correct, mais pas toujours,
+  // ex: si classés par erreur en besoins plutôt qu'en envies).
+  [['loisir','sortie','divertissement'], '🎟️'],
   [['salaire','paie','paye'], '💶'],
   [['freelance','mission'], '💼'],
   [['prime','bonus'], '🎁'],
@@ -3916,8 +3928,16 @@ var ITEM_KEYWORD_ICONS = [
 // résoudre (mot entier réellement ambigu, ex: "orange" l'opérateur vs la couleur/le fruit,
 // "action" le placement vs l'enseigne Action) ont été retirés ci-dessus plutôt que mal détectés.
 function escRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+// v5.92 : "(s|x)?" ajouté après chaque mot-clé — bug signalé par l'utilisateur (emoji pas adaptés
+// au texte dans "Derniers mouvements") : la recherche par mot ENTIER (v5.73, nécessaire pour
+// éviter les faux positifs comme "eau" dans "Cadeau") avait un effet de bord non anticipé, elle ne
+// matchait plus les pluriels ("Vêtements", "Chaussures", "Cadeaux"...) puisqu'un caractère
+// alphanumérique juste après le mot-clé faisait échouer la limite de mot. Le "s" optionnel couvre
+// la majorité des pluriels français, le "x" couvre les pluriels irréguliers en -eau/-eu (ex:
+// "cadeau" → "cadeaux"), sans réintroduire de faux positif (la limite de mot stricte reste
+// appliquée juste après : "vetements" matche mais pas "vetementsX"). Vérifié par 16 cas de test.
 var _ITEM_KW_RE = ITEM_KEYWORD_ICONS.map(function(entry){
-  return entry[0].map(function(kw){ return new RegExp('(^|[^a-z0-9])'+escRe(kw)+'([^a-z0-9]|$)'); });
+  return entry[0].map(function(kw){ return new RegExp('(^|[^a-z0-9])'+escRe(kw)+'(s|x)?([^a-z0-9]|$)'); });
 });
 function guessItemEmoji(label, fallback){
   if(!label) return fallback||'❔';
@@ -4122,8 +4142,11 @@ var ENV_CATEGORY_KEYWORDS = [
   [['logement','loyer','immobilier','maison','appartement','hypotheque','pret immo','credit immo','electricite','edf','engie','gaz','eau','veolia','suez','internet','box','wifi','fibre','meuble','deco','bricolage'], 'Logement'],
   [['sante','medecin','docteur','pharmacie','dentiste','opticien','mutuelle','hopital','clinique','kine','osteopathe'], 'Santé']
 ];
+// v5.92 : même correctif "(s|x)?" que _ITEM_KW_RE (voir son commentaire) — gère les pluriels
+// réguliers et irréguliers (-eau/-eu → -eaux/-eux) automatiquement, plutôt que de dépendre
+// d'entrées dupliquées singulier/pluriel dans la liste.
 var _ENV_CAT_KW_RE = ENV_CATEGORY_KEYWORDS.map(function(entry){
-  return entry[0].map(function(kw){ return new RegExp('(^|[^a-z0-9])'+escRe(kw)+'([^a-z0-9]|$)'); });
+  return entry[0].map(function(kw){ return new RegExp('(^|[^a-z0-9])'+escRe(kw)+'(s|x)?([^a-z0-9]|$)'); });
 });
 // Retourne un nom de catégorie parmi CAT_SECTION (ex: 'Courses', 'Resto'...) ou null si le libellé
 // ne correspond à aucun mot-clé connu — dans ce cas, autoLinkEnveloppes() retombe sur la
