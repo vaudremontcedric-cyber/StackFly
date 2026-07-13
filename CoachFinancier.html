@@ -897,8 +897,6 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 .txn-cat.sel{border-color:var(--accent);background:rgba(13,148,136,.15)}
 .txn-cat-ico{font-size:20px}
 .txn-cat-lbl{font-size:10px;color:var(--text2)}
-.arg-pill{opacity:.45;transition:opacity .15s,box-shadow .15s}
-.arg-pill.sel{opacity:1;box-shadow:inset 0 0 0 2px currentColor}
 
 /* ════ LOGIN / REGISTER PAGE ════ */
 #pg-login{align-items:center;justify-content:center;padding:32px 24px;background:var(--bg);overflow-y:auto}
@@ -981,7 +979,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.75';
+window.APP_VERSION = '5.76';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1225,29 +1223,17 @@ window.APP_VERSION = '5.75';
           </div>
           <div class="acc-body open">
             <div class="acc-inner">
-              <div id="argentEmpty" style="display:none;color:var(--text3);font-size:13px;text-align:center;padding:10px 0">Parle à Léo de tes revenus et dépenses, ou ajoute une ligne ci-dessous.</div>
+              <div id="argentEmpty" style="display:none;color:var(--text3);font-size:13px;text-align:center;padding:10px 0">Parle à Léo de tes revenus et dépenses, ou utilise le bouton + du bandeau bas.</div>
               <div id="argentGauge"></div>
               <div id="argentStats"></div>
               <div id="argentStatDetail" style="display:none"></div>
-              <div id="argentVarBar"></div>
               <div id="argentRecent"></div>
-              <button id="argDetailToggle" onclick="toggleArgentDetail()" style="width:100%;padding:10px 0;background:transparent;border:none;color:var(--accent2);font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px">
-                <span id="argDetailArr" style="display:inline-flex;transition:transform .15s"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span> Voir le détail par section
-              </button>
-              <div id="argentDetail" style="display:none"></div>
-              <button id="argAddBtn" onclick="toggleArgentAddForm()" style="width:100%;margin-top:12px;padding:12px;background:transparent;border:1.5px solid var(--border);border-radius:12px;color:var(--text2);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
-                <span style="font-size:16px;line-height:1">+</span> Ajouter une ligne
-              </button>
-              <div id="argAddForm" style="display:none;gap:6px;margin-top:10px;flex-wrap:wrap">
-                <!-- Contenu généré par renderArgTypePills() (v5.64) : auparavant en dur, dupliqué à la
-                     main depuis ARGENT_ADD_TYPES/ARGENT_ICON_PATHS et donc désynchronisé après la
-                     mise à jour v5.63 (Imprévus resté rouge #ef4444, Épargne resté sur l'ancien bouclier). -->
-                <div id="argTypePills" style="display:flex;gap:6px;flex-wrap:wrap;width:100%"></div>
-                <input id="argJournalLbl" placeholder="Libellé (ex: Courses Carrefour)" maxlength="40" style="flex:1.6;min-width:110px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:8px"/>
-                <input id="argJournalAmt" type="text" inputmode="decimal" placeholder="Montant €" style="width:88px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:8px"/>
-                <input id="argJournalDate" type="date" style="flex:1;min-width:130px;background:var(--card2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:8px"/>
-                <button onclick="addArgentItem()" style="background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:0 16px;font-size:18px;font-weight:700;cursor:pointer">+</button>
-              </div>
+              <!-- v5.76 : "Variable au quotidien" (barre segmentée), "Voir le détail par section"
+                   (détail complet replié) et "Ajouter une ligne" (formulaire manuel) ont été retirés
+                   à la demande de l'utilisateur — désormais redondants avec les 4 mini-cartes
+                   cliquables ci-dessus (qui couvrent déjà consultation/édition/suppression par
+                   catégorie) et avec les entrées du bouton + du bandeau bas (Ajouter un revenu /
+                   Ajouter une dépense). L'ajout de ligne se fait via Léo (chat) ou le bouton +. -->
             </div>
           </div>
         </div>
@@ -1572,7 +1558,7 @@ window.APP_VERSION = '5.75';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.75</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.76</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -1762,12 +1748,12 @@ window.APP_VERSION = '5.75';
           <span class="tuto-card-arr">&#9662;</span>
         </div>
         <div class="tuto-card-body"><div class="tuto-card-content">
-          <div class="tuto-step"><div class="tuto-step-num">1</div><div><b>Dépenses fixes</b> : loyer, crédit, abonnements — touche <b>Ajouter une ligne</b> dans "Où va mon argent ?" et choisis la catégorie Charge fixe, ou dis-les simplement à Léo.</div></div>
-          <div class="tuto-step"><div class="tuto-step-num">2</div><div><b>Variable au quotidien</b> : tout le reste, réparti en 3 enveloppes seulement — Courses, Plaisirs & loisirs, Imprévus.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">1</div><div><b>Dépenses fixes</b> : loyer, crédit, abonnements — dis-les simplement à Léo, il pose automatiquement l'étiquette Charge fixe.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">2</div><div><b>Quotidien</b> : tout le reste, réparti en 3 enveloppes — Courses, Plaisirs & loisirs, Imprévus.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">3</div><div><b>Épargne & investissement</b> : ce que tu mets de côté (livret, PEA, ETF…).</div></div>
           <div class="tuto-step"><div class="tuto-step-num">4</div><div>La jauge en haut de <b>Où va mon argent ?</b> affiche en un coup d'œil ce qu'il te reste à dépenser pour finir le mois.</div></div>
-          <div class="tuto-step"><div class="tuto-step-num">5</div><div>Touche n'importe quelle ligne existante pour la <b>modifier</b> (montant, libellé, date) ou la supprimer.</div></div>
-          <div class="tuto-tip">💡 Léo classe tout automatiquement quand tu lui parles. Tu peux aussi ajouter une ligne toi-même, avec sa date.</div>
+          <div class="tuto-step"><div class="tuto-step-num">5</div><div>Touche une mini-carte (Revenus / Charges fixes / Quotidien / Épargne) pour voir ses lignes, puis une ligne pour la <b>modifier</b> (montant, libellé, date) ou la supprimer.</div></div>
+          <div class="tuto-tip">💡 Léo classe tout automatiquement quand tu lui parles. Tu peux aussi ajouter une ligne via le bouton + du bandeau bas.</div>
         </div></div>
       </div>
 
@@ -1796,7 +1782,7 @@ window.APP_VERSION = '5.75';
         <div class="tuto-card-body"><div class="tuto-card-content">
           <div class="tuto-step"><div class="tuto-step-num">1</div><div>Le plus simple : dis-le à <b>Léo</b> dans le Chat (<i>"Mon salaire est 2200€"</i>), il l'enregistre automatiquement.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">2</div><div>Ou appuie sur le bouton <b>+</b> flottant en bas de l'écran, puis <b>Ajouter un revenu</b> : indique le libellé (salaire, freelance, prime…), le montant et la date.</div></div>
-          <div class="tuto-step"><div class="tuto-step-num">3</div><div>Ou ajoute une ligne directement dans <b>Où va mon argent ?</b>, section Entrées.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">3</div><div>Pour modifier ou supprimer un revenu déjà enregistré : dans <b>Où va mon argent ?</b>, touche la mini-carte <b>Revenus</b>, puis la ligne concernée.</div></div>
           <div class="tuto-tip">💡 Si un revenu du même libellé existe déjà ce mois-ci, le montant s'additionne automatiquement plutôt que de créer une ligne en double.</div>
         </div></div>
       </div>
@@ -1811,7 +1797,7 @@ window.APP_VERSION = '5.75';
         <div class="tuto-card-body"><div class="tuto-card-content">
           <div class="tuto-step"><div class="tuto-step-num">1</div><div>Le plus simple : dis-le à <b>Léo</b> dans le Chat, il l'enregistre automatiquement.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">2</div><div>Ou appuie sur le bouton <b>+</b> flottant en bas de l'écran, puis <b>Ajouter une dépense</b> : choisis <b>Saisie rapide par catégorie</b>, ou <b>Scanner un ticket de caisse</b> (photo 📷 ou fichier 📁) pour une lecture automatique par Léo.</div></div>
-          <div class="tuto-step"><div class="tuto-step-num">3</div><div>Ou ajoute une ligne directement dans <b>Où va mon argent ?</b>, avec sa date.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">3</div><div>Pour modifier ou supprimer une dépense déjà enregistrée : dans <b>Où va mon argent ?</b>, touche la mini-carte concernée (Charges fixes ou Quotidien), puis la ligne à changer.</div></div>
           <div class="tuto-tip">💡 Toutes tes dépenses, quelle que soit la méthode, apparaissent au même endroit : Où va mon argent ?</div>
         </div></div>
       </div>
@@ -2434,7 +2420,7 @@ async function saveProfileEdit(){
 // ═══════════════════════════════════════════════════
 var _infoTips = {
   'synth':   { title:'📊 Synthèse budget',      body:'Vue d\'ensemble de tes revenus, dépenses et épargne du mois en cours. Change la période (Mensuel / Journalier / Annuel) pour adapter l\'affichage.' },
-  'argent':  { title:'📍 Où va mon argent ?',      body:'La jauge en haut montre ce qu\'il te reste à dépenser ce mois-ci. En dessous : Entrées, Dépenses fixes (loyer, crédit, abonnements — touche Ajouter une ligne et choisis Charge fixe, ou dis-les à Léo), Variable au quotidien (Courses / Plaisirs & loisirs / Imprévus), et Épargne & investissement. Rempli automatiquement quand tu parles à Léo, ou ajoute une ligne toi-même — touche une ligne existante pour la modifier ou la supprimer.' },
+  'argent':  { title:'📍 Où va mon argent ?',      body:'La jauge en haut montre ce qu\'il te reste à dépenser ce mois-ci. En dessous, 4 mini-cartes à toucher : Revenus, Charges fixes (loyer, crédit, abonnements — dis-les à Léo pour qu\'il les classe automatiquement), Quotidien (Courses / Plaisirs & loisirs / Imprévus) et Épargne & investissement. Touche une mini-carte pour voir ses lignes, puis une ligne pour la modifier ou la supprimer. Rempli automatiquement quand tu parles à Léo, ou via le bouton + du bandeau bas.' },
   'actifs':  { title:'💰 Mes actifs',            body:'Valeur totale de ton patrimoine : compte épargne, immobilier, investissements, crypto… Permet à Léo de te donner des conseils plus précis.' },
   'leo':     { title:'💡 Léo recommande',        body:'Conseils personnalisés générés par Léo selon ta situation actuelle. Mis à jour à chaque modification de ton budget. Appuie pour en discuter avec lui.' },
   'rav':     { title:'✅ Reste à vivre',          body:'Calcul : Revenus − Dépenses (Besoins + Envies) − Épargne du mois − Investissements (PEA, ETF, CTO…). Ces montants restent "à toi", mais dès que tu les diriges vers l\'épargne ou l\'investissement, ils ne sont plus disponibles pour tes dépenses courantes. Un reste à vivre négatif signifie que tes dépenses + ton épargne + tes investissements dépassent tes revenus.' }
@@ -3241,9 +3227,10 @@ function renderTxns(){
       +'</div><div class="txn-amt">-'+euro(t.amt)+'</div></div>';
   }).join('') : '<div class="txn-empty">Aucune dépense enregistrée aujourd\'hui</div>';
 }
-// Revenu rapide (v5.67, accessible depuis le bouton + du bandeau bas) : même circuit que
-// addArgentItem() (fusion par libellé si la ligne existe déjà ce mois-ci, sinon nouvelle ligne)
-// mais accessible en un clic depuis n'importe quelle page, sans passer par le Journal du Budget.
+// Revenu rapide (v5.67, accessible depuis le bouton + du bandeau bas) : fusion par libellé si la
+// ligne existe déjà ce mois-ci, sinon nouvelle ligne (même logique que l'ancien formulaire manuel
+// "Ajouter une ligne", retiré en v5.76) — accessible en un clic depuis n'importe quelle page, sans
+// passer par la page Budget.
 function openRevenuModal(){
   document.getElementById('revLbl').value='';
   document.getElementById('revAmt').value='';
@@ -3784,38 +3771,11 @@ function textAwareBadge(label, catKey, bg, size, col){
   var emoji = guessItemEmoji(label, ARG_EMOJI[catKey]||'❔');
   return '<div style="width:'+size+'px;height:'+size+'px;border-radius:'+r+'px;background:'+bg+';'+ring+'display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-size:'+ic+'px;line-height:1;display:inline-block;text-align:center">'+emoji+'</span></div>';
 }
-// Types proposés dans le formulaire d'ajout manuel. Depuis la v5.58 (suppression de la section
-// Abonnements), "Charge fixe" fait partie des types disponibles : une dépense fixe (loyer,
-// crédit, abonnement) se déclare directement ici, avec le tag b:'fixe' qui la classe dans
-// "Dépenses fixes" — ou se fait détecter automatiquement par Léo en conversation.
-var ARGENT_ADD_TYPES = [
-  {id:'revenu',   lbl:'Revenu',             key:'revenus_items', b:null,       col:'var(--green)',  bg:'var(--green2)'},
-  // v5.72 : "Charge fixe" est passée du rouge #ef4444 à l'orange brûlé #f97316 (demande de
-  // l'utilisateur : plus de rouge dans la page Budget). Distincte de "Plaisirs & loisirs"
-  // (var(--orange) = ambre #f59e0b) malgré le même "camp" orange : les deux teintes sont assez
-  // éloignées pour rester lisibles côte à côte dans le bento/"Derniers mouvements".
-  {id:'fixe',     lbl:'Charge fixe',        key:'besoins_items', b:'fixe',     col:'#f97316',        bg:'rgba(249,115,22,.18)'},
-  {id:'courses',  lbl:'Courses',            key:'besoins_items', b:'courses',  col:'#3b82f6',        bg:'rgba(59,130,246,.18)'},
-  {id:'plaisirs', lbl:'Plaisirs & loisirs', key:'envies_items',  b:'plaisirs', col:'var(--orange)',  bg:'var(--orange2)'},
-  {id:'imprevus', lbl:'Imprévus',           key:'besoins_items', b:'imprevus', col:'#ec4899',        bg:'rgba(236,72,153,.18)'},
-  {id:'epargne',  lbl:'Épargne',            key:'epargne_items', b:null,       col:'var(--accent2)', bg:'rgba(13,148,136,.18)'},
-  {id:'invest',   lbl:'Investissement',     key:'invest_items',  b:null,       col:'#8b5cf6',        bg:'rgba(139,92,246,.18)'}
-];
-// Rendu dynamique des pastilles "Ajouter une ligne" (v5.64) : généré depuis ARGENT_ADD_TYPES +
-// argIcon(), pour rester automatiquement synchronisé avec les couleurs/icônes centralisées — fini
-// la dérive silencieuse d'un jeu de SVG codé en dur à la main (celle corrigée en v5.63 : Imprévus
-// resté rouge, Épargne restée sur l'ancien bouclier, alors que ARGENT_ICON_PATHS avait changé).
-// v5.69 : bordure 1.5px dans la couleur pleine de la catégorie (au lieu de "border:none") pour
-// mieux détacher chaque pastille du fond de carte, notamment sur les pastilles non sélectionnées
-// (opacité réduite à .45 par .arg-pill, voir CSS) qui manquaient de définition.
-function renderArgTypePills(){
-  var el=document.getElementById('argTypePills'); if(!el) return;
-  el.innerHTML=ARGENT_ADD_TYPES.map(function(t,i){
-    return '<button type="button" class="arg-pill'+(i===0?' sel':'')+'" onclick="selArgentType(this,\''+t.id+'\')" '
-      +'style="border:1.5px solid '+t.col+';cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:'+t.col+';background:'+t.bg+';display:inline-flex;align-items:center;gap:5px">'
-      +arg3dIcon(t.id,12)+t.lbl+'</button>';
-  }).join('');
-}
+// v5.76 : ARGENT_ADD_TYPES et renderArgTypePills() (pastilles du formulaire manuel "Ajouter une
+// ligne") supprimés avec la section elle-même, retirée à la demande de l'utilisateur car
+// redondante avec les mini-cartes cliquables et le bouton + du bandeau bas. Le tag b:'fixe' pour
+// "Dépenses fixes" reste posé automatiquement par Léo en conversation (voir prompt système,
+// bloc CHARGES FIXES) et par migrateSubsToFixedTag() pour les anciens abonnements.
 // Sous-catégories de la modale "Dépense rapide" (v5.64, remplace un bloc HTML dupliqué à la main).
 // svgKey pointe vers ARGENT_ICON_PATHS ; deux couleurs ont été différenciées pour éviter des
 // collisions visuelles pré-existantes dans cette grille : Resto (orange profond, distinct de
@@ -3887,7 +3847,7 @@ function getFixedVariableSplit(){
   return {fixed:fixed, buckets:buckets};
 }
 function sumRows(rows){ return rows.reduce(function(s,r){return s+r.v;},0); }
-// Base "dépenses fixes" pour le reste à vivre théorique (jauge + détail par section).
+// Base "dépenses fixes" pour le reste à vivre théorique (jauge + mini-carte Charges fixes).
 // BUG corrigé (v5.63) : theorique = revenus - sumRows(split.fixed) - epargne - invest utilisait
 // TOUJOURS sumRows(split.fixed), qui vaut 0 si l'utilisateur n'a jamais détaillé de ligne
 // besoins_items/envies_items — même quand une dépense globale connue existe (f.depenses, déclarée
@@ -4067,7 +4027,7 @@ function renderArgentStatDetail(){
     col='var(--green)'; emptyTxt='Aucun revenu enregistré.';
   } else if(_argStatOpen==='fixe'){
     rows=split.fixed; col='#f97316';
-    emptyTxt='Aucune charge fixe. Touche Ajouter une ligne ci-dessous et choisis la catégorie Charge fixe, ou dis-la à Léo.';
+    emptyTxt='Aucune charge fixe. Dis à Léo tes charges récurrentes (loyer, crédit, abonnements) pour qu\'il les classe ici.';
   } else if(_argStatOpen==='courses'){
     rows=split.buckets.courses.concat(split.buckets.plaisirs, split.buckets.imprevus);
     col='var(--text)'; emptyTxt='Rien enregistré ce mois-ci.';
@@ -4080,35 +4040,16 @@ function renderArgentStatDetail(){
     +(rows.length ? renderArgentRows(rows,col) : '<div style="color:var(--text3);font-size:12.5px;padding:10px 0">'+emptyTxt+'</div>')
   +'</div>';
 }
-// Barre segmentée + légende : répartition des 3 enveloppes variables (Courses/Plaisirs &
-// loisirs/Imprévus), en remplacement des 3 sous-totaux empilés de la v5.55.
-function renderArgentVarBar(){
-  var el=document.getElementById('argentVarBar'); if(!el) return;
-  var split=getFixedVariableSplit();
-  var c=sumRows(split.buckets.courses), p=sumRows(split.buckets.plaisirs), im=sumRows(split.buckets.imprevus);
-  var tot=c+p+im;
-  if(!tot){ el.innerHTML=''; return; }
-  var pc=Math.round(c/tot*100), pp=Math.round(p/tot*100), pi=Math.max(0,100-pc-pp);
-  el.innerHTML='<div style="margin-bottom:14px">'
-    +'<div style="font-size:12.5px;font-weight:700;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:6px"><span style="display:inline-flex">'+arg3dIcon('courses',14)+'</span>Variable au quotidien</div>'
-    +'<div style="display:flex;height:8px;border-radius:4px;overflow:hidden;margin-bottom:8px">'
-      +(pc>0?'<div style="width:'+pc+'%;background:#3b82f6"></div>':'')
-      +(pp>0?'<div style="width:'+pp+'%;background:var(--orange)"></div>':'')
-      +(pi>0?'<div style="width:'+pi+'%;background:#ec4899"></div>':'')
-    +'</div>'
-    +'<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--text2)">'
-      +'<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3b82f6;margin-right:4px"></span>Courses '+euro(c)+'</span>'
-      +'<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--orange);margin-right:4px"></span>Plaisirs '+euro(p)+'</span>'
-      +'<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ec4899;margin-right:4px"></span>Imprévus '+euro(im)+'</span>'
-    +'</div>'
-  +'</div>';
-}
+// v5.76 : renderArgentVarBar() ("Variable au quotidien", barre segmentée Courses/Plaisirs &
+// loisirs/Imprévus) supprimée avec sa section, retirée à la demande de l'utilisateur — cette
+// répartition reste consultable via la mini-carte "Quotidien" (bento cliquable, mêmes 3
+// sous-catégories, voir renderArgentStatDetail()).
 function argentRowMeta(r,ico,bg,col,sign){
   return {n:r.n, v:r.v, d:r.d, key:r.key, idx:r.idx, ico:ico, bg:bg, col:col, sign:sign};
 }
 // Flux "Derniers mouvements" : toutes catégories mélangées, triées par date, les 6 plus récentes
 // — façon appli bancaire, icône ronde par catégorie. Pas de × ici (déclutter) : la suppression se
-// fait dans le détail par section, replié en dessous.
+// fait via la mini-carte de la catégorie concernée (renderArgentStatDetail()).
 // v5.75 : masqué dès qu'une fenêtre (Revenus/Charges fixes/Quotidien/Épargne) est ouverte, pour
 // ne pas juxtaposer un flux non filtré juste sous le détail filtré de renderArgentStatDetail()
 // (source de confusion signalée par l'utilisateur : on croyait que "la sous-section" mélangeait
@@ -4150,52 +4091,17 @@ function renderArgentRecent(){
     }).join('')
   +'</div>';
 }
-// Détail complet par section (Entrées/Dépenses fixes/Variable ventilé/Épargne & invest +
-// formules), replié par défaut derrière "Voir le détail par section" — c'est ici que vivent les ×
-// de suppression. Contenu identique à l'ancien renderArgentJournal() de la v5.55.
-function renderArgentDetail(){
-  var el=document.getElementById('argentDetail'); if(!el) return;
-  var f=S.fin||{};
-  var revRows=getRevenuRows();
-  var split=getFixedVariableSplit();
-  var epInvRows=getEpargneInvestRows();
-  var html='';
-  html+=renderArgentSection('Entrées', 'revenu', 'var(--green)', sumRows(revRows), renderArgentRows(revRows,'var(--green)'), 'Aucun revenu enregistré.');
-  html+=renderArgentSection('Dépenses fixes', 'fixe', '#f97316', sumRows(split.fixed), renderArgentRows(split.fixed,'#f97316'), 'Ajoute tes charges récurrentes (loyer, crédit…) avec Ajouter une ligne ci-dessous (catégorie Charge fixe), ou dis-les à Léo.');
-  var varTotal=sumRows(split.buckets.courses)+sumRows(split.buckets.plaisirs)+sumRows(split.buckets.imprevus);
-  var varHtml='';
-  [['Courses',split.buckets.courses,'#3b82f6'],['Plaisirs & loisirs',split.buckets.plaisirs,'var(--orange)'],['Imprévus',split.buckets.imprevus,'#ec4899']].forEach(function(g){
-    varHtml+='<div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--text2);padding:6px 0 2px;font-weight:700">'
-      +'<span>'+g[0]+'</span><span>'+euro(sumRows(g[1]))+'</span></div>'
-      +renderArgentRows(g[1],g[2]);
-  });
-  html+=renderArgentSection('Variable au quotidien', 'courses', 'var(--text)', varTotal, varHtml, 'Rien enregistré ce mois-ci.');
-  html+=renderArgentSection('Épargne et investissement', 'epargne', 'var(--accent2)', sumRows(epInvRows), renderArgentRows(epInvRows,'var(--accent2)'), 'Rien mis de côté ce mois-ci.');
-  // Même logique que getFixedBaseForTheorique() : si aucune ligne besoins/envies n'est détaillée,
-  // sumRows(split.fixed)+varTotal vaut 0 alors qu'une dépense globale peut être connue (f.depenses)
-  // — on retombe dessus pour que "Total dépenses" reste cohérent avec le "Reste à vivre" en dessous.
-  var hasDepItems = parseItems(f.besoins_items).length>0 || parseItems(f.envies_items).length>0;
-  var depTotal = hasDepItems ? (sumRows(split.fixed)+varTotal) : (f.depenses||0);
-  var theorique=(f.revenus||0)-getFixedBaseForTheorique(split)-(f.epargne||0)-(f.invest||0);
-  html+='<div style="background:var(--card2);border-radius:12px;padding:10px 12px;margin-top:4px">'
-    +'<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span style="color:var(--text2)">Total dépenses</span><span>'+euro(depTotal)+'</span></div>'
-    +'<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span style="color:var(--text2)">Reste à vivre théorique</span><span>'+euro(theorique)+'</span></div>'
-    +'<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span style="color:var(--text2)">Reste à vivre réel</span><span style="font-weight:700;color:'+(calcRAV()>=0?'var(--green)':'#f97316')+'">'+euro(calcRAV())+'</span></div>'
-  +'</div>';
-  el.innerHTML=html;
-}
-function toggleArgentDetail(){
-  var det=document.getElementById('argentDetail');
-  var arr=document.getElementById('argDetailArr');
-  var btn=document.getElementById('argDetailToggle');
-  if(!det||!btn) return;
-  var show = det.style.display==='none' || !det.style.display;
-  det.style.display = show ? 'block' : 'none';
-  if(arr) arr.style.transform = show ? 'rotate(180deg)' : 'rotate(0deg)';
-  btn.lastChild.textContent = show ? ' Masquer le détail par section' : ' Voir le détail par section';
-}
+// v5.76 : renderArgentDetail()/toggleArgentDetail() ("Voir le détail par section", détail complet
+// Entrées/Dépenses fixes/Variable/Épargne + formules Total dépenses/RAV théorique/RAV réel) et
+// selArgentType()/toggleArgentAddForm()/addArgentItem() (formulaire manuel "Ajouter une ligne")
+// supprimés avec leurs sections, à la demande de l'utilisateur : redondants avec les 4 mini-cartes
+// cliquables (consultation/édition/suppression déjà possibles par catégorie, voir
+// renderArgentStatDetail()) et avec le bouton + du bandeau bas (Ajouter un revenu / Ajouter une
+// dépense). Les formules Total dépenses/RAV théorique restent calculées en interne par
+// getFixedBaseForTheorique() et affichées via la jauge (renderArgentGauge()) et le Reste à vivre
+// en haut de page (renderBudget()) ; l'ajout de ligne se fait via Léo (chat) ou le bouton +.
 // Orchestrateur — point d'entrée unique appelé par tous les autres endroits de l'app
-// (renderBudget, saveTxn, addArgentItem, deleteRepItem…), inchangé pour eux.
+// (renderBudget, saveTxn, deleteRepItem…), inchangé pour eux.
 function renderArgentJournal(){
   var gaugeEl=document.getElementById('argentGauge'); if(!gaugeEl) return;
   var f=S.fin||{};
@@ -4205,7 +4111,7 @@ function renderArgentJournal(){
   if(!hasData){
     if(emptyEl) emptyEl.style.display='block';
     _argStatOpen=null;
-    ['argentGauge','argentStats','argentStatDetail','argentVarBar','argentRecent','argentDetail'].forEach(function(id){
+    ['argentGauge','argentStats','argentStatDetail','argentRecent'].forEach(function(id){
       var e=document.getElementById(id); if(e) e.innerHTML='';
     });
     return;
@@ -4214,57 +4120,7 @@ function renderArgentJournal(){
   renderArgentGauge();
   renderArgentStats();
   renderArgentStatDetail();
-  renderArgentVarBar();
   renderArgentRecent();
-  renderArgentDetail();
-}
-var _selArgentType=ARGENT_ADD_TYPES[0];
-function selArgentType(el, id){
-  document.querySelectorAll('#argTypePills .arg-pill').forEach(function(b){b.classList.remove('sel');});
-  el.classList.add('sel');
-  var t=ARGENT_ADD_TYPES.filter(function(x){return x.id===id;})[0];
-  if(t) _selArgentType=t;
-}
-function toggleArgentAddForm(){
-  var form=document.getElementById('argAddForm');
-  var btn=document.getElementById('argAddBtn');
-  if(!form||!btn) return;
-  var show = form.style.display==='none' || !form.style.display;
-  form.style.display = show ? 'flex' : 'none';
-  btn.style.display = show ? 'none' : 'flex';
-  if(show){
-    var lblEl=document.getElementById('argJournalLbl'); if(lblEl) lblEl.focus();
-    var dateEl=document.getElementById('argJournalDate'); if(dateEl && !dateEl.value) dateEl.value=today();
-  }
-}
-function addArgentItem(){
-  var t=_selArgentType;
-  var key=t.key;
-  var lbl=document.getElementById('argJournalLbl').value.trim();
-  var amt=parseMontant(document.getElementById('argJournalAmt').value);
-  var dateEl=document.getElementById('argJournalDate');
-  var dt=(dateEl && dateEl.value) ? dateEl.value : today();
-  if(!lbl){ toast('Ajoute un libellé (ex: Courses Carrefour)','#ef4444'); return; }
-  if(!amt||amt<=0){ toast('Entre un montant valide (ex: 45,90)','#ef4444'); return; }
-  if(!S.fin) S.fin={};
-  var items=parseItems(S.fin[key]);
-  var existing=items.filter(function(i){return i.n===lbl;});
-  if(existing.length){
-    existing[0].v=Math.round((existing[0].v+amt)*100)/100; existing[0].d=dt;
-    if(t.b) existing[0].b=t.b;
-  } else {
-    var newItem={n:lbl,v:amt,d:dt};
-    if(t.b) newItem.b=t.b;
-    items.push(newItem);
-  }
-  S.fin[key]=JSON.stringify(items);
-  syncTotals(); save();
-  document.getElementById('argJournalLbl').value='';
-  document.getElementById('argJournalAmt').value='';
-  if(dateEl) dateEl.value=today();
-  toggleArgentAddForm();
-  renderArgentJournal(); renderBudget();
-  toast('Ligne ajoutée ✓','#10b981');
 }
 
 // Mini-graphique de tendance du taux épargne+invest sur les derniers mois
@@ -6466,9 +6322,9 @@ window.addEventListener('DOMContentLoaded', function(){
   updateFbRows();
   renderHeaderDate();
   // v5.64 : génère les pastilles/catégories jusqu'ici codées en dur dans le HTML (voir
-  // renderArgTypePills()/renderTxnCats()) — une seule fois au chargement, elles ne dépendent pas
-  // des données utilisateur.
-  renderArgTypePills();
+  // renderTxnCats()) — une seule fois au chargement, elles ne dépendent pas des données
+  // utilisateur. (renderArgTypePills() a été retirée en v5.76 avec le formulaire manuel
+  // "Ajouter une ligne".)
   renderTxnCats();
   // v5.67 : icône "3D léger" du nouvel item "Ajouter un revenu" du menu +, cohérente avec
   // le reste des pastilles (arg3dIcon), posée une seule fois au chargement.
@@ -6480,9 +6336,9 @@ window.addEventListener('DOMContentLoaded', function(){
   // Créer l'objectif, Verser...) et le bouton "+" d'ajout de ligne, ainsi que toutes les pastilles
   // de catégorie déjà existantes ou générées dynamiquement plus tard.
   document.addEventListener('click', function(e){
-    var b=e.target.closest('.mb.p, button[onclick^="addArgentItem"]');
+    var b=e.target.closest('.mb.p');
     if(b){ b.classList.remove('rb-bounce'); void b.offsetWidth; b.classList.add('rb-bounce'); }
-    var p=e.target.closest('.arg-pill, .txn-cat');
+    var p=e.target.closest('.txn-cat');
     if(p){ p.classList.remove('rb-pop'); void p.offsetWidth; p.classList.add('rb-pop'); }
   });
 });
