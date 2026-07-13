@@ -985,7 +985,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.88';
+window.APP_VERSION = '5.89';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1592,7 +1592,7 @@ window.APP_VERSION = '5.88';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.88</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.89</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -1958,8 +1958,6 @@ window.APP_VERSION = '5.88';
     <input class="m-in" id="txnAmt" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" style="font-size:24px;text-align:center;font-weight:700"/>
     <div class="m-lbl">Description (optionnel)</div>
     <input class="m-in" id="txnDesc" placeholder="Ex: D&#233;jeuner avec Paul" maxlength="60"/>
-    <div class="m-lbl">Pr&#233;vu (optionnel)</div>
-    <input class="m-in" id="txnPrevu" type="text" inputmode="decimal" placeholder="Ce que tu avais anticip&#233; pour cette d&#233;pense" autocomplete="off"/>
     <!-- v5.83 : sélecteur d'enveloppe — corrige le bug signalé par l'utilisateur (une dépense
          ajoutée ici n'était jamais déduite de son enveloppe). Masqué pour Épargne/Investiss., qui
          ne sont pas éligibles aux enveloppes (voir getEnvEligibleRows()). Affiché/rempli par
@@ -3437,7 +3435,6 @@ function saveRevenuRapide(){
 function openTxnModal(){
   document.getElementById('txnAmt').value='';
   document.getElementById('txnDesc').value='';
-  document.getElementById('txnPrevu').value='';
   document.querySelectorAll('.txn-cat').forEach(function(c,i){c.classList.toggle('sel',i===0);});
   _selTxnCat={ico:'🍽️',name:'Resto'};
   updateTxnEnvSelector(CAT_SECTION['Resto']||'envies', 'Resto');
@@ -3447,7 +3444,6 @@ function closeTxnModal(){ document.getElementById('ovTxn').classList.remove('ope
 function saveTxn(){
   var amt=parseMontant(document.getElementById('txnAmt').value);
   var desc=document.getElementById('txnDesc').value.trim();
-  var prevu=parseMontant(document.getElementById('txnPrevu').value)||null;
   if(!amt||amt<=0){ toast('Entre un montant valide (ex: 12,50)','#ef4444'); return; }
   var now=new Date();
   if(!S.txns) S.txns=[];
@@ -3458,7 +3454,7 @@ function saveTxn(){
   // catégorie choisie dans la grille — ex: catégorie "Charge fixe" + libellé "Électricité" → ⚡.
   var lineIco=guessItemEmoji(label, _selTxnCat.ico);
   S.txns.push({date:today(),time:now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}),
-    desc:label,ico:lineIco,cat:_selTxnCat.name,section:section,amt:amt,prevu:prevu});
+    desc:label,ico:lineIco,cat:_selTxnCat.name,section:section,amt:amt});
   // Injecter automatiquement dans la bonne section 50/30/20
   var key=section+'_items';
   if(!S.fin) S.fin={};
