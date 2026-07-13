@@ -981,7 +981,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.68';
+window.APP_VERSION = '5.70';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1572,7 +1572,7 @@ window.APP_VERSION = '5.68';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.68</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.70</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -2921,12 +2921,15 @@ function parseMontant(val){
 // NB : "ico" reste un emoji (utilisé tel quel par le CSV export, le rapport PDF imprimable et les
 // toasts — contextes hors app où argIcon()/SVG n'est pas disponible). "svgIco" est la clé SVG
 // (voir ARGENT_ICON_PATHS) utilisée uniquement par la carte "Mes actifs" en direct dans l'app.
+// v5.69 : col/bg par type (auparavant un seul fond teinté fixe, identique pour les 5 types —
+// voir renderActifs()), pour que chaque pastille reprenne la couleur de sa catégorie comme
+// partout ailleurs dans l'app, avec un anneau (voir argIconBadge) pour plus de contraste.
 var ACTIF_TYPES = [
-  {key:'epargne',   ico:'🏦', svgIco:'epargne',   label:'Épargne',          sub:'Livret A, LEP, LDDS...'},
-  {key:'assurance', ico:'🛡️', svgIco:'assurance', label:'Assurance vie',     sub:'Fonds euros, UC...'},
-  {key:'invest',    ico:'📈', svgIco:'invest',    label:'Investissements',   sub:'Actions, ETF, PEA...'},
-  {key:'immo',      ico:'🏠', svgIco:'logement',  label:'Immobilier',        sub:'Valeur nette estimée'},
-  {key:'autres',    ico:'💎', svgIco:'layers',    label:'Autres actifs',     sub:'Crypto, véhicule...'},
+  {key:'epargne',   ico:'🏦', svgIco:'epargne',   label:'Épargne',          sub:'Livret A, LEP, LDDS...', col:'var(--accent2)', bg:'rgba(13,148,136,.18)'},
+  {key:'assurance', ico:'🛡️', svgIco:'assurance', label:'Assurance vie',     sub:'Fonds euros, UC...',     col:'#0ea5e9',         bg:'rgba(14,165,233,.18)'},
+  {key:'invest',    ico:'📈', svgIco:'invest',    label:'Investissements',   sub:'Actions, ETF, PEA...',   col:'#8b5cf6',         bg:'rgba(139,92,246,.18)'},
+  {key:'immo',      ico:'🏠', svgIco:'logement',  label:'Immobilier',        sub:'Valeur nette estimée',   col:'#6366f1',         bg:'rgba(99,102,241,.18)'},
+  {key:'autres',    ico:'💎', svgIco:'layers',    label:'Autres actifs',     sub:'Crypto, véhicule...',    col:'var(--text3)',   bg:'rgba(148,163,184,.18)'},
 ];
 var ACTIF_SUBTYPES = {
   epargne:   ['Livret A','LEP','LDDS','PEL','CEL','Compte épargne','Autre'],
@@ -3030,7 +3033,7 @@ function renderActifs(){
       +'</div>';
     var subLbl = items.length ? items.length+' élément'+(items.length>1?'s':'') : t.sub;
     return '<div class="actif-row" onclick="toggleActifAcc(\''+t.key+'\')">'
-        +'<div class="actif-ico" style="background:rgba(13,148,136,.1);color:var(--accent2)">'+argIcon(t.svgIco,18)+'</div>'
+        +'<div class="actif-ico" style="background:'+t.bg+';box-shadow:inset 0 0 0 1.5px '+t.col+'">'+argIcon(t.svgIco,18)+'</div>'
         +'<div style="flex:1"><div class="actif-label">'+t.label+'</div>'
         +'<div class="actif-sub">'+subLbl+'</div></div>'
         +'<div class="actif-amt" style="color:'+col+'">'+euro(total)+'</div>'
@@ -3175,7 +3178,7 @@ var CAT_SECTION_LABEL = {
   epargne: '💰 Épargne',
   invest : '📈 Investissement'
 };
-var _selTxnCat={ico:'🍔',name:'Resto'};
+var _selTxnCat={ico:'🍽️',name:'Resto'};
 function selTxnCat(el,ico,name){
   document.querySelectorAll('#txnCats .txn-cat').forEach(function(c){c.classList.remove('sel');});
   el.classList.add('sel'); _selTxnCat={ico:ico,name:name};
@@ -3199,8 +3202,12 @@ function renderTxns(){
       var col=ecart>=0?'var(--green)':'var(--red)';
       prevuLine='<div style="font-size:10.5px;color:'+col+'">prévu '+euro(t.prevu)+' · '+(ecart>=0?'+':'')+euro(ecart)+'</div>';
     }
+    // v5.70 : icône devinée à partir du libellé exact (guessItemEmoji), pas seulement de la
+    // catégorie choisie au moment de l'ajout — s'applique aussi aux transactions déjà
+    // enregistrées avant cette version (t.ico stocké sert de repli si rien ne correspond).
+    var lineIco=guessItemEmoji(t.desc, t.ico);
     return '<div class="txn-row">'
-      +'<div class="txn-row-left"><div class="txn-ico">'+t.ico+'</div>'
+      +'<div class="txn-row-left"><div class="txn-ico">'+lineIco+'</div>'
         +'<div><div class="txn-desc">'+esc(t.desc)+'</div><div class="txn-time">'+t.time+'</div>'+prevuLine+'</div>'
       +'</div><div class="txn-amt">-'+euro(t.amt)+'</div></div>';
   }).join('') : '<div class="txn-empty">Aucune dépense enregistrée aujourd\'hui</div>';
@@ -3243,7 +3250,7 @@ function openTxnModal(){
   document.getElementById('txnDesc').value='';
   document.getElementById('txnPrevu').value='';
   document.querySelectorAll('.txn-cat').forEach(function(c,i){c.classList.toggle('sel',i===0);});
-  _selTxnCat={ico:'🍔',name:'Resto'};
+  _selTxnCat={ico:'🍽️',name:'Resto'};
   document.getElementById('ovTxn').classList.add('open');
 }
 function closeTxnModal(){ document.getElementById('ovTxn').classList.remove('open'); }
@@ -3256,8 +3263,12 @@ function saveTxn(){
   if(!S.txns) S.txns=[];
   var label=desc||_selTxnCat.name;
   var section=CAT_SECTION[_selTxnCat.name]||'envies';
+  // v5.70 : l'icône stockée avec la transaction (utilisée par le CSV, le rapport PDF et cette
+  // liste) reflète désormais le libellé précis tapé par l'utilisateur, pas seulement la
+  // catégorie choisie dans la grille — ex: catégorie "Charge fixe" + libellé "Électricité" → ⚡.
+  var lineIco=guessItemEmoji(label, _selTxnCat.ico);
   S.txns.push({date:today(),time:now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}),
-    desc:label,ico:_selTxnCat.ico,cat:_selTxnCat.name,section:section,amt:amt,prevu:prevu});
+    desc:label,ico:lineIco,cat:_selTxnCat.name,section:section,amt:amt,prevu:prevu});
   // Injecter automatiquement dans la bonne section 50/30/20
   var key=section+'_items';
   if(!S.fin) S.fin={};
@@ -3274,7 +3285,7 @@ function saveTxn(){
   syncTotals();
   save(); closeTxnModal(); renderTxns(); renderPoche(); renderScore(); renderTriCards(); renderArgentJournal();
   var sLabel=CAT_SECTION_LABEL[section]||section;
-  toast(_selTxnCat.ico+' '+euro(amt)+' → '+sLabel,'#10b981');
+  toast(lineIco+' '+euro(amt)+' → '+sLabel,'#10b981');
 }
 
 // Aide générique (utilisée par le scan de ticket de caisse, validateReceipt()) : ajoute ou
@@ -3601,11 +3612,68 @@ var ARGENT_ICON_PATHS = {
 // ci-dessous pour permettre un retour en arrière facile si besoin). argIcon() et arg3dIcon()
 // pointent tous deux vers ce même dictionnaire pour qu'un futur changement de glyphe se
 // propage automatiquement partout (menu +, Dépense rapide, Où va mon argent, Mes actifs...).
+// v5.69 : glyphes affinés pour coller au plus près de chaque catégorie (ex: un ticket pour les
+// sorties plutôt qu'une fête générique, un vêtement pour le shopping plutôt qu'un sac générique) —
+// revenu/épargne/investissement restent identiques à "Synthèse budget" pour ne pas rompre la
+// cohérence qui vient d'être généralisée en v5.68.
 var ARG_EMOJI = {
-  revenu:'💶', fixe:'🧾', courses:'🛒', plaisirs:'🎉', imprevus:'☂️',
-  epargne:'🏦', invest:'📈', resto:'🍽️', transport:'🚗', shopping:'🛍️',
+  revenu:'💶', fixe:'🧾', courses:'🛒', plaisirs:'🎟️', imprevus:'☂️',
+  epargne:'🏦', invest:'📈', resto:'🍽️', transport:'🚗', shopping:'👕',
   logement:'🏠', sante:'🩺', autre:'📦', assurance:'🛡️', layers:'💎'
 };
+// v5.70 : ARG_EMOJI ci-dessus ne donne qu'un emoji par CATÉGORIE (ex: toutes les "Charges
+// fixes" ont le même 🧾). L'utilisateur veut que chaque LIGNE reflète son libellé précis
+// ("Crédit immobilier" → 🏠, "Électricité" → ⚡, "Camping car" → 🚐), pas seulement sa catégorie.
+// ITEM_KEYWORD_ICONS associe des mots-clés (sans accents, en minuscules) à un emoji, du plus
+// spécifique au plus générique — le premier mot-clé trouvé dans le libellé gagne. Si rien ne
+// correspond, on retombe sur l'emoji de la catégorie (ARG_EMOJI). Liste volontairement large
+// mais non exhaustive : un libellé non reconnu garde simplement l'emoji de sa catégorie, ce
+// n'est jamais un échec silencieux.
+var ITEM_KEYWORD_ICONS = [
+  [['camping-car','camping car','camion'], '🚐'],
+  [['immobilier','maison','appartement','loyer','logement','hypotheque','pret immo','credit immo'], '🏠'],
+  [['electricite','edf','engie'], '⚡'],
+  [['gaz'], '🔥'],
+  [['eau','veolia','suez'], '💧'],
+  [['internet','box','wifi','fibre'], '📶'],
+  [['telephone','mobile','forfait','orange','sfr','bouygues','free mobile'], '📱'],
+  [['netflix','disney','prime video','canal+','streaming'], '🎬'],
+  [['spotify','deezer','musique'], '🎵'],
+  [['salle de sport','fitness','gym','musculation'], '🏋️'],
+  [['moto','scooter'], '🏍️'],
+  [['velo','trottinette'], '🚲'],
+  [['essence','carburant','station service'], '⛽'],
+  [['train','sncf','ter','tgv'], '🚆'],
+  [['bus','metro','tramway','tram'], '🚌'],
+  [['avion','vol ','voyage','vacances','hotel'], '✈️'],
+  [['parking','stationnement','peage'], '🅿️'],
+  [['voiture','auto','vehicule'], '🚗'],
+  [['assurance','mutuelle'], '🛡️'],
+  [['medecin','docteur','pharmacie','dentiste','opticien','sante'], '🩺'],
+  [['restaurant','resto','snack'], '🍽️'],
+  [['cafe','coffee'], '☕'],
+  [['boisson','biere','vin','bar'], '🥤'],
+  [['supermarche','courses','carrefour','leclerc','auchan','lidl','intermarche'], '🛒'],
+  [['vetement','habillement','chaussure','zara'], '👕'],
+  [['salaire','paie','paye'], '💶'],
+  [['freelance','mission'], '💼'],
+  [['prime','bonus'], '🎁'],
+  [['livret','epargne'], '🏦'],
+  [['pea','bourse','action','etf','crypto'], '📈'],
+  [['impot','impots','taxe'], '🧾'],
+  [['cadeau','anniversaire'], '🎁']
+];
+function guessItemEmoji(label, fallback){
+  if(!label) return fallback||'❔';
+  var norm=label.toLowerCase().normalize('NFD').replace(new RegExp('[\\u0300-\\u036f]','g'),'');
+  for(var i=0;i<ITEM_KEYWORD_ICONS.length;i++){
+    var kws=ITEM_KEYWORD_ICONS[i][0];
+    for(var j=0;j<kws.length;j++){
+      if(norm.indexOf(kws[j])!==-1) return ITEM_KEYWORD_ICONS[i][1];
+    }
+  }
+  return fallback||'❔';
+}
 function argIcon(name, size){
   size = size || 16;
   return '<span style="font-size:'+size+'px;line-height:1;display:inline-block;text-align:center">'+(ARG_EMOJI[name]||'❔')+'</span>';
@@ -3613,7 +3681,9 @@ function argIcon(name, size){
 function argIconBadge(name, bg, col, size){
   size = size || 32;
   var ic = Math.round(size*0.5);
-  return '<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:'+bg+';color:'+col+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'+argIcon(name, ic)+'</div>';
+  // v5.69 : anneau interne dans la couleur pleine (col) pour plus de contraste, voir arg3dBadge().
+  var ring = col ? ('box-shadow:inset 0 0 0 1.5px '+col+';') : '';
+  return '<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:'+bg+';color:'+col+';'+ring+'display:flex;align-items:center;justify-content:center;flex-shrink:0">'+argIcon(name, ic)+'</div>';
 }
 // ══════════════════════════════════════════════
 // ICÔNES "3D léger" (v5.66) : jeu de pictogrammes pleins (dégradé + reflet), utilisé dans
@@ -3646,11 +3716,29 @@ function arg3dIcon(name, size){
   size = size || 16;
   return '<span style="font-size:'+size+'px;line-height:1;display:inline-block;text-align:center">'+(ARG_EMOJI[name]||'❔')+'</span>';
 }
-function arg3dBadge(name, bg, size){
+function arg3dBadge(name, bg, size, col){
   size = size || 32;
   var ic = Math.round(size*0.58);
   var r = Math.round(size*0.32);
-  return '<div style="width:'+size+'px;height:'+size+'px;border-radius:'+r+'px;background:'+bg+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'+arg3dIcon(name, ic)+'</div>';
+  // v5.69 : anneau interne dans la couleur pleine de la catégorie (col), en plus du fond
+  // teinté clair (bg) — le fond seul manquait de contraste sur certains écrans/thèmes,
+  // l'anneau donne un contour net à chaque pastille sans changer sa taille (inset).
+  var ring = col ? ('box-shadow:inset 0 0 0 1.5px '+col+';') : '';
+  return '<div style="width:'+size+'px;height:'+size+'px;border-radius:'+r+'px;background:'+bg+';'+ring+'display:flex;align-items:center;justify-content:center;flex-shrink:0">'+arg3dIcon(name, ic)+'</div>';
+}
+// v5.70 : variante de arg3dBadge() pour les LIGNES de mouvement qui affichent un libellé texte
+// précis (ex: "Derniers mouvements", transactions du jour) — au lieu de toujours montrer
+// l'emoji générique de la catégorie (catKey), on essaie d'abord de deviner un emoji plus précis
+// à partir du libellé exact via guessItemEmoji() (ex: "Crédit immobilier" → 🏠 même si la
+// catégorie est "Charge fixe" 🧾). Reste sur l'emoji de catégorie si rien ne correspond.
+// Conserve le même fond/anneau coloré que arg3dBadge() pour ne pas casser la cohérence visuelle.
+function textAwareBadge(label, catKey, bg, size, col){
+  size = size || 32;
+  var ic = Math.round(size*0.58);
+  var r = Math.round(size*0.32);
+  var ring = col ? ('box-shadow:inset 0 0 0 1.5px '+col+';') : '';
+  var emoji = guessItemEmoji(label, ARG_EMOJI[catKey]||'❔');
+  return '<div style="width:'+size+'px;height:'+size+'px;border-radius:'+r+'px;background:'+bg+';'+ring+'display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-size:'+ic+'px;line-height:1;display:inline-block;text-align:center">'+emoji+'</span></div>';
 }
 // Types proposés dans le formulaire d'ajout manuel. Depuis la v5.58 (suppression de la section
 // Abonnements), "Charge fixe" fait partie des types disponibles : une dépense fixe (loyer,
@@ -3659,24 +3747,27 @@ function arg3dBadge(name, bg, size){
 var ARGENT_ADD_TYPES = [
   {id:'revenu',   lbl:'Revenu',             key:'revenus_items', b:null,       col:'var(--green)',  bg:'var(--green2)'},
   {id:'fixe',     lbl:'Charge fixe',        key:'besoins_items', b:'fixe',     col:'var(--red)',     bg:'var(--red2)'},
-  {id:'courses',  lbl:'Courses',            key:'besoins_items', b:'courses',  col:'#3b82f6',        bg:'rgba(59,130,246,.15)'},
+  {id:'courses',  lbl:'Courses',            key:'besoins_items', b:'courses',  col:'#3b82f6',        bg:'rgba(59,130,246,.18)'},
   {id:'plaisirs', lbl:'Plaisirs & loisirs', key:'envies_items',  b:'plaisirs', col:'var(--orange)',  bg:'var(--orange2)'},
   // Couleur distincte du rouge de "Charge fixe" (v5.63) : les deux étaient quasi identiques
   // (var(--red) ≈ #ef4444), rendant "Imprévus" et "Charges fixes" difficiles à distinguer d'un
   // coup d'œil dans le bento, "Derniers mouvements" et le détail par section.
-  {id:'imprevus', lbl:'Imprévus',           key:'besoins_items', b:'imprevus', col:'#ec4899',        bg:'rgba(236,72,153,.15)'},
-  {id:'epargne',  lbl:'Épargne',            key:'epargne_items', b:null,       col:'var(--accent2)', bg:'rgba(13,148,136,.15)'},
-  {id:'invest',   lbl:'Investissement',     key:'invest_items',  b:null,       col:'#8b5cf6',        bg:'rgba(139,92,246,.15)'}
+  {id:'imprevus', lbl:'Imprévus',           key:'besoins_items', b:'imprevus', col:'#ec4899',        bg:'rgba(236,72,153,.18)'},
+  {id:'epargne',  lbl:'Épargne',            key:'epargne_items', b:null,       col:'var(--accent2)', bg:'rgba(13,148,136,.18)'},
+  {id:'invest',   lbl:'Investissement',     key:'invest_items',  b:null,       col:'#8b5cf6',        bg:'rgba(139,92,246,.18)'}
 ];
 // Rendu dynamique des pastilles "Ajouter une ligne" (v5.64) : généré depuis ARGENT_ADD_TYPES +
 // argIcon(), pour rester automatiquement synchronisé avec les couleurs/icônes centralisées — fini
 // la dérive silencieuse d'un jeu de SVG codé en dur à la main (celle corrigée en v5.63 : Imprévus
 // resté rouge, Épargne restée sur l'ancien bouclier, alors que ARGENT_ICON_PATHS avait changé).
+// v5.69 : bordure 1.5px dans la couleur pleine de la catégorie (au lieu de "border:none") pour
+// mieux détacher chaque pastille du fond de carte, notamment sur les pastilles non sélectionnées
+// (opacité réduite à .45 par .arg-pill, voir CSS) qui manquaient de définition.
 function renderArgTypePills(){
   var el=document.getElementById('argTypePills'); if(!el) return;
   el.innerHTML=ARGENT_ADD_TYPES.map(function(t,i){
     return '<button type="button" class="arg-pill'+(i===0?' sel':'')+'" onclick="selArgentType(this,\''+t.id+'\')" '
-      +'style="border:none;cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:'+t.col+';background:'+t.bg+';display:inline-flex;align-items:center;gap:5px">'
+      +'style="border:1.5px solid '+t.col+';cursor:pointer;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;color:'+t.col+';background:'+t.bg+';display:inline-flex;align-items:center;gap:5px">'
       +arg3dIcon(t.id,12)+t.lbl+'</button>';
   }).join('');
 }
@@ -3685,23 +3776,28 @@ function renderArgTypePills(){
 // collisions visuelles pré-existantes dans cette grille : Resto (orange profond, distinct de
 // Loisirs qui reprend intentionnellement la teinte de "Plaisirs & loisirs") et Logement (indigo,
 // distinct d'Épargne qui reprend la teinte "accent" utilisée partout ailleurs dans l'app).
+// v5.69 : "ico" (emoji brut stocké avec chaque transaction pour le CSV/PDF/toasts, voir
+// selTxnCat()) réaligné sur ARG_EMOJI — plusieurs incohérences trouvées en auditant : Shopping
+// affichait le même panier que Courses (doublon), Épargne affichait une pomme 🍏 sans rapport,
+// Transport un bus alors que la pastille montre une voiture, Loisirs un visage plutôt qu'un
+// billet. Fonds (bg) légèrement plus opaques (.15→.18) pour mieux ressortir du fond de carte.
 var TXN_CAT_TYPES = [
-  {name:'Resto',      ico:'&#127828;', svgKey:'resto',     col:'#f97316',        bg:'rgba(249,115,22,.15)'},
-  {name:'Courses',    ico:'&#127860;', svgKey:'courses',   col:'#3b82f6',        bg:'rgba(59,130,246,.15)'},
-  {name:'Transport',  ico:'&#128664;', svgKey:'transport', col:'#64748b',        bg:'rgba(100,116,139,.15)'},
-  {name:'Shopping',   ico:'&#128722;', svgKey:'shopping',  col:'#ec4899',        bg:'rgba(236,72,153,.15)'},
-  {name:'Loisirs',    ico:'&#128518;', svgKey:'plaisirs',  col:'var(--orange)',  bg:'var(--orange2)'},
-  {name:'Logement',   ico:'&#127968;', svgKey:'logement',  col:'#6366f1',        bg:'rgba(99,102,241,.15)'},
-  {name:'Santé',      ico:'&#128138;', svgKey:'sante',     col:'#22c55e',        bg:'rgba(34,197,94,.15)'},
-  {name:'Autre',      ico:'&#10133;',  svgKey:'autre',     col:'var(--text3)',   bg:'rgba(148,163,184,.15)'},
-  {name:'Épargne',    ico:'&#127807;', svgKey:'epargne',   col:'var(--accent2)', bg:'rgba(13,148,136,.15)'},
-  {name:'Investiss.', ico:'&#128200;', svgKey:'invest',    col:'#8b5cf6',        bg:'rgba(139,92,246,.15)'}
+  {name:'Resto',      ico:'🍽️', svgKey:'resto',     col:'#f97316',        bg:'rgba(249,115,22,.18)'},
+  {name:'Courses',    ico:'🛒', svgKey:'courses',   col:'#3b82f6',        bg:'rgba(59,130,246,.18)'},
+  {name:'Transport',  ico:'🚗', svgKey:'transport', col:'#64748b',        bg:'rgba(100,116,139,.18)'},
+  {name:'Shopping',   ico:'👕', svgKey:'shopping',  col:'#ec4899',        bg:'rgba(236,72,153,.18)'},
+  {name:'Loisirs',    ico:'🎟️', svgKey:'plaisirs',  col:'var(--orange)',  bg:'var(--orange2)'},
+  {name:'Logement',   ico:'🏠', svgKey:'logement',  col:'#6366f1',        bg:'rgba(99,102,241,.18)'},
+  {name:'Santé',      ico:'🩺', svgKey:'sante',     col:'#22c55e',        bg:'rgba(34,197,94,.18)'},
+  {name:'Autre',      ico:'📦', svgKey:'autre',     col:'var(--text3)',   bg:'rgba(148,163,184,.18)'},
+  {name:'Épargne',    ico:'🏦', svgKey:'epargne',   col:'var(--accent2)', bg:'rgba(13,148,136,.18)'},
+  {name:'Investiss.', ico:'📈', svgKey:'invest',    col:'#8b5cf6',        bg:'rgba(139,92,246,.18)'}
 ];
 function renderTxnCats(){
   var el=document.getElementById('txnCats'); if(!el) return;
   el.innerHTML=TXN_CAT_TYPES.map(function(t,i){
     return '<div class="txn-cat'+(i===0?' sel':'')+'" onclick="selTxnCat(this,\''+t.ico+'\',\''+t.name+'\')">'
-      +arg3dBadge(t.svgKey, t.bg, 34)
+      +arg3dBadge(t.svgKey, t.bg, 34, t.col)
       +'<div class="txn-cat-lbl">'+t.name+'</div>'
     +'</div>';
   }).join('');
@@ -3884,14 +3980,14 @@ function renderArgentStats(){
     {ico:'revenu',  lbl:'Revenus',      v:revTot,   col:'var(--green)',  bg:'var(--green2)'},
     {ico:'fixe',    lbl:'Charges fixes',v:fixedTot, col:'var(--red)',    bg:'var(--red2)'},
     {ico:'courses', lbl:'Quotidien',    v:varTot,   col:'var(--text)',   bg:'rgba(148,163,184,.18)'},
-    {ico:'epargne', lbl:'Épargne',      v:epTot,    col:'var(--accent2)',bg:'rgba(13,148,136,.15)'}
+    {ico:'epargne', lbl:'Épargne',      v:epTot,    col:'var(--accent2)',bg:'rgba(13,148,136,.18)'}
   ];
   el.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">'
     +cards.map(function(c){
       var sel=_argStatOpen===c.ico;
       return '<div onclick="toggleArgentStat(\''+c.ico+'\')" style="cursor:pointer;background:var(--card2);border-radius:12px;padding:10px 12px;box-shadow:'+(sel?'inset 0 0 0 1.5px '+c.col:'none')+';transition:box-shadow .15s">'
         +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
-          +arg3dBadge(c.ico, c.bg, 26)
+          +arg3dBadge(c.ico, c.bg, 26, c.col)
           +'<span style="color:'+(sel?c.col:'var(--text3)')+';display:flex;transition:transform .15s;transform:rotate('+(sel?'180':'0')+'deg)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>'
         +'</div>'
         +'<div style="font-size:10.5px;color:var(--text2)">'+c.lbl+'</div>'
@@ -3967,12 +4063,12 @@ function renderArgentRecent(){
   var all=[];
   getRevenuRows().forEach(function(r){ all.push(argentRowMeta(r,'revenu','var(--green2)','var(--green)',1)); });
   split.fixed.forEach(function(r){ all.push(argentRowMeta(r,'fixe','var(--red2)','var(--red)',-1)); });
-  split.buckets.courses.forEach(function(r){ all.push(argentRowMeta(r,'courses','rgba(59,130,246,.15)','#3b82f6',-1)); });
+  split.buckets.courses.forEach(function(r){ all.push(argentRowMeta(r,'courses','rgba(59,130,246,.18)','#3b82f6',-1)); });
   split.buckets.plaisirs.forEach(function(r){ all.push(argentRowMeta(r,'plaisirs','var(--orange2)','var(--orange)',-1)); });
-  split.buckets.imprevus.forEach(function(r){ all.push(argentRowMeta(r,'imprevus','rgba(236,72,153,.15)','#ec4899',-1)); });
+  split.buckets.imprevus.forEach(function(r){ all.push(argentRowMeta(r,'imprevus','rgba(236,72,153,.18)','#ec4899',-1)); });
   getEpargneInvestRows().forEach(function(r){
     var isInvest = r.key==='invest_items';
-    all.push(argentRowMeta(r, isInvest?'invest':'epargne', isInvest?'rgba(139,92,246,.15)':'rgba(13,148,136,.15)', isInvest?'#8b5cf6':'var(--accent2)', -1));
+    all.push(argentRowMeta(r, isInvest?'invest':'epargne', isInvest?'rgba(139,92,246,.18)':'rgba(13,148,136,.18)', isInvest?'#8b5cf6':'var(--accent2)', -1));
   });
   if(!all.length){ el.innerHTML=''; return; }
   all.sort(function(a,b){
@@ -3987,7 +4083,7 @@ function renderArgentRecent(){
       var dateTxt=fmtShortDate(r.d);
       var amtTxt=(r.sign>0?'+':'-')+euro(r.v);
       return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--border)">'
-        +arg3dBadge(r.ico, r.bg, 32)
+        +textAwareBadge(r.n, r.ico, r.bg, 32, r.col)
         +'<div style="flex:1;min-width:0">'
           +'<div style="font-size:13.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.n)+'</div>'
           +(dateTxt?'<div style="font-size:10.5px;color:var(--text3)">'+dateTxt+'</div>':'')
