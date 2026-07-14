@@ -966,6 +966,10 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
   padding:14px 16px;color:var(--text);font-size:15px;outline:none;font-family:inherit;transition:border-color .2s}
 .login-in:focus{border-color:var(--accent)}
 .login-in::placeholder{color:var(--text3)}
+.login-pwd-wrap{position:relative}
+.login-pwd-wrap .login-in{padding-right:46px}
+.login-pwd-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;
+  cursor:pointer;font-size:17px;padding:8px;line-height:1;color:var(--text3)}
 .login-btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--accent),var(--accent3));
   color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;
   margin-top:16px;letter-spacing:-.2px;transition:opacity .2s}
@@ -1033,7 +1037,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.115';
+window.APP_VERSION = '5.116';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1255,8 +1259,11 @@ window.APP_VERSION = '5.115';
           <input class="login-in" id="loginUser" type="text" placeholder="Ton prénom ou pseudo" autocomplete="username"
             onkeydown="if(event.key==='Enter'){document.getElementById('loginPass').focus();}"/>
           <div class="login-lbl">Mot de passe</div>
-          <input class="login-in" id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password"
-            onkeydown="if(event.key==='Enter'){doLogin();}"/>
+          <div class="login-pwd-wrap">
+            <input class="login-in" id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password"
+              onkeydown="if(event.key==='Enter'){doLogin();}"/>
+            <button type="button" class="login-pwd-eye" onclick="togglePwdVisibility('loginPass',this)" title="Afficher/masquer le mot de passe">👁</button>
+          </div>
           <button class="login-btn" onclick="doLogin()" style="background:linear-gradient(135deg,#10b981,#059669)">Se connecter →</button>
         </div>
         <!-- Tabs navigation sous le bouton -->
@@ -1274,11 +1281,17 @@ window.APP_VERSION = '5.115';
           <input class="login-in" id="regUser" type="text" placeholder="Ton prénom ou pseudo" autocomplete="username"
             onkeydown="if(event.key==='Enter'){document.getElementById('regPass').focus();}"/>
           <div class="login-lbl">Mot de passe</div>
-          <input class="login-in" id="regPass" type="password" placeholder="Min. 4 caractères" autocomplete="new-password"
-            onkeydown="if(event.key==='Enter'){document.getElementById('regPass2').focus();}"/>
+          <div class="login-pwd-wrap">
+            <input class="login-in" id="regPass" type="password" placeholder="Min. 6 caractères" autocomplete="new-password"
+              onkeydown="if(event.key==='Enter'){document.getElementById('regPass2').focus();}"/>
+            <button type="button" class="login-pwd-eye" onclick="togglePwdVisibility('regPass',this)" title="Afficher/masquer le mot de passe">👁</button>
+          </div>
           <div class="login-lbl">Confirme le mot de passe</div>
-          <input class="login-in" id="regPass2" type="password" placeholder="Même mot de passe" autocomplete="new-password"
-            onkeydown="if(event.key==='Enter'){doRegister();}"/>
+          <div class="login-pwd-wrap">
+            <input class="login-in" id="regPass2" type="password" placeholder="Même mot de passe" autocomplete="new-password"
+              onkeydown="if(event.key==='Enter'){doRegister();}"/>
+            <button type="button" class="login-pwd-eye" onclick="togglePwdVisibility('regPass2',this)" title="Afficher/masquer le mot de passe">👁</button>
+          </div>
           <button class="login-btn" onclick="doRegister()" style="background:linear-gradient(135deg,#10b981,#059669)">Créer mon compte →</button>
         </div>
         <div class="login-tabs">
@@ -1297,6 +1310,7 @@ window.APP_VERSION = '5.115';
           <input class="login-in" id="forgotUser" type="text" placeholder="Ton prénom ou pseudo"
             onkeydown="if(event.key==='Enter'){doForgotPassword();}"/>
           <div style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center">⚠️ Cette action supprimera tes données locales.</div>
+          <button type="button" onclick="exportBackup()" style="width:100%;padding:11px;background:transparent;border:1.5px dashed var(--border);border-radius:12px;color:var(--text2);font-size:12.5px;font-weight:600;cursor:pointer;margin-top:12px">📥 Télécharger une sauvegarde d'abord</button>
           <button class="login-btn" onclick="doForgotPassword()" style="background:var(--red)">Réinitialiser mon compte →</button>
         </div>
         <div class="login-tabs">
@@ -2400,6 +2414,12 @@ function getStoredAuth(){
 function isLoggedIn(){
   return sessionStorage.getItem('cf_sess')==='1';
 }
+function togglePwdVisibility(id,btn){
+  var el=document.getElementById(id);
+  if(!el) return;
+  if(el.type==='password'){ el.type='text'; if(btn) btn.textContent='🙈'; }
+  else{ el.type='password'; if(btn) btn.textContent='👁'; }
+}
 function checkNoAccountWarning(){
   var auth = localStorage.getItem('cf_auth');
   var warn = document.getElementById('noAccountWarn');
@@ -2418,7 +2438,7 @@ async function doLogin(){
   var auth=getStoredAuth();
   if(!auth){ toast('Aucun compte. Crée un compte d\'abord.','#ef4444'); showRegister(); return; }
   var ok=false;
-  if(auth.user===user){
+  if(auth.user.toLowerCase()===user.toLowerCase()){
     var h=await hashPass(pass);
     if(auth.pass===h){ ok=true; }
     else if(auth.pass===legacyHash(pass)){
@@ -2490,6 +2510,20 @@ async function doRegister(){
   if(!user||!pass||!pass2){ toast('Remplis tous les champs','#ef4444'); return; }
   if(pass!==pass2){ toast('Les mots de passe ne correspondent pas ❌','#ef4444'); return; }
   if(pass.length<6){ toast('Mot de passe trop court (min. 6 caractères)','#ef4444'); return; }
+  // v5.116 : un compte existant ne doit JAMAIS être écrasé silencieusement.
+  // Avant ce garde-fou, cliquer "Créer un compte" (par erreur, ou via un
+  // remplissage automatique du navigateur) remplaçait cf_auth sans aucun
+  // avertissement — l'utilisateur perdait alors l'accès à son identifiant
+  // d'origine (ses données financières, elles, restaient intactes car
+  // stockées sous une clé globale séparée). C'est très probablement ce qui
+  // s'est produit lors du test v5.113 (identifiant "Test3" au lieu de "ced").
+  var existing=getStoredAuth();
+  if(existing){
+    toast('Un compte existe déjà ("'+existing.user+'"). Connecte-toi, ou utilise "Mot de passe oublié" pour repartir à zéro.','#ef4444');
+    showLoginForm();
+    var lu=document.getElementById('loginUser'); if(lu) lu.value=existing.user;
+    return;
+  }
   localStorage.setItem(AUTH_STORE,JSON.stringify({user:user,pass:await hashPass(pass)}));
   sessionStorage.setItem('cf_sess','1');
   document.getElementById('regPass').value='';
@@ -2684,7 +2718,7 @@ async function saveProfileEdit(){
     if(oldHash!==auth.pass && legacyHash(oldPass)!==auth.pass){ toast('Mot de passe actuel incorrect','#e53e3e'); return; }
     if(!newPass){ toast('Nouveau mot de passe vide','#e53e3e'); return; }
     if(newPass !== confPass){ toast('Les mots de passe ne correspondent pas','#e53e3e'); return; }
-    if(newPass.length < 4){ toast('Mot de passe trop court (min 4 car.)','#e53e3e'); return; }
+    if(newPass.length < 6){ toast('Mot de passe trop court (min 6 car.)','#e53e3e'); return; }
     auth.pass = await hashPass(newPass);
     changed = true;
   }
