@@ -1019,7 +1019,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.100';
+window.APP_VERSION = '5.101';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1723,7 +1723,7 @@ window.APP_VERSION = '5.100';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.100</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.101</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="location.reload()">
@@ -1834,13 +1834,20 @@ window.APP_VERSION = '5.100';
 <div class="ov" id="ovEditArgent" onclick="if(event.target===this)closeEditArgentItem()">
   <div class="modal">
     <div class="modal-drag"></div>
-    <div class="modal-title">Modifier la ligne</div>
+    <div class="modal-title" id="editArgModalTitle">Modifier la ligne</div>
+    <!-- v5.101 : montant "déclaré globalement" (revenu/épargne/investissement dit à Léo en une
+         fois, sans détail ligne à ligne — voir getRevenuRows()/getEpargneInvestRows()) — petit
+         rappel affiché uniquement dans ce cas, le champ Libellé ci-dessous étant alors désactivé
+         (rien à renommer, voir openEditArgentItem()). -->
+    <div id="editArgSynthHint" style="display:none;font-size:12px;color:var(--text2);background:var(--card2);border-radius:10px;padding:8px 10px;margin-bottom:12px;line-height:1.5">ℹ️ Montant déclaré globalement (sans détail ligne à ligne). Modifie-le ici, ou dis un nouveau chiffre à Léo.</div>
     <div class="m-lbl">Libellé</div>
     <input class="m-in" id="editArgLbl" maxlength="40"/>
     <div class="m-lbl">Montant (€)</div>
     <input class="m-in" id="editArgAmt" type="text" inputmode="decimal" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();saveEditArgentItem();}"/>
-    <div class="m-lbl">Date</div>
-    <input class="m-in" id="editArgDate" type="date"/>
+    <div id="editArgDateRow">
+      <div class="m-lbl">Date</div>
+      <input class="m-in" id="editArgDate" type="date"/>
+    </div>
     <!-- v5.97 : menu déroulant "Charge fixe" (remplace le toggle simple de la v5.96, à la demande de
          l'utilisateur) — affiché uniquement pour les lignes besoins/envies (mêmes clés que le
          sélecteur d'enveloppe ci-dessous). Permet de corriger une ligne déjà mal classée (ex: bug
@@ -1864,7 +1871,7 @@ window.APP_VERSION = '5.100';
     <!-- v5.78 : bouton Supprimer ajouté à cette fenêtre (unique point d'accès modification/suppression
          d'une ligne depuis la corbeille retirée des sous-sections) — ouvre la même confirmation que
          partout ailleurs dans l'app (showConfirm(), via deleteFromEditModal()). -->
-    <button onclick="deleteFromEditModal()" style="width:100%;margin-top:10px;padding:12px;background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.25);border-radius:13px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">&#128465;&#65039; Supprimer cette ligne</button>
+    <button id="editArgDeleteBtn" onclick="deleteFromEditModal()" style="width:100%;margin-top:10px;padding:12px;background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.25);border-radius:13px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">&#128465;&#65039; Supprimer cette ligne</button>
   </div>
 </div>
 
@@ -3280,19 +3287,48 @@ function confirmDeleteArgentRow(sectionKey, idx){
 }
 
 // ── Modifier une ligne (clic sur une ligne dans "Où va mon argent") ──
+// v5.101 : montants "déclarés globalement" (revenu/épargne/investissement dits à Léo en une
+// fois, sans détail ligne à ligne — voir getRevenuRows()/getEpargneInvestRows()) — mappe chaque
+// clé d'items vers le champ agrégé de S.fin qu'ils représentent, pour permettre de les modifier
+// (et les remettre à 0) directement depuis cette fenêtre, comme n'importe quelle autre ligne.
+var SYNTH_AGG_FIELD = {
+  revenus_items: {field:'revenus', label:'Revenu déclaré'},
+  epargne_items: {field:'epargne', label:'Épargne déclarée'},
+  invest_items:  {field:'invest',  label:'Investissement déclaré'}
+};
 var _editArgKey=null, _editArgIdx=null;
 function openEditArgentItem(key, idx){
-  // Ligne synthétique (montant déclaré globalement à Léo, sans détail — voir getRevenuRows()/
-  // getEpargneInvestRows()) : rien de réel à éditer ligne par ligne ici.
+  if(!S.fin) return;
+  var lblEl=document.getElementById('editArgLbl');
+  var hintEl=document.getElementById('editArgSynthHint');
+  var dateRow=document.getElementById('editArgDateRow');
+  var delBtn=document.getElementById('editArgDeleteBtn');
+  var titleEl=document.getElementById('editArgModalTitle');
+  // Ligne synthétique : pas d'index réel dans un tableau d'items, mais un champ agrégé de
+  // S.fin (revenus/epargne/invest) à modifier ou remettre à 0 à la place.
   if(idx==null || idx<0){
-    toast('Montant déclaré globalement — dis un nouveau chiffre à Léo pour le modifier.','#f59e0b');
+    var agg=SYNTH_AGG_FIELD[key];
+    if(!agg) return; // sécurité : aucune autre catégorie n'a de repli synthétique aujourd'hui
+    _editArgKey=key; _editArgIdx=-1;
+    if(titleEl) titleEl.textContent='Modifier le montant déclaré';
+    if(lblEl){ lblEl.value=agg.label; lblEl.disabled=true; }
+    document.getElementById('editArgAmt').value=String(S.fin[agg.field]||'').replace('.',',');
+    if(dateRow) dateRow.style.display='none';
+    if(hintEl) hintEl.style.display='block';
+    if(delBtn) delBtn.innerHTML='&#128465;&#65039; Remettre à 0€';
+    var fixeRow0=document.getElementById('editArgFixeRow'); if(fixeRow0) fixeRow0.style.display='none';
+    var envWrap0=document.getElementById('editArgEnvWrap'); if(envWrap0) envWrap0.style.display='none';
+    document.getElementById('ovEditArgent').classList.add('open');
     return;
   }
-  if(!S.fin) return;
   var items=parseItems(S.fin[key]);
   var it=items[idx]; if(!it) return;
   _editArgKey=key; _editArgIdx=idx;
-  document.getElementById('editArgLbl').value=it.n||'';
+  if(titleEl) titleEl.textContent='Modifier la ligne';
+  if(lblEl){ lblEl.value=it.n||''; lblEl.disabled=false; }
+  if(hintEl) hintEl.style.display='none';
+  if(dateRow) dateRow.style.display='block';
+  if(delBtn) delBtn.innerHTML='&#128465;&#65039; Supprimer cette ligne';
   document.getElementById('editArgAmt').value=(it.v!=null?String(it.v):'').replace('.',',');
   document.getElementById('editArgDate').value=it.d||today();
   // v5.97 : menu déroulant "Charge fixe" — uniquement pour besoins_items/envies_items, permet de
@@ -3347,6 +3383,20 @@ function onEditArgFixeTypeChange(){
 }
 function saveEditArgentItem(){
   if(_editArgKey==null || _editArgIdx==null || !S.fin) return;
+  // v5.101 : ligne "déclarée globalement" (voir openEditArgentItem()) — pas d'items à toucher,
+  // on met simplement à jour le champ agrégé de S.fin correspondant (revenus/epargne/invest).
+  if(_editArgIdx<0){
+    var agg=SYNTH_AGG_FIELD[_editArgKey];
+    if(!agg){ closeEditArgentItem(); return; }
+    var aggAmt=parseMontant(document.getElementById('editArgAmt').value);
+    if(!aggAmt||aggAmt<0){ toast('Entre un montant valide (ex: 45,90)','#ef4444'); return; }
+    S.fin[agg.field]=aggAmt;
+    syncTotals(); S.fin.rav=calcRAV(); save();
+    closeEditArgentItem();
+    renderTriCards(); renderBudget();
+    toast('Montant modifié ✓','#10b981');
+    return;
+  }
   var lbl=document.getElementById('editArgLbl').value.trim();
   var amt=parseMontant(document.getElementById('editArgAmt').value);
   var dt=document.getElementById('editArgDate').value || today();
@@ -3384,6 +3434,20 @@ function saveEditArgentItem(){
 function deleteFromEditModal(){
   if(_editArgKey==null || _editArgIdx==null) return;
   var key=_editArgKey, idx=_editArgIdx;
+  // v5.101 : ligne "déclarée globalement" — "supprimer" n'a pas de sens ligne à ligne ici
+  // (il n'y a pas de ligne), on remet simplement le champ agrégé à 0 après confirmation.
+  if(idx<0){
+    var agg=SYNTH_AGG_FIELD[key];
+    closeEditArgentItem();
+    if(!agg || !S.fin) return;
+    showConfirm('Remettre "'+agg.label+'" à 0€ ?', function(){
+      S.fin[agg.field]=0;
+      syncTotals(); S.fin.rav=calcRAV(); save();
+      renderTriCards(); renderBudget();
+      toast('Montant remis à 0','#64748b');
+    }, 'Remettre à 0');
+    return;
+  }
   closeEditArgentItem();
   confirmDeleteArgentRow(key, idx);
 }
@@ -4707,18 +4771,23 @@ function renderArgentRows(rows, col){
   }).map(function(r){
     var dateTxt=fmtShortDate(r.d);
     // Ligne synthétique (voir getRevenuRows()/getEpargneInvestRows()) : représente un montant
-    // déclaré globalement à Léo, sans détail par ligne — pas d'index réel à modifier/supprimer.
+    // déclaré globalement à Léo, sans détail par ligne. v5.101 : demande de l'utilisateur — le
+    // crayon reste maintenant visible pour ces lignes aussi (avant, seul un texte "déclaré" sans
+    // action apparaissait, ex: la carte Épargne quand le montant vient d'un chiffre dit à Léo en
+    // une fois plutôt que ligne par ligne) ; ouvre la même fenêtre #ovEditArgent, qui modifie
+    // directement le montant agrégé (voir openEditArgentItem()/saveEditArgentItem()).
     // v5.78 : la corbeille 🗑️ à côté du crayon est retirée à la demande de l'utilisateur — une
     // seule icône (crayon) reste visible, et c'est la fenêtre de modification qu'elle ouvre
     // (openEditArgentItem() → #ovEditArgent) qui propose désormais AUSSI un bouton Supprimer
     // (voir deleteFromEditModal()), avec la même confirmation qu'avant (confirmDeleteArgentRow()).
-    var editIco=r.synthetic
-      ? '<span style="font-size:9.5px;color:var(--text3);flex-shrink:0;font-style:italic">déclaré</span>'
-      : '<div style="color:var(--text3);font-size:13px;flex-shrink:0;display:flex;align-items:center" title="Modifier / Supprimer">&#9998;</div>';
+    var editIco='<div style="color:var(--text3);font-size:13px;flex-shrink:0;display:flex;align-items:center" title="Modifier">&#9998;</div>';
+    var subTxt=r.synthetic
+      ? '<div style="font-size:10.5px;color:var(--text3);margin-top:1px;font-style:italic">déclaré globalement</div>'
+      : (dateTxt?'<div style="font-size:10.5px;color:var(--text3);margin-top:1px">'+dateTxt+'</div>':'');
     return '<div onclick="openEditArgentItem(\''+r.key+'\','+r.idx+')" style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer">'
       +'<div style="flex:1;min-width:0">'
         +'<div style="font-size:13.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.n)+'</div>'
-        +(dateTxt?'<div style="font-size:10.5px;color:var(--text3);margin-top:1px">'+dateTxt+'</div>':'')
+        +subTxt
       +'</div>'
       +'<div style="font-size:13.5px;font-weight:700;color:'+col+';flex-shrink:0">'+euro(r.v)+'</div>'
       +editIco
