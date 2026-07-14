@@ -130,7 +130,17 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
    que celle (compacte) réutilisée dans les modales À propos / mentions légales. */
 .login-hero .rb-logo-block{gap:clamp(10px,3.2vw,16px);margin-bottom:8px}
 .login-hero .rb-logo-cross{width:clamp(34px,10vw,52px);height:clamp(34px,10vw,52px);border-radius:clamp(7px,2vw,12px)}
-.login-hero .rb-logo-rescue,.login-hero .rb-logo-budget{font-size:clamp(28px,8.5vw,46px)}
+/* v5.114 : bug signalé (et reproduit lors d'un test complet de l'app) — le logo affichait
+   "RescueBudge" au lieu de "RescueBudget" sur la page de connexion, la lettre finale coupée par
+   overflow:hidden sur .rb-logo-block. Cause : le clamp() utilisait le vw (largeur de la FENÊTRE)
+   comme référence d'échelle, alors que le conteneur réel est .login-box, dont la largeur est
+   plafonnée à 360px fixes (voir plus bas) — sur n'importe quelle largeur de bureau normale, 8.5vw
+   dépasse largement le max de 46px, donc le texte rendait TOUJOURS à sa taille maximale (46px),
+   trop large pour tenir dans 360px une fois la croix et les espacements comptés. Plafond réduit à
+   34px (au lieu de 46px), qui tient de façon fiable dans le conteneur quelle que soit la largeur
+   de fenêtre — le minimum (26px) reste inchangé pour les petits écrans mobiles.
+*/
+.login-hero .rb-logo-rescue,.login-hero .rb-logo-budget{font-size:clamp(26px,8vw,34px)}
 .rb-urgency-tag{display:inline-flex;align-items:center;gap:5px;
   background:rgba(239,68,68,.12);border:0.5px solid rgba(239,68,68,.35);
   color:#fca5a5;font-size:10px;font-weight:600;letter-spacing:.5px;
@@ -1023,7 +1033,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.113';
+window.APP_VERSION = '5.114';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1576,7 +1586,8 @@ window.APP_VERSION = '5.113';
           <line x1="9" y1="22" x2="15" y2="22"/>
         </svg>
       </button>
-      <textarea id="chatIn" placeholder="&#201;cris ou parle &#224; L&#233;o..." rows="1" maxlength="1000"></textarea>
+      <textarea id="chatIn" placeholder="&#201;cris ou parle &#224; L&#233;o..." rows="1" maxlength="1000"
+        onkeydown="if(event.key==='Enter'&amp;&amp;!event.shiftKey){event.preventDefault();send();}"></textarea>
       <button id="sendBtn" onclick="send()">
         <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
       </button>
@@ -4124,11 +4135,14 @@ function fmtShortDate(iso){
 // ligne nouvelle, ou dont le montant a changé (nouvelle contribution/mouvement), est datée
 // d'aujourd'hui — c'est bien ce jour-là que le mouvement d'argent a été enregistré.
 function mergeItemsPreservingDates(oldRaw, newItems){
+  var oldList=parseItems(oldRaw);
   var oldByName={};
-  parseItems(oldRaw).forEach(function(i){ if(i.n) oldByName[i.n]=i; });
+  oldList.forEach(function(i){ if(i.n) oldByName[i.n]=i; });
   var td=today();
-  return newItems.map(function(i){
+  var seen={};
+  var merged=newItems.map(function(i){
     var prev=oldByName[i.n];
+    if(i.n) seen[i.n]=true;
     var sameValue = prev && Math.abs((parseFloat(prev.v)||0)-(parseFloat(i.v)||0))<0.005;
     var out={n:i.n, v:i.v, d:(sameValue && prev.d) ? prev.d : td};
     var b=(prev&&prev.b)?prev.b:i.b;
@@ -4141,6 +4155,22 @@ function mergeItemsPreservingDates(oldRaw, newItems){
     if(env) out.env=env;
     return out;
   });
+  // v5.114 : bug critique découvert en testant l'app de bout en bout — cette fonction supposait que
+  // Léo renvoie TOUJOURS le tableau complet de toutes les lignes déjà connues à chaque tour (voir
+  // règle prompt "CUMULE avec les entrées précédentes"), et se contentait de faire
+  // newItems.map(...), qui ne contient QUE ce que Léo a renvoyé CE tour-ci. Si Léo omet une ligne
+  // sans rapport avec le message en cours (ex: il parle d'une dépense "Courses" et ne rementionne
+  // pas "Loyer"), cette ligne "Loyer" disparaissait SILENCIEUSEMENT du budget réel une fois la
+  // synchronisation confirmée — perte de donnée invisible, sans aucune erreur ni avertissement.
+  // Reproduit concrètement en testant une dépense "essence" ajoutée manuellement (20€) suivie d'une
+  // seconde "essence" dite à Léo (15€) : au lieu de totaliser 35€ en deux lignes, la ligne à 20€ a
+  // purement disparu. Correctif : toute ligne de l'ANCIEN tableau dont le nom n'apparaît pas du tout
+  // dans la réponse de Léo ce tour-ci est désormais conservée telle quelle plutôt que supprimée —
+  // seules les lignes que Léo mentionne explicitement peuvent être mises à jour ou ajoutées.
+  oldList.forEach(function(i){
+    if(i.n && !seen[i.n]) merged.push(i);
+  });
+  return merged;
 }
 // Jeu d'icônes SVG (traits, 24x24) utilisé partout dans "Où va mon argent" à la place des emoji :
 // sur certains appareils/polices systèmes sans couverture emoji, les emoji s'affichent en carrés
