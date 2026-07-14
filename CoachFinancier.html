@@ -1023,7 +1023,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.107';
+window.APP_VERSION = '5.108';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1727,7 +1727,7 @@ window.APP_VERSION = '5.107';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.107</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.108</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="location.reload()">
@@ -3553,6 +3553,15 @@ function selTxnCat(el,ico,name){
   // charge fixe (selTxnFixedCat()), il arrête définitivement la détection automatique par
   // mot-clé pour cette ouverture du formulaire (même convention que _envEmojiAuto/_txnFixeAuto).
   _txnFixeType=''; _txnFixeAuto=false;
+  // v5.108 : corrige le bug "erreur dans la ligne description" — si le texte actuellement affiché
+  // vient d'un précédent clic automatique sur une tuile de charge fixe (ex: "Loyer") et n'a jamais
+  // été modifié par l'utilisateur, il devient incohérent une fois qu'une catégorie variable (ex:
+  // "Resto") est choisie à la place : on le vide. Ne touche jamais un texte réellement tapé par
+  // l'utilisateur (_txnDescAuto passe à faux dès sa première frappe, voir refreshTxnFixeGuess()).
+  if(_txnDescAuto){
+    var descEl=document.getElementById('txnDesc');
+    if(descEl) descEl.value='';
+  }
   // Afficher la section dans le modal
   var section = CAT_SECTION[name] || 'envies';
   var badge = document.getElementById('txnSectionBadge');
@@ -3591,9 +3600,17 @@ function selTxnFixedCat(el, value, manual){
   // à taper (reste librement modifiable ensuite, avant l'enregistrement). Seulement au clic manuel
   // — inutile en mode auto, puisque la description contient déjà le mot-clé qui a déclenché la
   // détection.
+  // v5.108 : corrige un bug signalé par l'utilisateur ("erreur dans la ligne description") — la
+  // condition d'origine (!descEl.value.trim()) ne se déclenchait qu'une seule fois : après un
+  // premier clic manuel sur une tuile fixe (ex: "Loyer"), la description devenait "Loyer" et
+  // restait alors non-vide pour toujours, donc un second clic sur une AUTRE tuile fixe (ex:
+  // "Crédit") ne la remplaçait plus — la tuile sélectionnée changeait mais la description
+  // affichait encore l'ancien libellé, incohérente avec le nouveau choix. Utilise désormais
+  // _txnDescAuto (vrai tant que le texte présent a été posé par ce mécanisme, jamais tapé par
+  // l'utilisateur) : le texte n'est protégé que si l'utilisateur l'a réellement modifié lui-même.
   if(manual){
     var descEl=document.getElementById('txnDesc');
-    if(descEl && !descEl.value.trim()) descEl.value=lbl;
+    if(descEl && (!descEl.value.trim() || _txnDescAuto)){ descEl.value=lbl; _txnDescAuto=true; }
   }
 }
 // v5.103 : revient sur la dernière catégorie variable connue (_lastVarCat) sans marquer le geste
@@ -3690,9 +3707,16 @@ function saveRevenuRapide(){
 function openTxnModal(){
   document.getElementById('txnAmt').value='';
   document.getElementById('txnDesc').value='';
-  document.querySelectorAll('.txn-cat').forEach(function(c,i){c.classList.toggle('sel',i===0);});
+  // v5.108 : corrige un bug signalé par l'utilisateur — "erreur dans la ligne description" —
+  // scope désormais la sélection au conteneur #txnCats (voir _txnDescAuto ci-dessous pour le
+  // 2e volet du même correctif). Sans ça, document.querySelectorAll('.txn-cat') retombait sur
+  // TOUS les éléments .txn-cat du document, y compris ceux du sélecteur de catégories liées à une
+  // enveloppe (#envCatsPicker, voir renderEnvCatsPicker()), qui partage la même classe CSS : ouvrir
+  // "Ajouter une dépense" pouvait donc silencieusement altérer la sélection visuelle d'une modale
+  // d'enveloppe restée ouverte en arrière-plan.
+  document.querySelectorAll('#txnCats .txn-cat').forEach(function(c,i){c.classList.toggle('sel',i===0);});
   _selTxnCat={ico:'🍽️',name:'Resto'}; _lastVarCat={ico:'🍽️',name:'Resto'};
-  _txnFixeType=''; _txnFixeAuto=true;
+  _txnFixeType=''; _txnFixeAuto=true; _txnDescAuto=true;
   updateTxnEnvSelector(CAT_SECTION['Resto']||'envies', 'Resto');
   document.getElementById('ovTxn').classList.add('open');
 }
@@ -3706,7 +3730,15 @@ function closeTxnModal(){ document.getElementById('ovTxn').classList.remove('ope
 // selTxnFixedCat() avec manual=true) : la saisie de l'utilisateur n'est alors plus jamais
 // écrasée par la détection automatique.
 var _txnFixeType='', _txnFixeAuto=true;
+// v5.108 : corrige le bug "erreur dans la ligne description" — vrai tant que le texte actuel du
+// champ Description a été posé par un clic automatique sur une tuile (voir selTxnFixedCat()),
+// jamais tapé par l'utilisateur. Permet de distinguer "texte encore libre, une nouvelle tuile
+// peut le remplacer" de "texte déjà personnalisé par l'utilisateur, ne plus jamais l'écraser" —
+// passe à faux dès la première frappe réelle (voir refreshTxnFixeGuess(), déclenché par l'attribut
+// oninput, jamais par une écriture programmatique de .value).
+var _txnDescAuto=true;
 function refreshTxnFixeGuess(){
+  _txnDescAuto=false;
   if(!_txnFixeAuto) return;
   var desc=(document.getElementById('txnDesc').value||'').trim();
   var val=detectFixedChargeType(desc);
