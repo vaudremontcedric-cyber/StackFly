@@ -1033,7 +1033,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.114';
+window.APP_VERSION = '5.115';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1191,7 +1191,14 @@ window.APP_VERSION = '5.114';
 
   <header class="hdr" id="mainHdr">
     <div class="hdr-left">
-      <div class="hdr-ico" onclick="doLogout()" style="cursor:pointer" title="Retour à la page de connexion">
+      <!-- v5.115 : bug signalé par l'utilisateur (retrouvé pendant un test complet de l'app, moi-même
+      cliqué dessus par erreur deux fois en m'attendant à une navigation) — cette icône maison
+      déclenchait la déconnexion (doLogout()) au lieu de naviguer vers l'accueil, contrairement à la
+      convention quasi universelle d'une icône maison dans un header. La déconnexion reste accessible
+      normalement via Profil > "Se déconnecter" (voir plus bas dans ce fichier) — cette icône ne fait
+      donc plus double emploi, elle redevient un simple raccourci vers la page Budget, comme le bouton
+      "Budget" de la barre de navigation du bas. -->
+      <div class="hdr-ico" onclick="go('budget')" style="cursor:pointer" title="Retour à l'accueil">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path d="M3 11L12 3L21 11" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M5 10V20C5 20.5523 5.44772 21 6 21H18C18.5523 21 19 20.5523 19 20V10" fill="#0d9488" opacity=".78"/>
@@ -4140,10 +4147,43 @@ function mergeItemsPreservingDates(oldRaw, newItems){
   oldList.forEach(function(i){ if(i.n) oldByName[i.n]=i; });
   var td=today();
   var seen={};
-  var merged=newItems.map(function(i){
+  var merged=[];
+  newItems.forEach(function(i){
     var prev=oldByName[i.n];
-    if(i.n) seen[i.n]=true;
+    // v5.115 : bug signalé par l'utilisateur — deux dépenses portant EXACTEMENT le même libellé
+    // (ex. "Essence" acheté à deux dates différentes dans le mois, un cas très courant pour les
+    // catégories génériques comme carburant/courses/resto) s'écrasaient l'une l'autre au lieu de
+    // s'additionner, faute d'identifiant de transaction propre — seul le nom servait de clé. Sans
+    // pouvoir ajouter un vrai identifiant unique sans réécrire tout le modèle de données, on utilise
+    // ici le signal le plus fiable disponible : la DATE de la ligne déjà connue. Si cette ligne date
+    // d'un jour différent d'aujourd'hui, il s'agit très probablement d'une nouvelle dépense distincte
+    // qui partage juste un libellé générique — elle est ajoutée comme ligne séparée plutôt que
+    // d'écraser l'ancienne (qui sera automatiquement conservée par la passe de réconciliation finale
+    // ci-dessous, héritée du correctif v5.114). Si la ligne connue date d'AUJOURD'HUI, on garde le
+    // comportement précédent (mise à jour en place) : il s'agit très probablement encore de la même
+    // transaction en train d'être précisée dans la conversation (ex. correction d'un montant qui
+    // vient d'être annoncé). Limite assumée et documentée : deux dépenses au même libellé LE MÊME
+    // JOUR continuent de fusionner en une seule ligne — aucun signal fiable ne permet de les
+    // distinguer sans identifiant de transaction, ce serait deviner au hasard.
     var sameValue = prev && Math.abs((parseFloat(prev.v)||0)-(parseFloat(i.v)||0))<0.005;
+    // v5.115 : une charge FIXE (loyer, crédit, abonnement...) reste par nature une ligne UNIQUE,
+    // même si son montant change d'un mois sur l'autre (ex. augmentation de loyer) — dans ce cas on
+    // veut une mise à jour en place, jamais un doublon. Le nouveau comportement "jour différent =
+    // nouvelle transaction" ci-dessous ne s'applique donc qu'aux lignes variables (b !== 'fixe').
+    var isFixed = (prev && prev.b==='fixe') || i.b==='fixe';
+    var isDistinctDay = !!(prev && prev.d && prev.d!==td);
+    // Ne traite comme une NOUVELLE transaction distincte que si le jour diffère ET que le montant a
+    // changé ET que ce n'est pas une charge fixe : un simple ré-envoi à l'identique (même montant)
+    // reste une mise à jour en place, quelle que soit la date — c'est très probablement Léo qui
+    // reconfirme une ligne déjà connue, pas une seconde dépense identique par coïncidence.
+    if(isDistinctDay && !sameValue && !isFixed){
+      var newOut={n:i.n, v:i.v, d:td};
+      if(i.b) newOut.b=i.b;
+      if(i.env) newOut.env=i.env;
+      merged.push(newOut);
+      return; // ne marque pas "seen" : l'ancienne ligne (autre jour) doit survivre elle aussi
+    }
+    if(i.n) seen[i.n]=true;
     var out={n:i.n, v:i.v, d:(sameValue && prev.d) ? prev.d : td};
     var b=(prev&&prev.b)?prev.b:i.b;
     if(b) out.b=b;
@@ -4153,7 +4193,7 @@ function mergeItemsPreservingDates(oldRaw, newItems){
     // Léo propose, le cas échéant.
     var env=(prev&&prev.env)?prev.env:i.env;
     if(env) out.env=env;
-    return out;
+    merged.push(out);
   });
   // v5.114 : bug critique découvert en testant l'app de bout en bout — cette fonction supposait que
   // Léo renvoie TOUJOURS le tableau complet de toutes les lignes déjà connues à chaque tour (voir
