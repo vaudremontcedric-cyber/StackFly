@@ -1023,7 +1023,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.104';
+window.APP_VERSION = '5.105';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1727,7 +1727,7 @@ window.APP_VERSION = '5.104';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.104</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.105</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="location.reload()">
@@ -4593,6 +4593,38 @@ function getEnvEligibleRows(){
 function normEnvTxt(s){
   return (s||'').toLowerCase().normalize('NFD').replace(new RegExp('[\\u0300-\\u036f]','g'),'').trim();
 }
+// v5.105 : confirmation visuelle de synchronisation dans le chat, demandée par l'utilisateur en
+// complément direct de la correction v5.104 du rattachement dépense→enveloppe — plutôt que de
+// faire confiance en silence au [FD] renvoyé par Léo, chaque ligne réellement NOUVELLE ou
+// MODIFIÉE ce tour-ci (voir sendMsg(), qui calcule cette liste avant/après la fusion) affiche
+// sous la réponse de Léo la section exacte où elle vient d'être enregistrée (Revenus, Charges
+// fixes, Quotidien, Épargne, Investissement), et l'enveloppe rattachée le cas échéant avec son
+// suivi à jour (déjà dépensé / disponible ce mois-ci). Ce texte est entièrement généré par le
+// CODE — jamais par Léo — pour rester fiable même si le LLM se trompe, oublie de confirmer, ou
+// que la synchronisation échoue silencieusement (le cas justement signalé en v5.104).
+function _syncSectionLabel(k, b){
+  if(k==='revenus_items') return '💰 Revenus';
+  if(k==='epargne_items') return '🐷 Épargne';
+  if(k==='invest_items') return '📈 Investissement';
+  return (b==='fixe') ? '🧾 Charges fixes' : '🛒 Quotidien';
+}
+function buildSyncConfirmBlock(list){
+  if(!list || !list.length) return '';
+  var envs=(S.fin && S.fin.enveloppes) || [];
+  var lines=list.map(function(c){
+    var line='✅ **'+c.n+'** — '+euro(c.v)+' → '+_syncSectionLabel(c.k, c.b);
+    if(c.env){
+      var env=envs.filter(function(e){ return e.id===c.env; })[0];
+      if(env){
+        var dispo=(typeof getEnvDispo==='function') ? getEnvDispo(env) : (env.budget||0);
+        var spent=(typeof getEnvSpentInMonth==='function' && typeof curMonthKey==='function') ? getEnvSpentInMonth(env.id, curMonthKey()) : 0;
+        line += ' (enveloppe *'+env.nom+'* : '+euro(spent)+' / '+euro(dispo)+' ce mois-ci)';
+      }
+    }
+    return line;
+  });
+  return lines.join('\n');
+}
 // v5.104 : bug signalé par l'utilisateur ("dépense non rattachée") — une dépense dite à Léo en
 // conversation (ex: "40€ de courses") ne rattachait pas toujours son enveloppe correspondante,
 // alors que Léo est bien instruit de poser "env" et que la Passe 1 (catégorie) fonctionne
@@ -5715,6 +5747,11 @@ async function sendMsg(txt, hiddenUser, fileData){
       var fd=safeJsonParse(fdM[1]);
       if(fd && typeof fd==='object'){
         var upd=false;
+        // v5.105 : liste des lignes réellement nouvelles ou modifiées ce tour-ci (par opposition
+        // aux lignes déjà connues que Léo re-envoie telles quelles par convention, voir la règle
+        // "CUMULE avec les entrées précédentes" du prompt système) — sert uniquement à construire
+        // la confirmation de synchronisation affichée sous la réponse de Léo (buildSyncConfirmBlock()).
+        var syncConfirms=[];
         // Si nouvelle action différente → réinitialise la validation
         if(fd.action !== null && fd.action !== undefined && fd.action !== S.fin.action){
           S.fin._actionDone = false;
@@ -5726,7 +5763,18 @@ async function sendMsg(txt, hiddenUser, fileData){
           // tableau complet à chaque tour, ce qui écraserait les dates (d) déjà connues. On fusionne
           // par nom au lieu de remplacer telle quelle — voir mergeItemsPreservingDates().
           if(ARGENT_ITEM_KEYS.indexOf(k)>=0 && Array.isArray(fd[k])){
+            // v5.105 : capture l'état AVANT fusion pour détecter, juste en dessous, quelles lignes
+            // sont neuves ou dont le montant a changé — c'est cette liste qui alimente la
+            // confirmation de synchronisation, jamais l'ensemble du tableau ré-envoyé par Léo.
+            var oldByName={};
+            parseItems(S.fin[k]).forEach(function(i){ if(i.n) oldByName[i.n]=i; });
             S.fin[k]=mergeItemsPreservingDates(S.fin[k], fd[k]); upd=true;
+            fd[k].forEach(function(i){
+              if(!i || !i.n) return;
+              var prev=oldByName[i.n];
+              var changed=!prev || Math.abs((parseFloat(prev.v)||0)-(parseFloat(i.v)||0))>=0.005;
+              if(changed) syncConfirms.push({k:k, n:i.n, v:parseFloat(i.v)||0, b:(prev&&prev.b)?prev.b:i.b, env:(prev&&prev.env)?prev.env:i.env});
+            });
           } else {
             S.fin[k]=fd[k]; upd=true;
           }
@@ -5741,6 +5789,17 @@ async function sendMsg(txt, hiddenUser, fileData){
         // pourtant clairement au nom d'une enveloppe existante, autoLinkEnveloppes() rattrape le
         // rattachement par recoupement de libellé (voir sa définition, juste avant getEnvEligibleRows()).
         if(upd && typeof autoLinkEnveloppes==='function') autoLinkEnveloppes();
+        // v5.105 : ne relit b/env qu'APRÈS le filet de sécurité ci-dessus, pour que la confirmation
+        // reflète le rattachement final (y compris quand c'est autoLinkEnveloppes(), et non Léo,
+        // qui a posé le tag) plutôt qu'un état intermédiaire potentiellement incomplet.
+        if(syncConfirms.length){
+          syncConfirms.forEach(function(c){
+            if(c.k==='besoins_items'||c.k==='envies_items'){
+              var cur=parseItems(S.fin[c.k]).filter(function(i){ return i.n===c.n; })[0];
+              if(cur){ c.b=cur.b; c.env=cur.env; }
+            }
+          });
+        }
         if(upd){ syncTotals(); S.fin.rav=calcRAV(); save(); updateAnalyseCards(); renderBudget(); }
       }
     }
@@ -5787,6 +5846,11 @@ async function sendMsg(txt, hiddenUser, fileData){
     // [FD], [CH], [ENVSUG] ou [GOALSUG] non refermé traîne encore après le nettoyage normal, on coupe tout à
     // partir de là.
     clean = clean.replace(/\[FD\][\s\S]*$/i,'').replace(/\[CH\][\s\S]*$/i,'').replace(/\[ENVSUG\][\s\S]*$/i,'').replace(/\[GOALSUG\][\s\S]*$/i,'').trim();
+    // v5.105 : confirmation de synchronisation — voir buildSyncConfirmBlock() — ajoutée à la
+    // suite du texte de Léo (jamais générée par Léo lui-même), séparée par une ligne vide pour
+    // rester visuellement distincte de sa réponse conversationnelle.
+    var syncBlock=(typeof syncConfirms!=='undefined') ? buildSyncConfirmBlock(syncConfirms) : '';
+    if(syncBlock) clean = (clean ? clean+'\n\n' : '') + syncBlock;
     hideTyping();
     addMsg('bot', clean, false, choices, envSug, goalSug);
     S.hist.push({role:'user',content:txt});
