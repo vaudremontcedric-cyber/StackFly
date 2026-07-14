@@ -1023,7 +1023,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.109';
+window.APP_VERSION = '5.110';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1727,7 +1727,7 @@ window.APP_VERSION = '5.109';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.109</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.110</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="location.reload()">
@@ -4635,6 +4635,25 @@ function normEnvTxt(s){
 // suivi à jour (déjà dépensé / disponible ce mois-ci). Ce texte est entièrement généré par le
 // CODE — jamais par Léo — pour rester fiable même si le LLM se trompe, oublie de confirmer, ou
 // que la synchronisation échoue silencieusement (le cas justement signalé en v5.104).
+// v5.110 : pool de questions de confirmation utilisé par le filet de sécurité de sendMsg() quand
+// le texte de Léo n'en pose visiblement aucune (voir plus bas). Variées pour ne jamais donner
+// l'impression d'une formule figée si le filet doit se déclencher plusieurs fois de suite dans la
+// même conversation ; _lastSyncConfirmQIdx évite de tirer deux fois d'affilée la même phrase.
+var SYNC_CONFIRM_QUESTIONS = [
+  'Je le note ?',
+  'C\'est bon pour toi, je valide ?',
+  'Tu confirmes avec les boutons ci-dessous ?',
+  'Je mets ça de côté ?',
+  'Top, j\'enregistre ?'
+];
+var _lastSyncConfirmQIdx = -1;
+function _pickSyncConfirmQuestion(){
+  var idx;
+  do{ idx = Math.floor(Math.random()*SYNC_CONFIRM_QUESTIONS.length); }
+  while(SYNC_CONFIRM_QUESTIONS.length>1 && idx===_lastSyncConfirmQIdx);
+  _lastSyncConfirmQIdx = idx;
+  return SYNC_CONFIRM_QUESTIONS[idx];
+}
 function _syncSectionLabel(k, b){
   if(k==='revenus_items') return '💰 Revenus';
   if(k==='epargne_items') return '🐷 Épargne';
@@ -5962,6 +5981,21 @@ async function sendMsg(txt, hiddenUser, fileData){
     // [FD], [CH], [ENVSUG] ou [GOALSUG] non refermé traîne encore après le nettoyage normal, on coupe tout à
     // partir de là.
     clean = clean.replace(/\[FD\][\s\S]*$/i,'').replace(/\[CH\][\s\S]*$/i,'').replace(/\[ENVSUG\][\s\S]*$/i,'').replace(/\[GOALSUG\][\s\S]*$/i,'').trim();
+    // v5.110 : filet de sécurité côté code — bug signalé par l'utilisateur, Léo ne posait pas
+    // fiablement de question de confirmation malgré 3 tours de renforcement du prompt (v5.106/107/
+    // 109). Le déploiement Render étant confirmé à jour, la cause la plus probable est un ancrage
+    // sur l'historique de conversation (S.hist) : un LLM tend à reproduire le style de ses propres
+    // tours précédents plus qu'il ne suit une instruction système modifiée en cours de route,
+    // surtout après de nombreux échanges dans l'ancien style. Plutôt que de re-tenter le prompt une
+    // 4e fois, on applique ici la même philosophie que pour le rattachement aux enveloppes
+    // (autoLinkEnveloppes) : ne jamais dépendre uniquement d'un LLM pour un comportement garanti.
+    // Si une proposition de synchronisation existe et que le texte de Léo ne contient AUCUN point
+    // d'interrogation (donc ne pose visiblement aucune question), une question de confirmation
+    // courte est ajoutée automatiquement, tirée d'un petit pool varié pour ne jamais sonner comme
+    // une formule figée — jamais deux fois de suite la même (voir _pickSyncConfirmQuestion()).
+    if(newPendingSync && clean.indexOf('?')===-1){
+      clean = (clean ? clean+' ' : '') + _pickSyncConfirmQuestion();
+    }
     hideTyping();
     // v5.106 : la confirmation n'est plus ajoutée en texte silencieux — voir newPendingSync,
     // rendu par addMsg() sous forme de proposition avec boutons Confirmer/Annuler (remplace le
