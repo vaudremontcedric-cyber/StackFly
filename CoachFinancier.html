@@ -1023,7 +1023,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.111';
+window.APP_VERSION = '5.112';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -6014,6 +6014,25 @@ async function sendMsg(txt, hiddenUser, fileData){
     // une formule figée — jamais deux fois de suite la même (voir _pickSyncConfirmQuestion()).
     if(newPendingSync && clean.indexOf('?')===-1){
       clean = (clean ? clean+' ' : '') + _pickSyncConfirmQuestion();
+    }
+    // v5.112 : filet de sécurité supplémentaire — bug signalé par l'utilisateur ("j'ai écrit '20€
+    // d'essence' à Léo, il a bien compris la dépense mais pas de question posée à la fin"). Le
+    // filet v5.110 ci-dessus ne cible que la FORMULATION de la question et ne se déclenche que si
+    // newPendingSync existe déjà — il ne peut rien pour le cas, plus fondamental, où Léo comprend
+    // la dépense en langage naturel mais n'émet cette fois AUCUN [FD] exploitable (balise oubliée,
+    // ou dépense non classée dans besoins_items/envies_items malgré la règle RAPPEL FINAL point 1).
+    // C'est probablement aussi la cause du signalement précédent ("aucune synchronisation avec la
+    // page budget") : sans [FD] exploitable, rien n'est jamais mis en attente ni confirmable, quel
+    // que soit le comportement de confirmPendingSync(). Plutôt que de deviner le montant/la
+    // catégorie pour fabriquer une fausse proposition (risque d'erreur de classement), on détecte
+    // ici un montant en euros clairement énoncé par l'UTILISATEUR (pas dans la réponse de Léo) dans
+    // un message qui n'a pas la forme d'une question, et on prévient honnêtement plutôt que de
+    // laisser croire — à tort — que la dépense a été enregistrée.
+    if(!hiddenUser && !fileData && !newPendingSync &&
+       /(\d+(?:[.,]\d{1,2})?)\s*(€|eur(?:os?)?\b)/i.test(txt) &&
+       !/\?\s*$/.test(txt.trim()) &&
+       !/^\s*(combien|quel|quelle|quels|quelles|est-ce|comment|pourquoi)\b/i.test(txt.trim())){
+      clean += (clean ? '\n\n' : '') + "⚠️ Je n'ai pas réussi à enregistrer ce montant automatiquement cette fois. Tu peux reformuler (ex : \"20€ d'essence\") ou l'ajouter directement via le bouton + en bas.";
     }
     hideTyping();
     // v5.106 : la confirmation n'est plus ajoutée en texte silencieux — voir newPendingSync,
