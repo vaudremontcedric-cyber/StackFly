@@ -1019,7 +1019,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.99';
+window.APP_VERSION = '5.100';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1723,7 +1723,7 @@ window.APP_VERSION = '5.99';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.99</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.100</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="location.reload()">
@@ -2673,12 +2673,12 @@ async function saveProfileEdit(){
 // BULLES INFO ⓘ
 // ═══════════════════════════════════════════════════
 var _infoTips = {
-  'synth':   { title:'📊 Synthèse budget',      body:'Vue d\'ensemble de tes revenus, dépenses et épargne du mois en cours. Change la période (Mensuel / Journalier / Annuel) pour adapter l\'affichage. Les boutons CSV et PDF en bas exportent ton bilan complet (synthèse, catégories, transactions, objectifs, charges fixes, patrimoine).' },
-  'argent':  { title:'📍 Où va mon argent ?',      body:'La jauge en haut montre ce qu\'il te reste à dépenser ce mois-ci. En dessous, 4 mini-cartes à toucher : Revenus, Charges fixes (loyer, crédit, abonnements — dis-les à Léo pour qu\'il les classe automatiquement, ou choisis toi-même un type 🧾 Charge fixe dans le menu déroulant du formulaire d\'ajout/modification), Quotidien (Courses / Plaisirs & loisirs / Imprévus) et Épargne & investissement. Touche une mini-carte pour voir ses lignes, puis une ligne pour la modifier ou la supprimer. Rempli automatiquement quand tu parles à Léo, ou via le bouton + du bandeau bas.' },
-  'actifs':  { title:'💰 Mes actifs',            body:'Valeur totale de ton patrimoine : compte épargne, immobilier, investissements, crypto… Permet à Léo de te donner des conseils plus précis.' },
-  'enveloppes': { title:'✉️ Mes enveloppes',      body:'Des budgets personnalisés (Alimentation, Loisirs…) avec un montant cible par mois. Crée-en une avec le bouton +, ou laisse Léo t\'en proposer une en conversation — il ne fait que proposer, c\'est toujours toi qui confirmes la création. Coche des catégories liées (Courses, Resto…) pour un rattachement automatique et fiable des dépenses correspondantes, quelle que soit la façon dont elles sont ajoutées. Ce qui n\'est pas dépensé se reporte en bonus le mois suivant ; un dépassement se reporte aussi, en déficit à rattraper.' },
-  'leo':     { title:'💡 Léo recommande',        body:'Conseils personnalisés générés par Léo selon ta situation actuelle. Mis à jour à chaque modification de ton budget. Appuie pour en discuter avec lui.' },
-  'rav':     { title:'✅ Reste à vivre',          body:'Calcul : Revenus − Dépenses (Besoins + Envies) − Épargne du mois − Investissements (PEA, ETF, CTO…). Ces montants restent "à toi", mais dès que tu les diriges vers l\'épargne ou l\'investissement, ils ne sont plus disponibles pour tes dépenses courantes. Un reste à vivre négatif signifie que tes dépenses + ton épargne + tes investissements dépassent tes revenus.' }
+  'synth':   { title:'📊 Synthèse budget',      body:'Piloter un budget, c\'est d\'abord savoir où va chaque euro. La règle des 50/30/20 est un repère simple : 50% du revenu pour les besoins essentiels (logement, factures, alimentation), 30% pour les envies (loisirs, sorties), 20% pour l\'épargne et l\'investissement. Ce n\'est pas une obligation, juste un point de départ pour repérer les déséquilibres. Regarde tes propres proportions ici, mois après mois : c\'est en les observant dans la durée qu\'on ajuste ses habitudes, pas en un seul mois.' },
+  'argent':  { title:'📍 Où va mon argent ?',      body:'En gestion de budget, on distingue les charges fixes (loyer, crédit, assurances, abonnements : même montant chaque mois, même si tu ne fais rien) des dépenses variables (courses, sorties, imprévus : celles où tu as le plus de marge de manœuvre immédiate). Séparer les deux est la base d\'un budget réaliste : réduire ses charges fixes demande du temps (renégocier, résilier), réduire ses dépenses variables peut se faire dès aujourd\'hui. Repère ici laquelle des deux catégories pèse le plus dans ton budget.' },
+  'actifs':  { title:'💰 Mes actifs',            body:'Ton patrimoine (ou valeur nette) est la photo de ce que tu possèdes à un instant T : épargne, immobilier, placements, moins tes dettes. Contrairement au revenu mensuel qui va et vient, le patrimoine se construit dans la durée et reflète tes choix passés d\'épargne et d\'investissement. Le suivre régulièrement — même sans changement spectaculaire d\'un mois sur l\'autre — aide à visualiser ta progression réelle vers l\'indépendance financière, au-delà du seul solde du compte courant.' },
+  'enveloppes': { title:'✉️ Mes enveloppes',      body:'La méthode des enveloppes est une technique de budgétisation éprouvée : on alloue à l\'avance un montant précis à chaque poste de dépense (alimentation, loisirs...), et une fois l\'enveloppe vide, on ajuste ou on attend le mois suivant plutôt que de piocher ailleurs sans y penser. Elle rend visible, en temps réel, ce qu\'il reste à dépenser dans chaque catégorie — un des moyens les plus efficaces pour reprendre le contrôle d\'un budget qui déborde toujours au même endroit.' },
+  'leo':     { title:'💡 Léo recommande',        body:'La gestion de budget n\'est pas qu\'une question de calcul : c\'est surtout une question d\'habitudes. La finance comportementale montre qu\'un petit ajustement régulier tenu dans la durée pèse plus qu\'une grande résolution ponctuelle vite abandonnée. Les conseils de Léo suivent ce principe : une action simple à la fois, adaptée à ta situation du moment, plutôt qu\'un plan figé impossible à tenir sur la durée.' },
+  'rav':     { title:'✅ Reste à vivre',          body:'Le reste à vivre se calcule ainsi : Revenus − Dépenses (besoins + envies) − Épargne − Investissements du mois. C\'est la somme qui te reste réellement disponible pour l\'imprévu ou le plaisir, sans piocher ailleurs. En finances personnelles, mieux vaut un reste à vivre modeste mais stable qu\'un solde flatteur qui masque des charges fixes trop lourdes. Un reste à vivre négatif de façon répétée est un signal à ne pas ignorer : c\'est le moment de revoir tes charges fixes et abonnements avant que le déséquilibre ne s\'installe.' }
 };
 function showInfoTip(btn, key){
   var tip = _infoTips[key];
