@@ -1037,7 +1037,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.116';
+window.APP_VERSION = '5.118';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1279,6 +1279,9 @@ window.APP_VERSION = '5.116';
         <div class="login-card">
           <div class="login-lbl">Choisis un identifiant</div>
           <input class="login-in" id="regUser" type="text" placeholder="Ton prénom ou pseudo" autocomplete="username"
+            onkeydown="if(event.key==='Enter'){document.getElementById('regEmail').focus();}"/>
+          <div class="login-lbl">Email (pour récupérer ton compte)</div>
+          <input class="login-in" id="regEmail" type="email" placeholder="ton@email.com" autocomplete="email"
             onkeydown="if(event.key==='Enter'){document.getElementById('regPass').focus();}"/>
           <div class="login-lbl">Mot de passe</div>
           <div class="login-pwd-wrap">
@@ -1303,16 +1306,50 @@ window.APP_VERSION = '5.116';
 
       <!-- Formulaire mot de passe oublié -->
       <div id="form-forgot" style="display:none">
-        <div class="login-card">
+        <!-- Étape 1/2 : identifiant + choix de la méthode -->
+        <div class="login-card" id="forgot-step-user">
           <div style="text-align:center;font-size:24px;margin-bottom:8px">🔑</div>
           <div style="font-size:14px;color:var(--text2);text-align:center;margin-bottom:16px">Entre ton identifiant pour réinitialiser ton compte</div>
           <div class="login-lbl">Ton identifiant</div>
           <input class="login-in" id="forgotUser" type="text" placeholder="Ton prénom ou pseudo"
-            onkeydown="if(event.key==='Enter'){doForgotPassword();}"/>
-          <div style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center">⚠️ Cette action supprimera tes données locales.</div>
-          <button type="button" onclick="exportBackup()" style="width:100%;padding:11px;background:transparent;border:1.5px dashed var(--border);border-radius:12px;color:var(--text2);font-size:12.5px;font-weight:600;cursor:pointer;margin-top:12px">📥 Télécharger une sauvegarde d'abord</button>
-          <button class="login-btn" onclick="doForgotPassword()" style="background:var(--red)">Réinitialiser mon compte →</button>
+            onkeydown="if(event.key==='Enter'){requestResetCode();}"/>
+          <button type="button" id="forgotEmailBtn" onclick="requestResetCode()" class="login-btn" style="background:linear-gradient(135deg,#10b981,#059669)">📧 Recevoir un code par email →</button>
+          <div style="text-align:center;margin-top:14px">
+            <a onclick="toggleDestructiveForgot()" style="color:var(--text3);font-size:12.5px;cursor:pointer;text-decoration:underline">Je n'ai pas d'email enregistré / tout réinitialiser</a>
+          </div>
+          <div id="forgot-destructive-block" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+            <div style="font-size:11px;color:var(--text3);text-align:center">⚠️ Efface toutes tes données locales, sans passer par l'email.</div>
+            <button type="button" onclick="exportBackup()" style="width:100%;padding:11px;background:transparent;border:1.5px dashed var(--border);border-radius:12px;color:var(--text2);font-size:12.5px;font-weight:600;cursor:pointer;margin-top:12px">📥 Télécharger une sauvegarde d'abord</button>
+            <button class="login-btn" onclick="doForgotPassword()" style="background:var(--red)">Réinitialiser mon compte →</button>
+          </div>
         </div>
+
+        <!-- Étape 2/2 : code reçu par email + nouveau mot de passe -->
+        <div class="login-card" id="forgot-step-code" style="display:none">
+          <div style="text-align:center;font-size:24px;margin-bottom:8px">📧</div>
+          <div style="font-size:14px;color:var(--text2);text-align:center;margin-bottom:16px" id="forgotCodeSentTo">Code envoyé.</div>
+          <div class="login-lbl">Code reçu par email</div>
+          <input class="login-in" id="forgotCode" type="text" inputmode="numeric" maxlength="6" placeholder="123456"
+            onkeydown="if(event.key==='Enter'){document.getElementById('forgotNewPass').focus();}"/>
+          <div class="login-lbl">Nouveau mot de passe</div>
+          <div class="login-pwd-wrap">
+            <input class="login-in" id="forgotNewPass" type="password" placeholder="Min. 6 caractères" autocomplete="new-password"
+              onkeydown="if(event.key==='Enter'){document.getElementById('forgotConfPass').focus();}"/>
+            <button type="button" class="login-pwd-eye" onclick="togglePwdVisibility('forgotNewPass',this)" title="Afficher/masquer le mot de passe">👁</button>
+          </div>
+          <div class="login-lbl">Confirme le nouveau mot de passe</div>
+          <div class="login-pwd-wrap">
+            <input class="login-in" id="forgotConfPass" type="password" placeholder="Même mot de passe" autocomplete="new-password"
+              onkeydown="if(event.key==='Enter'){verifyResetCode();}"/>
+            <button type="button" class="login-pwd-eye" onclick="togglePwdVisibility('forgotConfPass',this)" title="Afficher/masquer le mot de passe">👁</button>
+          </div>
+          <button type="button" id="forgotVerifyBtn" onclick="verifyResetCode()" class="login-btn" style="background:linear-gradient(135deg,#10b981,#059669)">Valider et changer le mot de passe →</button>
+          <div style="display:flex;justify-content:space-between;margin-top:12px">
+            <a onclick="requestResetCode()" style="color:var(--text3);font-size:12px;cursor:pointer;text-decoration:underline">Renvoyer le code</a>
+            <a onclick="backToForgotStepUser()" style="color:var(--text3);font-size:12px;cursor:pointer;text-decoration:underline">← Retour</a>
+          </div>
+        </div>
+
         <div class="login-tabs">
           <button class="ltab"     id="ltab-login3"    onclick="showLoginForm()">Connexion</button>
           <button class="ltab"     id="ltab-register3" onclick="showRegister()">Créer un compte</button>
@@ -1320,7 +1357,7 @@ window.APP_VERSION = '5.116';
         </div>
       </div>
 
-      <div class="login-safe">🔒 Tout reste sur ton appareil — aucune donnée envoyée</div>
+      <div class="login-safe">🔒 Tes données financières restent sur ton appareil. Seul ton email transite, et uniquement pour t'envoyer un code de réinitialisation si tu le demandes.</div>
     </div>
   </section>
 
@@ -1673,7 +1710,7 @@ window.APP_VERSION = '5.116';
     <div class="setting-row" onclick="openEditProfileModal()">
       <div class="s-row-left">
         <span class="s-row-ico">&#9999;&#65039;</span>
-        <div><div class="s-row-lbl">Modifier le profil</div><div class="s-row-sub">Pr&#233;nom, mot de passe</div></div>
+        <div><div class="s-row-lbl">Modifier le profil</div><div class="s-row-sub">Pr&#233;nom, email, mot de passe</div></div>
       </div>
       <span class="s-row-arr">&#8250;</span>
     </div>
@@ -1791,6 +1828,10 @@ window.APP_VERSION = '5.116';
       <div style="margin-bottom:14px">
         <label style="font-size:12px;color:var(--sub);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Nouveau pr&#233;nom</label>
         <input id="epNewName" type="text" placeholder="Laisser vide pour ne pas changer" style="margin-top:5px;width:100%;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;box-sizing:border-box;outline:none" />
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="font-size:12px;color:var(--sub);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Email de r&#233;cup&#233;ration</label>
+        <input id="epEmail" type="email" placeholder="ton@email.com" autocomplete="email" style="margin-top:5px;width:100%;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;box-sizing:border-box;outline:none" />
       </div>
       <hr style="border:none;border-top:1px solid var(--border);margin:18px 0" />
       <div style="margin-bottom:14px">
@@ -2480,14 +2521,126 @@ function showForgotForm(){
   ['ltab-forgot','ltab-forgot2','ltab-forgot3'].forEach(function(id){
     var t=document.getElementById(id); if(t) t.classList.add('sel');
   });
+  backToForgotStepUser();
   setTimeout(function(){ var e=document.getElementById('forgotUser'); if(e) e.focus(); },100);
 }
+
+// ── Réinitialisation par email, sans perte de données (v5.118, Phase 2) ─
+// Contrairement à doForgotPassword() (destructrice), ce flux garde toutes
+// les données locales : seul cf_auth.pass change, après preuve que
+// l'utilisateur contrôle bien l'email enregistré sur le compte (code à 6
+// chiffres envoyé par le serveur via Brevo, vérifié via un jeton HMAC signé
+// — voir le commentaire détaillé dans serve.js, aucune base de données
+// n'est nécessaire côté serveur).
+var _resetState = null; // {email, token, expiresAt} entre les deux étapes, jamais persisté
+
+function toggleDestructiveForgot(){
+  var b = document.getElementById('forgot-destructive-block');
+  if(b) b.style.display = (b.style.display==='none') ? 'block' : 'none';
+}
+
+function backToForgotStepUser(){
+  _resetState = null;
+  var stepUser = document.getElementById('forgot-step-user');
+  var stepCode = document.getElementById('forgot-step-code');
+  if(stepUser) stepUser.style.display = 'block';
+  if(stepCode) stepCode.style.display = 'none';
+  ['forgotCode','forgotNewPass','forgotConfPass'].forEach(function(id){
+    var e=document.getElementById(id); if(e) e.value='';
+  });
+}
+
+async function requestResetCode(){
+  var user = document.getElementById('forgotUser').value.trim();
+  if(!user){ toast('Entre ton identifiant','#ef4444'); return; }
+  var auth = getStoredAuth();
+  if(!auth || auth.user.toLowerCase()!==user.toLowerCase()){ toast('Identifiant introuvable','#ef4444'); return; }
+  if(!auth.email){
+    toast('Ce compte n\'a pas d\'email enregistré (créé avant cette fonctionnalité). Utilise "tout réinitialiser" ci-dessous.','#f59e0b');
+    var b = document.getElementById('forgot-destructive-block');
+    if(b) b.style.display = 'block';
+    return;
+  }
+  var btn = document.getElementById('forgotEmailBtn');
+  if(btn){ btn.disabled = true; btn.textContent = 'Envoi en cours…'; }
+  try{
+    var r = await fetch('/api/request-reset', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email: auth.email})
+    });
+    var data = await r.json().catch(function(){ return {}; });
+    if(!r.ok || !data.token){
+      toast(data.error || 'Impossible d\'envoyer le code pour le moment','#ef4444');
+      return;
+    }
+    _resetState = {email: auth.email, token: data.token, expiresAt: data.expiresAt};
+    var maskedEmail = auth.email.replace(/^(.{2}).*(@.*)$/, '$1***$2');
+    var sentTo = document.getElementById('forgotCodeSentTo');
+    if(sentTo) sentTo.textContent = 'Code envoyé à ' + maskedEmail + ' (valable 15 min)';
+    document.getElementById('forgot-step-user').style.display='none';
+    document.getElementById('forgot-step-code').style.display='block';
+    toast('Code envoyé ! Vérifie ta boîte mail.','#10b981');
+    setTimeout(function(){ var e=document.getElementById('forgotCode'); if(e) e.focus(); },100);
+  }catch(e){
+    toast('Erreur réseau, réessaie','#ef4444');
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = '📧 Recevoir un code par email →'; }
+  }
+}
+
+async function verifyResetCode(){
+  if(!_resetState){ toast('Redemande un code','#ef4444'); backToForgotStepUser(); return; }
+  var code = document.getElementById('forgotCode').value.trim();
+  var newPass = document.getElementById('forgotNewPass').value;
+  var confPass = document.getElementById('forgotConfPass').value;
+  if(!/^[0-9]{6}$/.test(code)){ toast('Code à 6 chiffres requis','#ef4444'); return; }
+  if(!newPass || !confPass){ toast('Remplis le nouveau mot de passe','#ef4444'); return; }
+  if(newPass !== confPass){ toast('Les mots de passe ne correspondent pas ❌','#ef4444'); return; }
+  if(newPass.length < 6){ toast('Mot de passe trop court (min. 6 caractères)','#ef4444'); return; }
+
+  var btn = document.getElementById('forgotVerifyBtn');
+  if(btn){ btn.disabled = true; btn.textContent = 'Vérification…'; }
+  try{
+    var r = await fetch('/api/verify-reset', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email:_resetState.email, code:code, token:_resetState.token, expiresAt:_resetState.expiresAt})
+    });
+    var data = await r.json().catch(function(){ return {}; });
+    if(!data.ok){
+      toast(data.error || 'Code incorrect','#ef4444');
+      return;
+    }
+    var auth = getStoredAuth();
+    if(!auth){ toast('Erreur : compte introuvable localement','#ef4444'); return; }
+    auth.pass = await hashPass(newPass);
+    localStorage.setItem(AUTH_STORE, JSON.stringify(auth));
+    toast('Mot de passe changé ✓ Reconnecte-toi.','#10b981');
+    var lu = document.getElementById('loginUser');
+    if(lu) lu.value = auth.user;
+    _resetState = null;
+    showLoginForm();
+  }catch(e){
+    toast('Erreur réseau, réessaie','#ef4444');
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = 'Valider et changer le mot de passe →'; }
+  }
+}
+
 function skipSetup(){
   localStorage.setItem('cf_setup_done','1');
   document.getElementById('pg-setup').classList.remove('active');
   toast('Mode sans IA activé. Tu peux saisir ta clé API plus tard dans Profil.','#f59e0b');
   startApp();
 }
+// ── Réinitialisation destructrice — solution de repli (v5.118) ──────
+// Depuis v5.118, ce flux N'EST PLUS l'option principale : requestResetCode()
+// / verifyResetCode() (voir plus haut) proposent désormais une récupération
+// par email qui GARDE les données, pour tout compte ayant un email
+// enregistré (cf_auth.email). doForgotPassword() reste uniquement en
+// solution de repli pour : (a) les comptes créés avant v5.117 sans email,
+// (b) le cas où le service d'email est indisponible ou mal configuré côté
+// serveur, (c) un choix explicite de l'utilisateur qui préfère tout
+// effacer. Elle EFFACE toutes les données locales et repart de zéro.
 function doForgotPassword(){
   var user=document.getElementById('forgotUser').value.trim();
   if(!user){ toast('Entre ton identifiant','#ef4444'); return; }
@@ -2503,11 +2656,16 @@ function doForgotPassword(){
     setTimeout(function(){ location.reload(); },1500);
   }, 'Réinitialiser');
 }
+function isValidEmail(e){
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e||'').trim());
+}
 async function doRegister(){
   var user=document.getElementById('regUser').value.trim();
+  var email=(document.getElementById('regEmail')||{}).value.trim();
   var pass=document.getElementById('regPass').value;
   var pass2=document.getElementById('regPass2').value;
-  if(!user||!pass||!pass2){ toast('Remplis tous les champs','#ef4444'); return; }
+  if(!user||!email||!pass||!pass2){ toast('Remplis tous les champs','#ef4444'); return; }
+  if(!isValidEmail(email)){ toast('Adresse email invalide','#ef4444'); return; }
   if(pass!==pass2){ toast('Les mots de passe ne correspondent pas ❌','#ef4444'); return; }
   if(pass.length<6){ toast('Mot de passe trop court (min. 6 caractères)','#ef4444'); return; }
   // v5.116 : un compte existant ne doit JAMAIS être écrasé silencieusement.
@@ -2524,8 +2682,9 @@ async function doRegister(){
     var lu=document.getElementById('loginUser'); if(lu) lu.value=existing.user;
     return;
   }
-  localStorage.setItem(AUTH_STORE,JSON.stringify({user:user,pass:await hashPass(pass)}));
+  localStorage.setItem(AUTH_STORE,JSON.stringify({user:user,email:email,pass:await hashPass(pass)}));
   sessionStorage.setItem('cf_sess','1');
+  document.getElementById('regEmail').value='';
   document.getElementById('regPass').value='';
   document.getElementById('regPass2').value='';
   toast('Bienvenue '+user+' ! 👋','#0d9488');
@@ -2681,6 +2840,11 @@ function openEditProfileModal(){
   if(el) el.textContent = auth ? auth.user : '';
   var inputs = ['epNewName','epOldPass','epNewPass','epConfPass'];
   inputs.forEach(function(id){ var e=document.getElementById(id); if(e) e.value=''; });
+  // L'email affiche sa valeur actuelle (contrairement aux autres champs, vides
+  // par defaut) : les comptes crees avant v5.117 n'en ont pas et peuvent
+  // l'ajouter ici ; ceux qui en ont deja un peuvent le corriger.
+  var epEmail = document.getElementById('epEmail');
+  if(epEmail) epEmail.value = (auth && auth.email) ? auth.email : '';
   var m = document.getElementById('editProfileModal');
   if(m){ m.style.display='flex'; }
 }
@@ -2693,6 +2857,7 @@ async function saveProfileEdit(){
   if(!auth){ toast('Erreur auth','#e53e3e'); return; }
 
   var newName  = (document.getElementById('epNewName')||{}).value.trim();
+  var newEmail = (document.getElementById('epEmail')||{}).value.trim();
   var oldPass  = (document.getElementById('epOldPass')||{}).value;
   var newPass  = (document.getElementById('epNewPass')||{}).value;
   var confPass = (document.getElementById('epConfPass')||{}).value;
@@ -2704,6 +2869,13 @@ async function saveProfileEdit(){
     auth.user = newName;
     S.prenom = newName;
     save();
+    changed = true;
+  }
+
+  // -- Change email de récupération --
+  if(newEmail !== (auth.email||'')){
+    if(newEmail && !isValidEmail(newEmail)){ toast('Adresse email invalide','#e53e3e'); return; }
+    auth.email = newEmail;
     changed = true;
   }
 
