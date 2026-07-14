@@ -985,7 +985,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.95';
+window.APP_VERSION = '5.96';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1594,7 +1594,7 @@ window.APP_VERSION = '5.95';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.95</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.96</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="openPrivacyModal()">
@@ -1706,6 +1706,16 @@ window.APP_VERSION = '5.95';
     <input class="m-in" id="editArgAmt" type="text" inputmode="decimal" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();saveEditArgentItem();}"/>
     <div class="m-lbl">Date</div>
     <input class="m-in" id="editArgDate" type="date"/>
+    <!-- v5.96 : toggle "Charge fixe" — affiché uniquement pour les lignes besoins/envies (mêmes
+         clés que le sélecteur d'enveloppe ci-dessous). Permet de corriger une ligne déjà mal classée
+         (ex: bug signalé par l'utilisateur — "Crédit immobilier" ajouté sans ce tag, resté compté
+         dans "Quotidien"), sans repasser par une suppression/recréation. Voir setEditArgFixe(). -->
+    <div id="editArgFixeRow" onclick="toggleEditArgFixe()" style="display:none;align-items:center;justify-content:space-between;background:var(--bg2);border-radius:12px;padding:10px 12px;margin:0 0 10px;cursor:pointer">
+      <div><div style="font-size:13px;font-weight:600;color:var(--text)">🧾 Charge fixe</div><div style="font-size:11px;color:var(--text3)">Crédit, loyer, abonnement... montant stable chaque mois</div></div>
+      <div id="editArgFixeToggle" style="width:40px;height:22px;border-radius:11px;background:var(--border);position:relative;transition:.2s;flex-shrink:0">
+        <div id="editArgFixeThumb" style="width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>
+      </div>
+    </div>
     <!-- v5.82 : sélecteur d'enveloppe — affiché uniquement pour les lignes éligibles (dépenses
          besoins/envies hors charges fixes, voir getEnvEligibleRows()). Masqué/vidé sinon par
          openEditArgentItem(). -->
@@ -1844,7 +1854,8 @@ window.APP_VERSION = '5.95';
         <div class="tuto-card-body"><div class="tuto-card-content">
           <div class="tuto-step"><div class="tuto-step-num">1</div><div>Le plus simple : dis-le à <b>Léo</b> dans le Chat, il l'enregistre automatiquement.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">2</div><div>Ou appuie sur le bouton <b>+</b> flottant en bas de l'écran, puis <b>Ajouter une dépense</b> : choisis <b>Saisie rapide par catégorie</b> (si tu as des enveloppes, un sélecteur te propose d'y rattacher la dépense), ou <b>Scanner un ticket de caisse</b> (photo 📷 ou fichier 📁) pour une lecture automatique par Léo.</div></div>
-          <div class="tuto-step"><div class="tuto-step-num">3</div><div>Pour modifier ou supprimer une dépense déjà enregistrée : dans <b>Où va mon argent ?</b>, touche la mini-carte concernée (Charges fixes ou Quotidien), puis la ligne à changer.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">3</div><div>Dans <b>Saisie rapide</b>, coche <b>🧾 Charge fixe</b> pour un crédit, un loyer ou un abonnement (montant stable chaque mois) : la dépense est alors comptée à part et ne vient plus gonfler ton budget "Quotidien". La case se coche toute seule si ton libellé contient un mot comme "crédit", "loyer" ou "abonnement", mais reste modifiable avant d'enregistrer.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">4</div><div>Pour modifier ou supprimer une dépense déjà enregistrée (ou corriger une dépense mal classée) : dans <b>Où va mon argent ?</b>, touche la mini-carte concernée (Charges fixes ou Quotidien), puis la ligne à changer — le toggle <b>Charge fixe</b> est aussi disponible dans cette fenêtre.</div></div>
           <div class="tuto-tip">💡 Toutes tes dépenses, quelle que soit la méthode, apparaissent au même endroit : Où va mon argent ?</div>
         </div></div>
       </div>
@@ -1962,11 +1973,24 @@ window.APP_VERSION = '5.95';
     <div class="m-lbl">Montant (&#8364;)</div>
     <input class="m-in" id="txnAmt" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" style="font-size:24px;text-align:center;font-weight:700" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();saveTxn();}"/>
     <div class="m-lbl">Description (optionnel)</div>
-    <input class="m-in" id="txnDesc" placeholder="Ex: D&#233;jeuner avec Paul" maxlength="60"/>
+    <input class="m-in" id="txnDesc" placeholder="Ex: D&#233;jeuner avec Paul" maxlength="60" oninput="refreshTxnFixeGuess()"/>
+    <!-- v5.96 : toggle "Charge fixe" — bug signalé par l'utilisateur (une dépense "Crédit immobilier"
+         ajoutée ici tombait dans "Quotidien" faute de tag b:"fixe", que cette fenêtre ne permettait
+         pas de poser). Pré-coché automatiquement quand la description contient un mot-clé de charge
+         fixe connu (voir detectFixedCharge()/refreshTxnFixeGuess()), toujours modifiable avant
+         d'enregistrer. Masque le sélecteur d'enveloppe quand actif (charges fixes non éligibles,
+         voir getEnvEligibleRows()). -->
+    <div id="txnFixeRow" onclick="toggleTxnFixe()" style="display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border-radius:12px;padding:10px 12px;margin:0 0 10px;cursor:pointer">
+      <div><div style="font-size:13px;font-weight:600;color:var(--text)">🧾 Charge fixe</div><div style="font-size:11px;color:var(--text3)">Crédit, loyer, abonnement... montant stable chaque mois</div></div>
+      <div id="txnFixeToggle" style="width:40px;height:22px;border-radius:11px;background:var(--border);position:relative;transition:.2s;flex-shrink:0">
+        <div id="txnFixeThumb" style="width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>
+      </div>
+    </div>
     <!-- v5.83 : sélecteur d'enveloppe — corrige le bug signalé par l'utilisateur (une dépense
-         ajoutée ici n'était jamais déduite de son enveloppe). Masqué pour Épargne/Investiss., qui
-         ne sont pas éligibles aux enveloppes (voir getEnvEligibleRows()). Affiché/rempli par
-         updateTxnEnvSelector(), appelée depuis openTxnModal() et selTxnCat(). -->
+         ajoutée ici n'était jamais déduite de son enveloppe). Masqué pour Épargne/Investiss. et pour
+         les charges fixes (v5.96), qui ne sont pas éligibles aux enveloppes (voir
+         getEnvEligibleRows()). Affiché/rempli par updateTxnEnvSelector(), appelée depuis
+         openTxnModal() et selTxnCat(). -->
     <div id="txnEnvWrap" style="display:none">
       <div class="m-lbl">Enveloppe (optionnel)</div>
       <select class="m-in" id="txnEnv"><option value="">Aucune</option></select>
@@ -2519,7 +2543,7 @@ async function saveProfileEdit(){
 // ═══════════════════════════════════════════════════
 var _infoTips = {
   'synth':   { title:'📊 Synthèse budget',      body:'Vue d\'ensemble de tes revenus, dépenses et épargne du mois en cours. Change la période (Mensuel / Journalier / Annuel) pour adapter l\'affichage. Les boutons CSV et PDF en bas exportent ton bilan complet (synthèse, catégories, transactions, objectifs, charges fixes, patrimoine).' },
-  'argent':  { title:'📍 Où va mon argent ?',      body:'La jauge en haut montre ce qu\'il te reste à dépenser ce mois-ci. En dessous, 4 mini-cartes à toucher : Revenus, Charges fixes (loyer, crédit, abonnements — dis-les à Léo pour qu\'il les classe automatiquement), Quotidien (Courses / Plaisirs & loisirs / Imprévus) et Épargne & investissement. Touche une mini-carte pour voir ses lignes, puis une ligne pour la modifier ou la supprimer. Rempli automatiquement quand tu parles à Léo, ou via le bouton + du bandeau bas.' },
+  'argent':  { title:'📍 Où va mon argent ?',      body:'La jauge en haut montre ce qu\'il te reste à dépenser ce mois-ci. En dessous, 4 mini-cartes à toucher : Revenus, Charges fixes (loyer, crédit, abonnements — dis-les à Léo pour qu\'il les classe automatiquement, ou coche toi-même 🧾 Charge fixe dans le formulaire d\'ajout/modification), Quotidien (Courses / Plaisirs & loisirs / Imprévus) et Épargne & investissement. Touche une mini-carte pour voir ses lignes, puis une ligne pour la modifier ou la supprimer. Rempli automatiquement quand tu parles à Léo, ou via le bouton + du bandeau bas.' },
   'actifs':  { title:'💰 Mes actifs',            body:'Valeur totale de ton patrimoine : compte épargne, immobilier, investissements, crypto… Permet à Léo de te donner des conseils plus précis.' },
   'enveloppes': { title:'✉️ Mes enveloppes',      body:'Des budgets personnalisés (Alimentation, Loisirs…) avec un montant cible par mois. Crée-en une avec le bouton +, ou laisse Léo t\'en proposer une en conversation — il ne fait que proposer, c\'est toujours toi qui confirmes la création. Coche des catégories liées (Courses, Resto…) pour un rattachement automatique et fiable des dépenses correspondantes, quelle que soit la façon dont elles sont ajoutées. Ce qui n\'est pas dépensé se reporte en bonus le mois suivant ; un dépassement se reporte aussi, en déficit à rattraper.' },
   'leo':     { title:'💡 Léo recommande',        body:'Conseils personnalisés générés par Léo selon ta situation actuelle. Mis à jour à chaque modification de ton budget. Appuie pour en discuter avec lui.' },
@@ -3140,6 +3164,13 @@ function openEditArgentItem(key, idx){
   document.getElementById('editArgLbl').value=it.n||'';
   document.getElementById('editArgAmt').value=(it.v!=null?String(it.v):'').replace('.',',');
   document.getElementById('editArgDate').value=it.d||today();
+  // v5.96 : toggle "Charge fixe" — uniquement pour besoins_items/envies_items, permet de corriger
+  // une ligne déjà mal classée (voir setEditArgFixe()). Évalué AVANT le sélecteur d'enveloppe
+  // ci-dessous, dont l'éligibilité dépend elle aussi de it.b.
+  var fixeRow=document.getElementById('editArgFixeRow');
+  var fixeEligible=(key==='besoins_items'||key==='envies_items');
+  if(fixeRow) fixeRow.style.display=fixeEligible?'flex':'none';
+  setEditArgFixe(fixeEligible && it.b==='fixe');
   // v5.82 : sélecteur d'enveloppe, uniquement pour les dépenses variables (besoins_items/
   // envies_items hors charges fixes) — même périmètre que getEnvEligibleRows().
   var envWrap=document.getElementById('editArgEnvWrap');
@@ -3161,6 +3192,20 @@ function closeEditArgentItem(){
   var m=document.getElementById('ovEditArgent'); if(m) m.classList.remove('open');
   _editArgKey=null; _editArgIdx=null;
 }
+// v5.96 : toggle "Charge fixe" de la fenêtre Modifier la ligne — contrairement au toggle de la
+// Dépense rapide (setTxnFixe()), ici un décochage EFFACE bien le tag "fixe" existant : cette
+// fenêtre est un éditeur complet d'une ligne déjà connue (pas une saisie/fusion), donc l'action de
+// l'utilisateur est toujours explicite et doit être respectée telle quelle.
+var _editArgFixe=false;
+function setEditArgFixe(val){
+  _editArgFixe=!!val;
+  var t=document.getElementById('editArgFixeToggle'), th=document.getElementById('editArgFixeThumb');
+  if(t) t.style.background=_editArgFixe?'#f97316':'var(--border)';
+  if(th) th.style.left=_editArgFixe?'20px':'2px';
+  var envWrap=document.getElementById('editArgEnvWrap');
+  if(_editArgFixe && envWrap) envWrap.style.display='none';
+}
+function toggleEditArgFixe(){ setEditArgFixe(!_editArgFixe); }
 function saveEditArgentItem(){
   if(_editArgKey==null || _editArgIdx==null || !S.fin) return;
   var lbl=document.getElementById('editArgLbl').value.trim();
@@ -3173,6 +3218,13 @@ function saveEditArgentItem(){
   items[_editArgIdx].n=lbl;
   items[_editArgIdx].v=amt;
   items[_editArgIdx].d=dt;
+  // v5.96 : tag "b":"fixe" — uniquement pour les lignes éligibles (besoins/envies, voir
+  // editArgFixeRow) ; un décochage retire explicitement le tag et l'enveloppe associée.
+  var fixeEligible=(_editArgKey==='besoins_items'||_editArgKey==='envies_items');
+  if(fixeEligible){
+    if(_editArgFixe){ items[_editArgIdx].b='fixe'; delete items[_editArgIdx].env; }
+    else delete items[_editArgIdx].b;
+  }
   // v5.82 : persiste l'enveloppe choisie, seulement si le sélecteur était affiché (ligne éligible).
   var envWrap=document.getElementById('editArgEnvWrap');
   if(envWrap && envWrap.style.display!=='none'){
@@ -3272,7 +3324,10 @@ function updateTxnEnvSelector(section, catName){
   var wrap=document.getElementById('txnEnvWrap');
   var sel=document.getElementById('txnEnv');
   if(!wrap||!sel) return;
-  if(section!=='besoins' && section!=='envies'){
+  // v5.96 : une charge fixe (toggle actif, voir setTxnFixe()) n'est jamais éligible aux enveloppes,
+  // même changement de catégorie — sinon changer de catégorie après avoir coché "Charge fixe"
+  // réaffichait le sélecteur d'enveloppe.
+  if((typeof _txnFixe!=='undefined' && _txnFixe) || (section!=='besoins' && section!=='envies')){
     wrap.style.display='none';
     return;
   }
@@ -3336,9 +3391,32 @@ function openTxnModal(){
   document.querySelectorAll('.txn-cat').forEach(function(c,i){c.classList.toggle('sel',i===0);});
   _selTxnCat={ico:'🍽️',name:'Resto'};
   updateTxnEnvSelector(CAT_SECTION['Resto']||'envies', 'Resto');
+  _txnFixeAuto=true; setTxnFixe(false, false);
   document.getElementById('ovTxn').classList.add('open');
 }
 function closeTxnModal(){ document.getElementById('ovTxn').classList.remove('open'); }
+// v5.96 : toggle "Charge fixe" de la Dépense rapide — _txnFixeAuto reste vrai (comme
+// _envEmojiAuto en v5.90) tant que l'utilisateur n'a pas cliqué le toggle lui-même : dans cet état,
+// il se met à jour tout seul à chaque frappe dans la description (voir refreshTxnFixeGuess()).
+// Passe à faux dès le premier clic manuel (toggleTxnFixe()) : la saisie de l'utilisateur n'est
+// alors plus jamais écrasée par la détection automatique.
+var _txnFixe=false, _txnFixeAuto=true;
+function setTxnFixe(val, manual){
+  _txnFixe=!!val;
+  if(manual) _txnFixeAuto=false;
+  var t=document.getElementById('txnFixeToggle'), th=document.getElementById('txnFixeThumb');
+  if(t) t.style.background=_txnFixe?'#f97316':'var(--border)';
+  if(th) th.style.left=_txnFixe?'20px':'2px';
+  var wrap=document.getElementById('txnEnvWrap');
+  if(_txnFixe){ if(wrap) wrap.style.display='none'; }
+  else { updateTxnEnvSelector(CAT_SECTION[_selTxnCat.name]||'envies', _selTxnCat.name); }
+}
+function toggleTxnFixe(){ setTxnFixe(!_txnFixe, true); }
+function refreshTxnFixeGuess(){
+  if(!_txnFixeAuto) return;
+  var desc=(document.getElementById('txnDesc').value||'').trim();
+  setTxnFixe(detectFixedCharge(desc), false);
+}
 function saveTxn(){
   var amt=parseMontant(document.getElementById('txnAmt').value);
   var desc=document.getElementById('txnDesc').value.trim();
@@ -3363,15 +3441,20 @@ function saveTxn(){
   // updateTxnEnvSelector()) ou si l'utilisateur n'en a choisi aucune.
   var envWrap=document.getElementById('txnEnvWrap');
   var envVal=(envWrap && envWrap.style.display!=='none') ? document.getElementById('txnEnv').value : '';
+  // v5.96 : tag "b":"fixe" posé si le toggle Charge fixe est actif — voir setTxnFixe(). Une charge
+  // fixe n'est jamais éligible aux enveloppes (getEnvEligibleRows()), donc l'env existant est retiré
+  // dans ce cas ; en revanche on ne retire JAMAIS un tag "fixe" déjà présent juste parce que cette
+  // saisie-ci n'a pas coché la case (même logique prudente que mergeItemsPreservingDates() pour "b").
   // Chercher si l'item existe déjà (même label), sinon créer
   var existing=items.filter(function(i){return i.n===label;});
   if(existing.length){
     existing[0].v=Math.round((existing[0].v+amt)*100)/100;
     existing[0].d=today();
-    if(envVal) existing[0].env=envVal; else if(!existing[0].env) delete existing[0].env;
+    if(_txnFixe){ existing[0].b='fixe'; delete existing[0].env; }
+    else if(envVal) existing[0].env=envVal; else if(!existing[0].env) delete existing[0].env;
   } else {
     var newItem={n:label,v:amt,d:today()};
-    if(envVal) newItem.env=envVal;
+    if(_txnFixe) newItem.b='fixe'; else if(envVal) newItem.env=envVal;
     items.push(newItem);
   }
   S.fin[key]=JSON.stringify(items);
@@ -4067,6 +4150,28 @@ function detectExpenseCategory(label){
     }
   }
   return null;
+}
+// v5.96 : bug signalé par l'utilisateur — une dépense "Crédit immobilier" ajoutée depuis "Ajouter
+// une dépense" (Saisie rapide) tombait dans "Quotidien" au lieu d'être comptée en Charge fixe, car
+// cette fenêtre n'offrait jusqu'ici AUCUN moyen (ni manuel, ni automatique) de poser le tag
+// "b":"fixe" — seul Léo, en conversation, savait le faire (voir règle CHARGES FIXES du prompt
+// système). Liste de mots-clés SÉPARÉE de ENV_CATEGORY_KEYWORDS (catégorie de dépense ≠ caractère
+// fixe/récurrent d'une dépense : ce sont deux informations indépendantes, une charge fixe peut être
+// un Logement comme un loyer, une Santé comme une mutuelle, ou une Envie comme un abonnement
+// streaming). Sert uniquement à PRÉ-COCHER le toggle "Charge fixe" du formulaire (voir
+// refreshTxnFixeGuess()/setTxnFixe()) — jamais à poser le tag tout seul sans passage par le toggle,
+// que l'utilisateur reste toujours libre de décocher avant d'enregistrer.
+var FIXED_CHARGE_KEYWORDS=['credit','pret immo','pret immobilier','hypotheque','loyer','assurance','assurances','mutuelle','abonnement','abonnements','forfait','forfait mobile','netflix','spotify','disney','deezer','amazon prime','canal+','salle de sport','internet','fibre','box internet'];
+var _FIXED_CHARGE_KW_RE=FIXED_CHARGE_KEYWORDS.map(function(kw){
+  return new RegExp('(^|[^a-z0-9])'+escRe(kw)+'(s|x)?([^a-z0-9]|$)');
+});
+function detectFixedCharge(label){
+  if(!label) return false;
+  var norm=label.toLowerCase().normalize('NFD').replace(new RegExp('[\\u0300-\\u036f]','g'),'');
+  for(var i=0;i<_FIXED_CHARGE_KW_RE.length;i++){
+    if(_FIXED_CHARGE_KW_RE[i].test(norm)) return true;
+  }
+  return false;
 }
 function slugifyEnv(nom){
   var s=(nom||'').toLowerCase().normalize('NFD').replace(new RegExp('[\\u0300-\\u036f]','g'),'');
