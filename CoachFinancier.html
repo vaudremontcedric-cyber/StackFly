@@ -1037,7 +1037,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.118';
+window.APP_VERSION = '5.119';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1357,7 +1357,7 @@ window.APP_VERSION = '5.118';
         </div>
       </div>
 
-      <div class="login-safe">🔒 Tes données financières restent sur ton appareil. Seul ton email transite, et uniquement pour t'envoyer un code de réinitialisation si tu le demandes.</div>
+      <div class="login-safe">🔒 Tes données financières restent sur ton appareil. Seul ton email transite : un email de confirmation à la création du compte, puis un code de réinitialisation si tu le demandes.</div>
     </div>
   </section>
 
@@ -2688,7 +2688,22 @@ async function doRegister(){
   document.getElementById('regPass').value='';
   document.getElementById('regPass2').value='';
   toast('Bienvenue '+user+' ! 👋','#0d9488');
+  sendWelcomeEmailBestEffort(email,user);
   afterAuth();
+}
+// v5.119 : email de bienvenue envoyé une seule fois à la création du compte.
+// Volontairement "best effort" : le compte est déjà créé en local avant cet
+// appel, donc un échec réseau (offline, Render qui se réveille, Brevo en
+// panne...) ne doit JAMAIS bloquer ni faire échouer l'inscription. On ne
+// remonte même pas d'erreur à l'utilisateur — ce n'est qu'un email de
+// confirmation, pas une étape critique du flux.
+function sendWelcomeEmailBestEffort(email,user){
+  try{
+    fetch('/api/send-welcome',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email:email,user:user})
+    }).catch(function(e){ console.log('[welcome] envoi impossible (sans conséquence) :',e&&e.message); });
+  }catch(e){ /* ignore : jamais bloquant */ }
 }
 function handleAvatarUpload(input){
   var file = input.files[0];

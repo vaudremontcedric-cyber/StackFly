@@ -92,6 +92,16 @@ var _resetReqIp    = new Map();
 var _resetReqEmail = new Map();
 var _resetVerifyIp = new Map();
 
+// Anti-abus pour l'email de bienvenue (v5.119) : memes principes que le
+// reset ci-dessus (par IP ET par email), mais limites plus generreuses car
+// aucun code sensible n'est en jeu ici - juste un email de confirmation.
+// Autorise quelques reessais (ex: double-clic, page rechargee) sans ouvrir
+// la porte a un envoi en masse vers des adresses arbitraires.
+var WELCOME_LIMIT_IP    = 10; // envois / heure / IP
+var WELCOME_LIMIT_EMAIL = 3;  // envois / heure / email
+var _welcomeReqIp    = new Map();
+var _welcomeReqEmail = new Map();
+
 function checkHourlyLimit(map, key, limit) {
   var now = Date.now();
   var e = map.get(key);
@@ -103,7 +113,7 @@ function checkHourlyLimit(map, key, limit) {
 
 setInterval(function() {
   var now = Date.now();
-  [_resetReqIp, _resetReqEmail, _resetVerifyIp].forEach(function(m) {
+  [_resetReqIp, _resetReqEmail, _resetVerifyIp, _welcomeReqIp, _welcomeReqEmail].forEach(function(m) {
     m.forEach(function(v, k) { if (now > v.resetAt) m.delete(k); });
   });
 }, 5 * 60000);
@@ -146,7 +156,9 @@ function safeEqual(a, b) {
 
 // Envoi via l'API transactionnelle Brevo (https://api.brevo.com/v3/smtp/email).
 // Node 18+ expose fetch() globalement (voir package.json "engines").
-function sendResetEmail(toEmail, code) {
+// Fonction generique, factorisee (v5.119) pour etre reutilisee par le reset
+// de mot de passe ET par l'email de bienvenue.
+function sendBrevoEmail(toEmail, subject, htmlContent) {
   return fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: {
@@ -157,14 +169,8 @@ function sendResetEmail(toEmail, code) {
     body: JSON.stringify({
       sender: RESET_SENDER,
       to: [{ email: toEmail }],
-      subject: 'Ton code de reinitialisation RescueBudget',
-      htmlContent:
-        '<div style="font-family:sans-serif;max-width:480px;margin:0 auto">' +
-        '<h2 style="color:#0d9488">RescueBudget</h2>' +
-        '<p>Voici ton code pour reinitialiser ton mot de passe :</p>' +
-        '<p style="font-size:32px;font-weight:700;letter-spacing:4px;background:#f1f5f9;padding:16px;border-radius:12px;text-align:center">' + code + '</p>' +
-        '<p style="color:#64748b;font-size:13px">Ce code expire dans 15 minutes. Si tu n\'es pas a l\'origine de cette demande, ignore cet email : ton compte reste inchange.</p>' +
-        '</div>'
+      subject: subject,
+      htmlContent: htmlContent
     })
   }).then(function(r) {
     if (!r.ok) {
@@ -174,6 +180,46 @@ function sendResetEmail(toEmail, code) {
     }
     return r.json().catch(function() { return {}; });
   });
+}
+
+function sendResetEmail(toEmail, code) {
+  return sendBrevoEmail(toEmail, 'Ton code de reinitialisation RescueBudget',
+    '<div style="font-family:sans-serif;max-width:480px;margin:0 auto">' +
+    '<h2 style="color:#0d9488">RescueBudget</h2>' +
+    '<p>Voici ton code pour reinitialiser ton mot de passe :</p>' +
+    '<p style="font-size:32px;font-weight:700;letter-spacing:4px;background:#f1f5f9;padding:16px;border-radius:12px;text-align:center">' + code + '</p>' +
+    '<p style="color:#64748b;font-size:13px">Ce code expire dans 15 minutes. Si tu n\'es pas a l\'origine de cette demande, ignore cet email : ton compte reste inchange.</p>' +
+    '</div>'
+  );
+}
+
+// Echappement minimal pour eviter d'injecter du HTML si le pseudo contient
+// des caracteres speciaux (le pseudo vient de l'utilisateur, jamais verifie
+// cote serveur puisque tout est stocke en local - on reste prudent quand on
+// le reinjecte dans un email HTML).
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
+// Email de bienvenue (v5.119) : envoye une seule fois, juste apres la
+// creation du compte cote client. Purement informatif - confirme que
+// l'adresse saisie est valide et joignable, rassure sur la confidentialite
+// des donnees (qui restent locales). Aucun lien d'action, aucune donnee
+// sensible dedans : contrairement au reset, un echec d'envoi n'a aucune
+// consequence sur le compte (deja cree localement avant cet appel).
+function sendWelcomeEmail(toEmail, username) {
+  var safeName = escapeHtml(username);
+  return sendBrevoEmail(toEmail, 'Bienvenue sur RescueBudget !',
+    '<div style="font-family:sans-serif;max-width:480px;margin:0 auto">' +
+    '<h2 style="color:#0d9488">RescueBudget</h2>' +
+    '<p>Salut ' + safeName + ' 👋</p>' +
+    '<p>Ton compte RescueBudget vient d\'etre cree avec cette adresse email. Elle nous sert uniquement a t\'envoyer un code si tu demandes un jour a reinitialiser ton mot de passe.</p>' +
+    '<p style="color:#64748b;font-size:13px">Pour rappel : toutes tes donnees financieres (depenses, revenus, enveloppes...) restent uniquement sur ton appareil, jamais sur un serveur.</p>' +
+    '<p style="color:#64748b;font-size:13px">Si tu n\'es pas a l\'origine de cette creation de compte, tu peux ignorer cet email.</p>' +
+    '</div>'
+  );
 }
 
 // Parse manuellement les query params (compatible toutes versions Node.js)
@@ -289,6 +335,51 @@ var server = http.createServer(function(req, res) {
       }
       res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
       res.end(JSON.stringify({ ok: true }));
+    });
+    return;
+  }
+
+  // ─── EMAIL DE BIENVENUE (v5.119) : envoye a la creation du compte ─
+  if (req.method === 'POST' && req.url === '/api/send-welcome') {
+    var wIp = getClientIp(req);
+
+    if (!BREVO_API_KEY) {
+      console.log('[WELCOME] BREVO_API_KEY non configuree, envoi ignore');
+      res.writeHead(503, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+      res.end(JSON.stringify({ error: 'Service email non configure sur ce serveur.' }));
+      return;
+    }
+
+    readJsonBody(req, function(err, data) {
+      if (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ error: err.message }));
+        return;
+      }
+      var email = (data && data.email ? String(data.email) : '').trim();
+      var user  = (data && data.user  ? String(data.user)  : '').trim().slice(0, 60);
+      if (!isValidEmailServer(email)) {
+        res.writeHead(400, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ error: 'Adresse email invalide' }));
+        return;
+      }
+      if (!checkHourlyLimit(_welcomeReqIp, wIp, WELCOME_LIMIT_IP) ||
+          !checkHourlyLimit(_welcomeReqEmail, email.toLowerCase(), WELCOME_LIMIT_EMAIL)) {
+        console.log('[WELCOME] Rate limit depasse pour ' + wIp + ' / ' + email);
+        res.writeHead(429, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ error: 'Trop de demandes.' }));
+        return;
+      }
+
+      sendWelcomeEmail(email, user || 'toi').then(function() {
+        console.log('[WELCOME] Email de bienvenue envoye a ' + email);
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ ok: true }));
+      }).catch(function(e) {
+        console.log('[WELCOME] Erreur envoi email: ' + e.message);
+        res.writeHead(502, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ error: 'Impossible d\'envoyer l\'email pour le moment.' }));
+      });
     });
     return;
   }
