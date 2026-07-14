@@ -1023,7 +1023,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.112';
+window.APP_VERSION = '5.113';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -4761,6 +4761,26 @@ function _envWordInText(word, text){
 // jamais toucher S.fin tant que l'utilisateur n'a pas cliqué sur "Confirmer". Les enveloppes
 // elles-mêmes (leurs id/nom/catégories liées) viennent toujours de S.fin.enveloppes — seule la
 // liste des LIGNES (besoins_items/envies_items) est lue/écrite sur "target".
+// v5.113 : bug signalé par l'utilisateur — une enveloppe nommée "carburant" (créée sans lui lier
+// explicitement la catégorie "Transport" dans la modale, une étape facile à ne pas remarquer) ne
+// se voyait jamais rattacher une dépense "essence" : la Passe 1 ci-dessous exigeait jusqu'ici que
+// l'utilisateur ait manuellement coché la catégorie sur l'enveloppe (env.cats), et la Passe 2 (mots
+// du libellé) ne pouvait pas deviner que "carburant" et "essence" désignent la même chose (aucun
+// des deux mots n'apparaît dans l'autre). Or detectExpenseCategory() sait déjà reconnaître ces deux
+// mots comme catégorie "Transport" (voir ENV_CATEGORY_KEYWORDS) — on applique donc cette même
+// détection au NOM de l'enveloppe elle-même, pas seulement au libellé de la dépense : une enveloppe
+// dont le nom correspond à une catégorie connue (carburant/essence → Transport, loyer → Logement,
+// courses → Courses...) est désormais automatiquement considérée comme liée à cette catégorie,
+// même si l'utilisateur n'a jamais ouvert le sélecteur de catégories de la modale. Sans danger pour
+// l'ambiguïté : si ce rattachement implicite crée un doublon avec une autre enveloppe déjà liée
+// explicitement à la même catégorie, le garde-fou "catMatches.length>1" existant ci-dessous
+// continue de bloquer tout rattachement automatique plutôt que de deviner au hasard.
+function _envEffectiveCats(env){
+  var cats=(env.cats||[]).slice();
+  var implicit=detectExpenseCategory(env.nom);
+  if(implicit && cats.indexOf(implicit)<0) cats.push(implicit);
+  return cats;
+}
 function autoLinkEnveloppes(target){
   target = target || S.fin;
   var envs=(S.fin && S.fin.enveloppes) || [];
@@ -4771,10 +4791,11 @@ function autoLinkEnveloppes(target){
     var touched=false;
     items.forEach(function(it){
       if(it.env || it.b==='fixe' || !it.n) return;
-      // Passe 1 : catégorie détectée + enveloppe(s) liée(s) à cette catégorie.
+      // Passe 1 : catégorie détectée + enveloppe(s) liée(s) à cette catégorie (explicitement via
+      // env.cats, ou implicitement si le nom de l'enveloppe correspond lui-même à cette catégorie).
       var cat=detectExpenseCategory(it.n);
       if(cat){
-        var catMatches=envs.filter(function(env){ return (env.cats||[]).indexOf(cat)>=0; });
+        var catMatches=envs.filter(function(env){ return _envEffectiveCats(env).indexOf(cat)>=0; });
         if(catMatches.length===1){ it.env=catMatches[0].id; touched=true; changed=true; return; }
         if(catMatches.length>1) return; // ambigu entre plusieurs enveloppes de la même catégorie : on n'invente rien
       }
@@ -4951,7 +4972,10 @@ function saveEnv(){
   // v5.88 : rattache tout de suite les dépenses déjà existantes qui correspondent aux catégories
   // choisies (ex: une "Alimentation" créée avec la catégorie Courses récupère les lignes Courses
   // déjà présentes, sans attendre une nouvelle dépense).
-  if(cats.length && typeof autoLinkEnveloppes==='function' && autoLinkEnveloppes()) renderEnveloppes();
+  // v5.113 : ne dépend plus de cats.length — depuis _envEffectiveCats(), une enveloppe créée SANS
+  // catégorie cochée (ex: "carburant" sans avoir ouvert le sélecteur) peut désormais aussi être
+  // rattachée via la catégorie implicite détectée depuis son propre nom.
+  if(typeof autoLinkEnveloppes==='function' && autoLinkEnveloppes()) renderEnveloppes();
   toast('Enveloppe créée '+emoji,'#0d9488');
 }
 function deleteEnv(id){
@@ -4975,6 +4999,14 @@ function deleteEnv(id){
 function renderEnveloppes(){
   var el=document.getElementById('envList'); if(!el) return;
   rolloverEnveloppes();
+  // v5.113 : rattache automatiquement, à chaque affichage, les dépenses déjà existantes qui
+  // correspondent maintenant à une enveloppe — sans ce rattrapage, une enveloppe créée avant ce
+  // correctif (ou dont le nom seul, comme "carburant", permet désormais une détection implicite de
+  // catégorie via _envEffectiveCats()) restait orpheline tant que l'utilisateur ne rouvrait pas
+  // manuellement la modale pour la ré-enregistrer. autoLinkEnveloppes() est déjà conçu pour être
+  // rappelé sans risque à chaque rendu (voir son commentaire v5.87) : aucun effet si rien n'a
+  // changé, ne touche jamais une ligne déjà rattachée.
+  if(typeof autoLinkEnveloppes==='function' && autoLinkEnveloppes()) save();
   var list=S.fin.enveloppes||[];
   var emptyEl=document.getElementById('envEmpty');
   if(!list.length){
