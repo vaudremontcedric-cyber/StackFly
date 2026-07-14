@@ -1019,7 +1019,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.101';
+window.APP_VERSION = '5.102';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1723,7 +1723,7 @@ window.APP_VERSION = '5.101';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.101</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.102</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="location.reload()">
@@ -2687,22 +2687,38 @@ var _infoTips = {
   'leo':     { title:'💡 Léo recommande',        body:'La gestion de budget n\'est pas qu\'une question de calcul : c\'est surtout une question d\'habitudes. La finance comportementale montre qu\'un petit ajustement régulier tenu dans la durée pèse plus qu\'une grande résolution ponctuelle vite abandonnée. Les conseils de Léo suivent ce principe : une action simple à la fois, adaptée à ta situation du moment, plutôt qu\'un plan figé impossible à tenir sur la durée.' },
   'rav':     { title:'✅ Reste à vivre',          body:'Le reste à vivre se calcule ainsi : Revenus − Dépenses (besoins + envies) − Épargne − Investissements du mois. C\'est la somme qui te reste réellement disponible pour l\'imprévu ou le plaisir, sans piocher ailleurs. En finances personnelles, mieux vaut un reste à vivre modeste mais stable qu\'un solde flatteur qui masque des charges fixes trop lourdes. Un reste à vivre négatif de façon répétée est un signal à ne pas ignorer : c\'est le moment de revoir tes charges fixes et abonnements avant que le déséquilibre ne s\'installe.' }
 };
+// v5.102 : corrige un défaut d'affichage signalé par l'utilisateur — sur une section compacte
+// (peu de place en dessous), la bulle se retournait au-dessus du bouton en supposant une
+// hauteur fixe de 140px. Ce chiffre datait des textes courts d'avant la v5.100 ; depuis que
+// les bulles contiennent des explications pédagogiques bien plus longues, la vraie hauteur
+// dépasse largement 140px, donc le retournement pouvait pousser le haut de la bulle (et sa
+// croix de fermeture) au-dessus de l'écran (top négatif) — invisible, inatteignable, et
+// l'écran (qui ne défile pas, voir html,body{overflow:hidden}) restait bloqué sans moyen simple
+// de la refermer. Désormais : la hauteur réelle est mesurée après affichage du contenu (au lieu
+// d'être devinée), une hauteur maximale = écran moins marges est imposée avec défilement interne
+// en dernier recours, et la position verticale est toujours bornée pour que le haut de la bulle
+// (donc sa croix ✕) reste visible, quelle que soit la longueur du texte.
 function showInfoTip(btn, key){
   var tip = _infoTips[key];
   if(!tip) return;
   var el = document.getElementById('infoTip');
   document.getElementById('infoTipTitle').textContent = tip.title;
   document.getElementById('infoTipBody').textContent  = tip.body;
+  var tipW = 268;
+  var maxH = window.innerHeight - 24; // 12px de marge en haut et en bas
+  el.style.width = tipW + 'px';
+  el.style.maxHeight = maxH + 'px';
+  el.style.overflowY = 'auto';
   el.style.display = 'block';
   var rect = btn.getBoundingClientRect();
-  var tipW = 268;
   var left = Math.min(rect.left, window.innerWidth - tipW - 12);
   if(left < 8) left = 8;
-  var top  = rect.bottom + 8;
-  if(top + 140 > window.innerHeight) top = rect.top - 148;
   el.style.left = left + 'px';
-  el.style.top  = top  + 'px';
-  el.style.width = tipW + 'px';
+  var boxH = el.offsetHeight; // hauteur réelle, maintenant que le contenu est injecté et affiché
+  var top = rect.bottom + 8;
+  if(top + boxH > window.innerHeight - 8) top = rect.top - boxH - 8;
+  top = Math.max(8, Math.min(top, window.innerHeight - boxH - 8));
+  el.style.top = top + 'px';
   setTimeout(function(){ document.addEventListener('click', _closeTipOutside, {once:true, capture:true}); }, 10);
 }
 function _closeTipOutside(e){
