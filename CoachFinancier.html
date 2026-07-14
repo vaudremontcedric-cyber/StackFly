@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <meta name="theme-color" content="#0a0a16"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -13,6 +13,23 @@
      vrai ajout à l'écran d'accueil via les balises apple-* ci-dessous. -->
 <link rel="manifest" href="manifest.json"/>
 <link rel="apple-touch-icon" href="icons/icon-512.png"/>
+<script>
+// Hauteur de viewport réelle (v5.99) — corrige un défaut d'affichage signalé : après un
+// reload() déclenché par le pull-to-refresh (v5.98), la nav du bas se retrouvait masquée
+// par la barre système du téléphone (100dvh restait sur une valeur trop grande juste après
+// un reload JS sur certains navigateurs/téléphones). window.innerHeight, lui, est toujours
+// à jour au moment où ce script tourne — voir #app dans le <style> plus bas (var(--app-vh)).
+(function(){
+  function setAppVh(){
+    document.documentElement.style.setProperty('--app-vh', window.innerHeight + 'px');
+  }
+  setAppVh();
+  window.addEventListener('resize', setAppVh);
+  window.addEventListener('orientationchange', setAppVh);
+  window.addEventListener('pageshow', setAppVh);
+  document.addEventListener('DOMContentLoaded', setAppVh);
+})();
+</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -57,7 +74,12 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
   font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
 ::-webkit-scrollbar{display:none}*{scrollbar-width:none}
-#app{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+/* Hauteur d'app fiable sur mobile (v5.99) — 100dvh seul peut rester bloqué sur une valeur
+   trop grande juste après un reload() déclenché en JS (voir pull-to-refresh), ce qui pousse
+   la nav du bas (.bnav) sous la barre système du téléphone. --app-vh est recalculée en JS à
+   partir de window.innerHeight (valeur réelle, jamais périmée) dès que possible ; 100dvh ne
+   sert plus que de solution de repli tant que le JS n'a pas encore tourné. */
+#app{display:flex;flex-direction:column;height:var(--app-vh, 100dvh);overflow:hidden}
 
 /* HEADER */
 .hdr{display:flex;align-items:center;justify-content:space-between;
@@ -997,7 +1019,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.98';
+window.APP_VERSION = '5.99';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1701,7 +1723,7 @@ window.APP_VERSION = '5.98';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.98</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.99</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="location.reload()">
