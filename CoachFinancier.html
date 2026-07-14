@@ -1037,7 +1037,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.119';
+window.APP_VERSION = '5.120';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1812,6 +1812,15 @@ window.APP_VERSION = '5.119';
       </div>
       <span class="s-row-arr">&#8250;</span>
     </div>
+
+    <div class="profil-sect">&#129309; Nous soutenir</div>
+    <div class="setting-row" onclick="openContactModal()">
+      <div class="s-row-left">
+        <span class="s-row-ico">&#128172;</span>
+        <div><div class="s-row-lbl">Nous contacter</div><div class="s-row-sub">Une question, un bug, une suggestion ?</div></div>
+      </div>
+      <span class="s-row-arr">&#8250;</span>
+    </div>
   </section>
 
   <!-- ════════ MODAL MODIFIER PROFIL ════════ -->
@@ -1847,6 +1856,26 @@ window.APP_VERSION = '5.119';
         <input id="epConfPass" type="password" placeholder="Confirmer" style="margin-top:5px;width:100%;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;box-sizing:border-box;outline:none" />
       </div>
       <button onclick="saveProfileEdit()" style="width:100%;padding:14px;background:var(--accent2);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer">Enregistrer</button>
+    </div>
+  </div>
+
+  <!-- ════════ MODAL NOUS CONTACTER (v5.120) ════════ -->
+  <div id="contactModal" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.55);align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeContactModal()">
+    <div style="background:var(--bg);border-radius:22px 22px 0 0;padding:28px 20px 36px;width:100%;max-width:480px;animation:slideUp .25s ease">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
+        <span style="font-size:17px;font-weight:700;color:var(--text)">&#128172; Nous contacter</span>
+        <button onclick="closeContactModal()" style="background:none;border:none;font-size:22px;color:var(--sub);cursor:pointer">&#10005;</button>
+      </div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:18px;line-height:1.5">Une question, un bug &#224; signaler, une id&#233;e d'am&#233;lioration ? &#201;cris-nous, on te r&#233;pond directement par email.</div>
+      <div style="margin-bottom:14px">
+        <label style="font-size:12px;color:var(--sub);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Ton email (pour te r&#233;pondre)</label>
+        <input id="contactEmail" type="email" placeholder="ton@email.com" autocomplete="email" style="margin-top:5px;width:100%;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;box-sizing:border-box;outline:none" />
+      </div>
+      <div style="margin-bottom:22px">
+        <label style="font-size:12px;color:var(--sub);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Ton message</label>
+        <textarea id="contactMessage" rows="5" placeholder="D&#233;cris ta question, ton bug ou ton id&#233;e..." style="margin-top:5px;width:100%;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;box-sizing:border-box;outline:none;resize:vertical;font-family:inherit"></textarea>
+      </div>
+      <button id="contactSendBtn" onclick="sendContactMessage()" style="width:100%;padding:14px;background:var(--accent2);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer">Envoyer &#8594;</button>
     </div>
   </div>
 
@@ -2916,6 +2945,51 @@ async function saveProfileEdit(){
   closeEditProfileModal();
   renderProfil();
   toast('Profil mis à jour ✓','#10b981');
+}
+
+// ═══════════════════════════════════════════════════
+// NOUS CONTACTER (v5.120) — envoie via /api/contact (Brevo)
+// ═══════════════════════════════════════════════════
+function openContactModal(){
+  var auth = getStoredAuth();
+  var emailEl = document.getElementById('contactEmail');
+  if(emailEl) emailEl.value = (auth && auth.email) ? auth.email : '';
+  var msgEl = document.getElementById('contactMessage');
+  if(msgEl) msgEl.value = '';
+  var m = document.getElementById('contactModal');
+  if(m){ m.style.display='flex'; }
+}
+function closeContactModal(){
+  var m = document.getElementById('contactModal');
+  if(m) m.style.display='none';
+}
+async function sendContactMessage(){
+  var auth = getStoredAuth();
+  var email = (document.getElementById('contactEmail')||{}).value.trim();
+  var message = (document.getElementById('contactMessage')||{}).value.trim();
+  if(!isValidEmail(email)){ toast('Adresse email invalide','#ef4444'); return; }
+  if(message.length<3){ toast('Écris un message un peu plus détaillé','#ef4444'); return; }
+  if(message.length>4000){ toast('Message trop long (max 4000 caractères)','#ef4444'); return; }
+
+  var btn = document.getElementById('contactSendBtn');
+  if(btn){ btn.disabled = true; btn.textContent = 'Envoi en cours…'; }
+  try{
+    var r = await fetch('/api/contact', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email:email, user:(auth&&auth.user)||'', message:message})
+    });
+    var data = await r.json().catch(function(){ return {}; });
+    if(!r.ok || !data.ok){
+      toast(data.error || 'Impossible d\'envoyer le message pour le moment','#ef4444');
+      return;
+    }
+    toast('Message envoyé ✓ On te répond par email !','#10b981');
+    closeContactModal();
+  }catch(e){
+    toast('Erreur réseau, réessaie','#ef4444');
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = 'Envoyer →'; }
+  }
 }
 
 // ═══════════════════════════════════════════════════

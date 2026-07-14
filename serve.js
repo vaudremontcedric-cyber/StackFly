@@ -102,6 +102,16 @@ var WELCOME_LIMIT_EMAIL = 3;  // envois / heure / email
 var _welcomeReqIp    = new Map();
 var _welcomeReqEmail = new Map();
 
+// Anti-abus pour le formulaire "Nous contacter" (v5.120) : le contenu est
+// libre (message tape par le visiteur) et part directement dans la boite
+// mail perso du developpeur - limites volontairement basses pour eviter
+// qu'un usage malveillant ne la noie sous des messages automatises.
+var CONTACT_DEST_EMAIL  = process.env.CONTACT_DEST_EMAIL || 'rescuebudgetleo@gmail.com';
+var CONTACT_LIMIT_IP    = 8; // messages / heure / IP
+var CONTACT_LIMIT_EMAIL = 4; // messages / heure / email (visiteur)
+var _contactReqIp    = new Map();
+var _contactReqEmail = new Map();
+
 function checkHourlyLimit(map, key, limit) {
   var now = Date.now();
   var e = map.get(key);
@@ -113,7 +123,7 @@ function checkHourlyLimit(map, key, limit) {
 
 setInterval(function() {
   var now = Date.now();
-  [_resetReqIp, _resetReqEmail, _resetVerifyIp, _welcomeReqIp, _welcomeReqEmail].forEach(function(m) {
+  [_resetReqIp, _resetReqEmail, _resetVerifyIp, _welcomeReqIp, _welcomeReqEmail, _contactReqIp, _contactReqEmail].forEach(function(m) {
     m.forEach(function(v, k) { if (now > v.resetAt) m.delete(k); });
   });
 }, 5 * 60000);
@@ -157,8 +167,18 @@ function safeEqual(a, b) {
 // Envoi via l'API transactionnelle Brevo (https://api.brevo.com/v3/smtp/email).
 // Node 18+ expose fetch() globalement (voir package.json "engines").
 // Fonction generique, factorisee (v5.119) pour etre reutilisee par le reset
-// de mot de passe ET par l'email de bienvenue.
-function sendBrevoEmail(toEmail, subject, htmlContent) {
+// de mot de passe, l'email de bienvenue ET (v5.120) le formulaire de contact.
+// extra (optionnel) : champs additionnels fusionnes dans le corps envoye a
+// Brevo - utilise par le contact pour poser un replyTo vers l'email du
+// visiteur, afin que repondre depuis la boite mail perso reponde bien a lui.
+function sendBrevoEmail(toEmail, subject, htmlContent, extra) {
+  var payload = {
+    sender: RESET_SENDER,
+    to: [{ email: toEmail }],
+    subject: subject,
+    htmlContent: htmlContent
+  };
+  if (extra) { for (var k in extra) { payload[k] = extra[k]; } }
   return fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: {
@@ -166,12 +186,7 @@ function sendBrevoEmail(toEmail, subject, htmlContent) {
       'Accept': 'application/json',
       'api-key': BREVO_API_KEY
     },
-    body: JSON.stringify({
-      sender: RESET_SENDER,
-      to: [{ email: toEmail }],
-      subject: subject,
-      htmlContent: htmlContent
-    })
+    body: JSON.stringify(payload)
   }).then(function(r) {
     if (!r.ok) {
       return r.text().then(function(t) {
@@ -219,6 +234,24 @@ function sendWelcomeEmail(toEmail, username) {
     '<p style="color:#64748b;font-size:13px">Pour rappel : toutes tes donnees financieres (depenses, revenus, enveloppes...) restent uniquement sur ton appareil, jamais sur un serveur.</p>' +
     '<p style="color:#64748b;font-size:13px">Si tu n\'es pas a l\'origine de cette creation de compte, tu peux ignorer cet email.</p>' +
     '</div>'
+  );
+}
+
+// Formulaire "Nous contacter" (v5.120) : transmet le message d'un
+// utilisateur vers la boite mail perso du developpeur (CONTACT_DEST_EMAIL).
+// Pas de reponse in-app : replyTo pointe vers l'email du visiteur pour que
+// repondre depuis n'importe quel client mail arrive directement chez lui.
+function sendContactEmail(fromEmail, fromUser, message) {
+  var safeUser = escapeHtml(fromUser || 'Utilisateur anonyme');
+  var safeMsg  = escapeHtml(message).replace(/\n/g, '<br>');
+  return sendBrevoEmail(CONTACT_DEST_EMAIL, 'RescueBudget - Message de ' + (fromUser || fromEmail),
+    '<div style="font-family:sans-serif;max-width:560px;margin:0 auto">' +
+    '<h2 style="color:#0d9488">RescueBudget - Nouveau message</h2>' +
+    '<p><b>De :</b> ' + safeUser + ' (' + escapeHtml(fromEmail) + ')</p>' +
+    '<div style="background:#f1f5f9;padding:16px;border-radius:12px;margin-top:12px;white-space:pre-wrap">' + safeMsg + '</div>' +
+    '<p style="color:#64748b;font-size:13px;margin-top:16px">Reponds directement a cet email pour contacter l\'utilisateur.</p>' +
+    '</div>',
+    { replyTo: { email: fromEmail, name: fromUser || undefined } }
   );
 }
 
@@ -379,6 +412,58 @@ var server = http.createServer(function(req, res) {
         console.log('[WELCOME] Erreur envoi email: ' + e.message);
         res.writeHead(502, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
         res.end(JSON.stringify({ error: 'Impossible d\'envoyer l\'email pour le moment.' }));
+      });
+    });
+    return;
+  }
+
+  // ─── FORMULAIRE "NOUS CONTACTER" (v5.120) ─────────────────────────
+  if (req.method === 'POST' && req.url === '/api/contact') {
+    var cIp = getClientIp(req);
+
+    if (!BREVO_API_KEY) {
+      console.log('[CONTACT] BREVO_API_KEY non configuree, envoi ignore');
+      res.writeHead(503, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+      res.end(JSON.stringify({ error: 'Service de contact non configure sur ce serveur.' }));
+      return;
+    }
+
+    readJsonBody(req, function(err, data) {
+      if (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ error: err.message }));
+        return;
+      }
+      var email   = (data && data.email   ? String(data.email)   : '').trim();
+      var user    = (data && data.user    ? String(data.user)    : '').trim().slice(0, 60);
+      var message = (data && data.message ? String(data.message) : '').trim();
+
+      if (!isValidEmailServer(email)) {
+        res.writeHead(400, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ error: 'Adresse email invalide' }));
+        return;
+      }
+      if (message.length < 3 || message.length > 4000) {
+        res.writeHead(400, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ error: 'Message trop court ou trop long (max 4000 caracteres)' }));
+        return;
+      }
+      if (!checkHourlyLimit(_contactReqIp, cIp, CONTACT_LIMIT_IP) ||
+          !checkHourlyLimit(_contactReqEmail, email.toLowerCase(), CONTACT_LIMIT_EMAIL)) {
+        console.log('[CONTACT] Rate limit depasse pour ' + cIp + ' / ' + email);
+        res.writeHead(429, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ error: 'Trop de messages envoyes. Reessaie plus tard.' }));
+        return;
+      }
+
+      sendContactEmail(email, user, message).then(function() {
+        console.log('[CONTACT] Message transmis (de ' + email + ')');
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ ok: true }));
+      }).catch(function(e) {
+        console.log('[CONTACT] Erreur envoi email: ' + e.message);
+        res.writeHead(502, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ error: 'Impossible d\'envoyer le message pour le moment. Reessaie plus tard.' }));
       });
     });
     return;
