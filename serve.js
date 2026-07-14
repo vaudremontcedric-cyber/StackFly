@@ -1,7 +1,8 @@
-const http  = require('http');
-const https = require('https');
-const fs    = require('fs');
-const path  = require('path');
+const http   = require('http');
+const https  = require('https');
+const fs     = require('fs');
+const path   = require('path');
+const crypto = require('crypto');
 
 const PORT = process.env.PORT || 8080;
 const DIR  = __dirname;
@@ -59,6 +60,122 @@ setInterval(function() {
   _rlDay.forEach(function(v, k) { if (now > v.resetAt) _rlDay.delete(k); });
 }, 5 * 60000);
 
+// ─── RESET DE MOT DE PASSE PAR EMAIL (v5.118, Phase 2) ────────────────────
+// Aucune base de donnees requise : les comptes vivent uniquement dans le
+// localStorage de chaque utilisateur (cf_auth). Le serveur ne fait que
+// prouver "cet email a bien recu ce code" via un jeton signe (HMAC) sans
+// rien stocker lui-meme entre les deux appels /api/request-reset et
+// /api/verify-reset - le client transporte le jeton (opaque pour lui).
+//
+// RESET_HMAC_SECRET : a definir en variable d'environnement Render pour que
+// les jetons restent valides meme si le serveur redemarre entre les deux
+// etapes. A defaut, un secret aleatoire est genere au demarrage (suffisant
+// pour une seule instance Render qui ne redemarre pas en cours de route,
+// mais deconseille en production - les codes deja envoyes deviendraient
+// invalides si le serveur redemarre).
+var RESET_HMAC_SECRET = process.env.RESET_HMAC_SECRET || crypto.randomBytes(32).toString('hex');
+if (!process.env.RESET_HMAC_SECRET) {
+  console.log('[RESET] ATTENTION : RESET_HMAC_SECRET non defini, secret aleatoire genere pour cette instance (voir commentaire serve.js).');
+}
+var BREVO_API_KEY    = process.env.BREVO_API_KEY || '';
+var RESET_SENDER      = { name: 'RescueBudget', email: process.env.RESET_SENDER_EMAIL || 'rescuebudgetleo@gmail.com' };
+var RESET_CODE_TTL_MS = 15 * 60000; // 15 minutes
+
+// Anti-abus specifique au reset : separe du rate limit Gemini ci-dessus.
+// Deux axes : par IP (empeche un script d'appeler l'endpoint en boucle) ET
+// par email (empeche de spammer la boite mail d'une victime avec des codes
+// qu'elle n'a jamais demandes, meme depuis des IP differentes).
+var RESET_REQUEST_LIMIT_IP    = 8;  // demandes de code / heure / IP
+var RESET_REQUEST_LIMIT_EMAIL = 4;  // demandes de code / heure / email
+var RESET_VERIFY_LIMIT_IP     = 30; // tentatives de verification / heure / IP (code a 6 chiffres)
+var _resetReqIp    = new Map();
+var _resetReqEmail = new Map();
+var _resetVerifyIp = new Map();
+
+function checkHourlyLimit(map, key, limit) {
+  var now = Date.now();
+  var e = map.get(key);
+  if (!e || now > e.resetAt) { e = { count: 0, resetAt: now + 3600000 }; map.set(key, e); }
+  if (e.count >= limit) return false;
+  e.count++;
+  return true;
+}
+
+setInterval(function() {
+  var now = Date.now();
+  [_resetReqIp, _resetReqEmail, _resetVerifyIp].forEach(function(m) {
+    m.forEach(function(v, k) { if (now > v.resetAt) m.delete(k); });
+  });
+}, 5 * 60000);
+
+function readJsonBody(req, cb) {
+  var body = '';
+  var tooBig = false;
+  req.on('data', function(chunk) {
+    body += chunk.toString();
+    if (body.length > 20000) { tooBig = true; } // garde-fou, ces routes n'ont besoin que de quelques octets
+  });
+  req.on('error', function() { cb(new Error('Erreur reseau')); });
+  req.on('end', function() {
+    if (tooBig) return cb(new Error('Corps de requete trop volumineux'));
+    try { cb(null, body ? JSON.parse(body) : {}); }
+    catch (e) { cb(new Error('JSON invalide')); }
+  });
+}
+
+function isValidEmailServer(e) {
+  return typeof e === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim()) && e.trim().length <= 254;
+}
+
+function genResetCode() {
+  return String(crypto.randomInt(100000, 1000000)); // 6 chiffres, jamais de zero en tete ambigu
+}
+
+function computeResetToken(email, code, expiresAt) {
+  return crypto.createHmac('sha256', RESET_HMAC_SECRET)
+    .update(email.toLowerCase().trim() + '|' + code + '|' + expiresAt)
+    .digest('hex');
+}
+
+function safeEqual(a, b) {
+  var bufA = Buffer.from(String(a || ''));
+  var bufB = Buffer.from(String(b || ''));
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
+// Envoi via l'API transactionnelle Brevo (https://api.brevo.com/v3/smtp/email).
+// Node 18+ expose fetch() globalement (voir package.json "engines").
+function sendResetEmail(toEmail, code) {
+  return fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'api-key': BREVO_API_KEY
+    },
+    body: JSON.stringify({
+      sender: RESET_SENDER,
+      to: [{ email: toEmail }],
+      subject: 'Ton code de reinitialisation RescueBudget',
+      htmlContent:
+        '<div style="font-family:sans-serif;max-width:480px;margin:0 auto">' +
+        '<h2 style="color:#0d9488">RescueBudget</h2>' +
+        '<p>Voici ton code pour reinitialiser ton mot de passe :</p>' +
+        '<p style="font-size:32px;font-weight:700;letter-spacing:4px;background:#f1f5f9;padding:16px;border-radius:12px;text-align:center">' + code + '</p>' +
+        '<p style="color:#64748b;font-size:13px">Ce code expire dans 15 minutes. Si tu n\'es pas a l\'origine de cette demande, ignore cet email : ton compte reste inchange.</p>' +
+        '</div>'
+    })
+  }).then(function(r) {
+    if (!r.ok) {
+      return r.text().then(function(t) {
+        throw new Error('Brevo ' + r.status + ' : ' + t.slice(0, 300));
+      });
+    }
+    return r.json().catch(function() { return {}; });
+  });
+}
+
 // Parse manuellement les query params (compatible toutes versions Node.js)
 function parseQuery(url) {
   var idx = url.indexOf('?');
@@ -82,6 +199,97 @@ var server = http.createServer(function(req, res) {
     console.log('[PING] Test de connexion OK');
     res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
     res.end(JSON.stringify({ status: 'ok', proxy: true, version: '2.0' }));
+    return;
+  }
+
+  // ─── RESET MOT DE PASSE : demande de code (etape 1/2) ─────────────
+  if (req.method === 'POST' && req.url === '/api/request-reset') {
+    var rrIp = getClientIp(req);
+
+    if (!BREVO_API_KEY) {
+      console.log('[RESET] BREVO_API_KEY non configuree, requete refusee');
+      res.writeHead(503, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+      res.end(JSON.stringify({ error: 'Service de reinitialisation par email non configure sur ce serveur.' }));
+      return;
+    }
+
+    readJsonBody(req, function(err, data) {
+      if (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ error: err.message }));
+        return;
+      }
+      var email = (data && data.email ? String(data.email) : '').trim();
+      if (!isValidEmailServer(email)) {
+        res.writeHead(400, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ error: 'Adresse email invalide' }));
+        return;
+      }
+      if (!checkHourlyLimit(_resetReqIp, rrIp, RESET_REQUEST_LIMIT_IP) ||
+          !checkHourlyLimit(_resetReqEmail, email.toLowerCase(), RESET_REQUEST_LIMIT_EMAIL)) {
+        console.log('[RESET] Rate limit demande de code depasse pour ' + rrIp + ' / ' + email);
+        res.writeHead(429, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ error: 'Trop de demandes. Reessaie dans un instant.' }));
+        return;
+      }
+
+      var code      = genResetCode();
+      var expiresAt = Date.now() + RESET_CODE_TTL_MS;
+      var token     = computeResetToken(email, code, expiresAt);
+
+      sendResetEmail(email, code).then(function() {
+        console.log('[RESET] Code envoye a ' + email);
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ ok: true, token: token, expiresAt: expiresAt }));
+      }).catch(function(e) {
+        console.log('[RESET] Erreur envoi email: ' + e.message);
+        res.writeHead(502, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ error: 'Impossible d\'envoyer l\'email pour le moment. Reessaie plus tard.' }));
+      });
+    });
+    return;
+  }
+
+  // ─── RESET MOT DE PASSE : verification du code (etape 2/2) ────────
+  if (req.method === 'POST' && req.url === '/api/verify-reset') {
+    var rvIp = getClientIp(req);
+    if (!checkHourlyLimit(_resetVerifyIp, rvIp, RESET_VERIFY_LIMIT_IP)) {
+      console.log('[RESET] Rate limit verification depasse pour ' + rvIp);
+      res.writeHead(429, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+      res.end(JSON.stringify({ error: 'Trop de tentatives. Redemande un code.' }));
+      return;
+    }
+
+    readJsonBody(req, function(err, data) {
+      if (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ error: err.message }));
+        return;
+      }
+      var email     = (data && data.email ? String(data.email) : '').trim();
+      var code      = (data && data.code ? String(data.code) : '').trim();
+      var token     = (data && data.token ? String(data.token) : '').trim();
+      var expiresAt = data && data.expiresAt ? Number(data.expiresAt) : 0;
+
+      if (!email || !code || !token || !expiresAt) {
+        res.writeHead(400, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ error: 'Requete incomplete' }));
+        return;
+      }
+      if (Date.now() > expiresAt) {
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ ok: false, error: 'Code expire, redemande-en un nouveau.' }));
+        return;
+      }
+      var expected = computeResetToken(email, code, expiresAt);
+      if (!safeEqual(expected, token)) {
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ ok: false, error: 'Code incorrect.' }));
+        return;
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+      res.end(JSON.stringify({ ok: true }));
+    });
     return;
   }
 
