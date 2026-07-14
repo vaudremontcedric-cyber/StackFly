@@ -1037,7 +1037,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.120';
+window.APP_VERSION = '5.121';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1821,6 +1821,13 @@ window.APP_VERSION = '5.120';
       </div>
       <span class="s-row-arr">&#8250;</span>
     </div>
+    <div class="setting-row" onclick="openDonationModal()">
+      <div class="s-row-left">
+        <span class="s-row-ico">&#9749;</span>
+        <div><div class="s-row-lbl">Faire un don</div><div class="s-row-sub">Soutenir le d&#233;veloppement de l'app</div></div>
+      </div>
+      <span class="s-row-arr">&#8250;</span>
+    </div>
   </section>
 
   <!-- ════════ MODAL MODIFIER PROFIL ════════ -->
@@ -1876,6 +1883,23 @@ window.APP_VERSION = '5.120';
         <textarea id="contactMessage" rows="5" placeholder="D&#233;cris ta question, ton bug ou ton id&#233;e..." style="margin-top:5px;width:100%;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;box-sizing:border-box;outline:none;resize:vertical;font-family:inherit"></textarea>
       </div>
       <button id="contactSendBtn" onclick="sendContactMessage()" style="width:100%;padding:14px;background:var(--accent2);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer">Envoyer &#8594;</button>
+    </div>
+  </div>
+
+  <!-- ════════ MODAL FAIRE UN DON (v5.121) ════════ -->
+  <div id="donationModal" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.55);align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeDonationModal()">
+    <div style="background:var(--bg);border-radius:22px 22px 0 0;padding:28px 20px 36px;width:100%;max-width:480px;animation:slideUp .25s ease">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
+        <span style="font-size:17px;font-weight:700;color:var(--text)">&#9749; Faire un don</span>
+        <button onclick="closeDonationModal()" style="background:none;border:none;font-size:22px;color:var(--sub);cursor:pointer">&#10005;</button>
+      </div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.5">RescueBudget est gratuit et le restera. Si l'app t'aide au quotidien, un petit coup de pouce est toujours appr&#233;ci&#233; &#8212; mais jamais obligatoire !</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+        <button onclick="donate(2)" style="padding:16px 8px;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:16px;font-weight:700;cursor:pointer">2 &#8364;</button>
+        <button onclick="donate(5)" style="padding:16px 8px;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:16px;font-weight:700;cursor:pointer">5 &#8364;</button>
+        <button onclick="donate(10)" style="padding:16px 8px;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:16px;font-weight:700;cursor:pointer">10 &#8364;</button>
+      </div>
+      <button onclick="donate()" style="width:100%;padding:12px;background:none;border:1px solid var(--border);border-radius:12px;color:var(--text2);font-size:14px;font-weight:600;cursor:pointer">Autre montant &#8594;</button>
     </div>
   </div>
 
@@ -2990,6 +3014,26 @@ async function sendContactMessage(){
   }finally{
     if(btn){ btn.disabled = false; btn.textContent = 'Envoyer →'; }
   }
+}
+
+// ═══════════════════════════════════════════════════
+// FAIRE UN DON (v5.121) — lien externe PayPal.me, aucun serveur impliqué
+// ═══════════════════════════════════════════════════
+function openDonationModal(){
+  var m = document.getElementById('donationModal');
+  if(m){ m.style.display='flex'; }
+}
+function closeDonationModal(){
+  var m = document.getElementById('donationModal');
+  if(m) m.style.display='none';
+}
+// amount optionnel : PayPal.me accepte /ironcade/<montant> pour prérégler la
+// somme, mais la personne peut toujours la modifier avant d'envoyer — ce ne
+// sont que des suggestions, jamais une contrainte. Sans montant (bouton
+// "Autre montant"), on ouvre le lien nu et elle choisit librement.
+function donate(amount){
+  var url = amount ? ('https://paypal.me/ironcade/'+amount) : 'https://paypal.me/ironcade';
+  window.open(url, '_blank', 'noopener');
 }
 
 // ═══════════════════════════════════════════════════
