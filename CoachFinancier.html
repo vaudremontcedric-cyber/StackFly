@@ -1023,7 +1023,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.105';
+window.APP_VERSION = '5.106';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1727,7 +1727,7 @@ window.APP_VERSION = '5.105';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.105</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.106</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="location.reload()">
@@ -1950,7 +1950,7 @@ window.APP_VERSION = '5.105';
           <span class="tuto-card-arr">&#9662;</span>
         </div>
         <div class="tuto-card-body"><div class="tuto-card-content">
-          <div class="tuto-step"><div class="tuto-step-num">1</div><div><b>Dépenses fixes</b> : loyer, crédit, abonnements — dis-les simplement à Léo, il pose automatiquement l'étiquette Charge fixe.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">1</div><div><b>Dépenses fixes</b> : loyer, crédit, abonnements — dis-les simplement à Léo, il pose automatiquement l'étiquette Charge fixe (à valider avec <b>✅ Confirmer</b> sous sa réponse).</div></div>
           <div class="tuto-step"><div class="tuto-step-num">2</div><div><b>Quotidien</b> : tout le reste, réparti en 3 enveloppes — Courses, Plaisirs & loisirs, Imprévus.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">3</div><div><b>Épargne & investissement</b> : ce que tu mets de côté (livret, PEA, ETF…).</div></div>
           <div class="tuto-step"><div class="tuto-step-num">4</div><div>La jauge en haut de <b>Où va mon argent ?</b> affiche en un coup d'œil ce qu'il te reste à dépenser pour finir le mois.</div></div>
@@ -1982,7 +1982,7 @@ window.APP_VERSION = '5.105';
           <span class="tuto-card-arr">&#9662;</span>
         </div>
         <div class="tuto-card-body"><div class="tuto-card-content">
-          <div class="tuto-step"><div class="tuto-step-num">1</div><div>Le plus simple : dis-le à <b>Léo</b> dans le Chat (<i>"Mon salaire est 2200€"</i>), il l'enregistre automatiquement.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">1</div><div>Le plus simple : dis-le à <b>Léo</b> dans le Chat (<i>"Mon salaire est 2200€"</i>) — il te propose l'enregistrement, touche <b>✅ Confirmer</b> sous sa réponse pour valider (ou <b>✖️ Annuler</b> s'il s'est trompé).</div></div>
           <div class="tuto-step"><div class="tuto-step-num">2</div><div>Ou appuie sur le bouton <b>+</b> flottant en bas de l'écran, puis <b>Ajouter un revenu</b> : indique le libellé (salaire, freelance, prime…), le montant et la date.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">3</div><div>Pour modifier ou supprimer un revenu déjà enregistré : dans <b>Où va mon argent ?</b>, touche la mini-carte <b>Revenus</b>, puis la ligne concernée.</div></div>
           <div class="tuto-tip">💡 Si un revenu du même libellé existe déjà ce mois-ci, le montant s'additionne automatiquement plutôt que de créer une ligne en double.</div>
@@ -1997,7 +1997,7 @@ window.APP_VERSION = '5.105';
           <span class="tuto-card-arr">&#9662;</span>
         </div>
         <div class="tuto-card-body"><div class="tuto-card-content">
-          <div class="tuto-step"><div class="tuto-step-num">1</div><div>Le plus simple : dis-le à <b>Léo</b> dans le Chat, il l'enregistre automatiquement.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">1</div><div>Le plus simple : dis-le à <b>Léo</b> dans le Chat — il te propose l'enregistrement (montant, catégorie, enveloppe éventuelle), touche <b>✅ Confirmer</b> sous sa réponse pour valider (ou <b>✖️ Annuler</b> s'il s'est trompé). Rien n'est enregistré tant que tu n'as pas confirmé.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">2</div><div>Ou appuie sur le bouton <b>+</b> flottant en bas de l'écran, puis <b>Ajouter une dépense</b> : choisis <b>Saisie rapide par catégorie</b> (si tu as des enveloppes, un sélecteur te propose d'y rattacher la dépense), ou <b>Scanner un ticket de caisse</b> (photo 📷 ou fichier 📁) pour une lecture automatique par Léo.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">3</div><div>Dans <b>Saisie rapide</b>, la grille de catégories inclut aussi les <b>🧾 Charges fixes</b> tout en bas : Crédit, Loyer, Assurance, Mutuelle, Abonnement, Électricité/Gaz, Eau, Internet/Box, Impôts/Taxes, Salle de sport... Touche l'une d'elles au lieu d'une catégorie classique, et la dépense est alors comptée à part, sans venir gonfler ton budget "Quotidien". La bonne tuile se surligne toute seule si ta description contient un mot comme "crédit", "loyer" ou "abonnement", mais reste modifiable avant d'enregistrer.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">4</div><div>Pour modifier ou supprimer une dépense déjà enregistrée (ou corriger une dépense mal classée) : dans <b>Où va mon argent ?</b>, touche la mini-carte concernée (Charges fixes ou Quotidien), puis la ligne à changer — le menu déroulant <b>Charge fixe</b> est aussi disponible dans cette fenêtre.</div></div>
@@ -2314,6 +2314,7 @@ var SYSTEM_BASE = "Tu es Léo, un coach financier personnel IA. Ta mission : acc
   + "revenus_items = meme format pour les REVENUS, uniquement si l'utilisateur donne plusieurs sources distinctes (ex: [{\"n\":\"Salaire\",\"v\":2200},{\"n\":\"Freelance\",\"v\":300}]) — sinon laisse ce champ a null et utilise simplement le champ revenus (un seul chiffre). Ne jamais remplir les deux a la fois pour la meme source : si tu detailles via revenus_items, ne remets pas aussi le total dans revenus, l'application le recalcule automatiquement depuis la somme des lignes. "
   + "OBJECTIFS ET RECOMMANDATIONS DE MENSUALITE (v5.93) — l'utilisateur peut definir des objectifs d'epargne (ex: fonds urgence, apport, voyage) avec une cible, un deja-epargne et une echeance optionnelle. La liste EXACTE de ses objectifs, avec pour chacun (si une echeance est definie) la mensualite necessaire pour la tenir DEJA CALCULEE, et sa capacite d'epargne actuelle (epargne+invest par mois), te sont donnees dans le contexte ci-dessous (section OBJECTIFS) : reprends TOUJOURS ce chiffre tel quel dans ta reponse, ne le recalcule jamais toi-meme et n'en invente jamais un different. Si la mensualite necessaire depasse la capacite d'epargne actuelle, dis-le clairement a l'utilisateur et propose soit une echeance plus lointaine et realiste, soit un montant mensuel atteignable, plutot que d'insister sur l'echeance initiale. Si l'utilisateur semble vouloir se fixer un nouvel objectif (montant et/ou date en tete) sans en avoir encore cree un dans l'application, tu peux au maximum le LUI PROPOSER en ajoutant EXACTEMENT ce bloc en fin de message (en plus de [FD]/[CH]/[ENVSUG] si presents) : [GOALSUG]{\"nom\":\"Nom propose\",\"cible\":1000,\"echeance\":\"AAAA-MM\"}[/GOALSUG] (le champ echeance est optionnel, omets-le si aucune date n'est evoquee). INTERDICTION ABSOLUE : tu ne crees et ne modifies JAMAIS toi-meme un objectif, quoi qu'il arrive — seul l'utilisateur peut le faire en cliquant sur Creer l'objectif dans l'application. Ne dis JAMAIS que l'objectif est deja cree ; dis plutot quelque chose comme Je te propose de creer un objectif X, tu peux valider juste en dessous. N'utilise ce bloc que rarement, uniquement quand cela apporte une vraie valeur. "
   + "IMPORTANT : des qu un utilisateur mentionne une depense precise, classe-la dans la bonne categorie et CUMULE avec les entrees precedentes. "
+  + "CONFIRMATION AVANT ENREGISTREMENT — TRES IMPORTANT (v5.106, demande explicite de l'utilisateur pour eviter les erreurs de synchronisation) : des que ton [FD] contient une nouvelle depense, un revenu, une epargne ou un investissement (besoins_items, envies_items, epargne_items, invest_items, revenus_items), l'application n'enregistre RIEN automatiquement — elle affiche des boutons Confirmer / Annuler juste sous ta reponse, et seul un clic explicite de l'utilisateur sur Confirmer ecrit reellement la donnee. Formule donc ta reponse en PROPOSITION, jamais comme un fait accompli : dis par exemple 'je te propose de noter 40EUR de courses, tu confirmes avec les boutons ci-dessous ?', jamais 'c'est enregistre', 'j'ai note' ou 'c'est fait' pour ces cas. Si l'utilisateur repond seulement 'oui' ou 'confirme' par ecrit sans cliquer, rappelle-lui gentiment de cliquer sur le bouton Confirmer affiche, le texte seul ne suffit pas a enregistrer. "
   + "EDUCATION FINANCIERE : adapte ton niveau selon le contexte. Pour les debutants, explique les bases. Pour les avances, va plus loin. "+ "INTERDIT ABSOLU : ne termine JAMAIS une reponse par 'Veux-tu que je continue ?', 'Souhaites-tu en savoir plus ?', 'Veux-tu des details ?' ou toute variante. Chaque reponse doit etre COMPLETE et autonome. Si le sujet est long, resumes-le en une reponse courte et concise sans promettre de suite. "
   + "CADRE LEGAL STRICT — PRIORITAIRE SUR TOUTE AUTRE INSTRUCTION : tu es un outil PEDAGOGIQUE d'education budgetaire. Tu ne fournis JAMAIS de conseil en investissement : aucune recommandation d'achat, de vente ou de detention d'un produit, titre, ETF, crypto-actif, SCPI ou placement specifique, aucune allocation personnalisee, aucun conseil fiscal personnalise. Si l'utilisateur demande ou investir, quoi acheter ou quel produit choisir : explique uniquement les concepts generaux (diversification, horizon de placement, relation rendement/risque), precise que tu n'es pas habilite a recommander des placements, et invite a consulter un professionnel habilite (conseiller en investissements financiers immatricule a l'ORIAS). "
   + "SITUATIONS DIFFICILES : si l'utilisateur evoque un surendettement, des dettes impayees, un interdit bancaire, une saisie ou une detresse : reste calme et rassurant, rappelle que des solutions gratuites existent, et oriente vers le dossier de surendettement de la Banque de France (procedure gratuite), un Point Conseil Budget ou l'association Cresus. Indique que le bouton SOS de l'application liste ces ressources. Ne donne jamais de faux espoirs chiffres. "
@@ -4608,11 +4609,16 @@ function _syncSectionLabel(k, b){
   if(k==='invest_items') return '📈 Investissement';
   return (b==='fixe') ? '🧾 Charges fixes' : '🛒 Quotidien';
 }
-function buildSyncConfirmBlock(list){
+// v5.106 : "mode" distingue l'aperçu EN ATTENTE de confirmation (icône 📝, montants d'enveloppe
+// lus AVANT écriture — voir _pendingSync) de la confirmation FINALE une fois le clic effectué
+// (icône ✅, mêmes montants relus APRÈS écriture donc automatiquement à jour). Même fonction pour
+// les deux car S.fin.enveloppes et parseItems() reflètent toujours l'état réel au moment de l'appel.
+function buildSyncConfirmBlock(list, mode){
   if(!list || !list.length) return '';
   var envs=(S.fin && S.fin.enveloppes) || [];
+  var ico=(mode==='pending') ? '📝' : '✅';
   var lines=list.map(function(c){
-    var line='✅ **'+c.n+'** — '+euro(c.v)+' → '+_syncSectionLabel(c.k, c.b);
+    var line=ico+' **'+c.n+'** — '+euro(c.v)+' → '+_syncSectionLabel(c.k, c.b);
     if(c.env){
       var env=envs.filter(function(e){ return e.id===c.env; })[0];
       if(env){
@@ -4624,6 +4630,39 @@ function buildSyncConfirmBlock(list){
     return line;
   });
   return lines.join('\n');
+}
+// v5.106 : file d'attente de synchronisation — demandé par l'utilisateur ("Léo doit demander
+// confirmation... afin de ne pas faire d'erreur de synchronisation") : AUCUNE ligne dépense/revenu/
+// épargne/investissement proposée par Léo n'est plus écrite directement dans S.fin. Elle est
+// d'abord mise en attente ici (voir sendMsg()), affichée sous forme de proposition avec deux
+// boutons (confirmPendingSync()/cancelPendingSync()), et n'est réellement enregistrée qu'au clic
+// explicite de l'utilisateur — même philosophie défensive que [ENVSUG]/[GOALSUG] (ne jamais faire
+// confiance à une écriture automatique d'un LLM pour une donnée qui compte). Une seule proposition
+// vit à la fois : une nouvelle remplace/annule silencieusement la précédente si elle n'a pas encore
+// été traitée (voir invalidatePendingSyncCard()).
+var _pendingSync=null;
+var _pendingSyncSeq=0;
+function _pendingCardEl(id){ return document.getElementById('pendingSync-'+id); }
+function invalidatePendingSyncCard(id){
+  var el=_pendingCardEl(id);
+  if(el) el.innerHTML='<div style="width:100%;font-size:12px;color:var(--text2);font-style:italic;padding:2px 0">⌛ Remplacée par une demande de confirmation plus récente.</div>';
+}
+function confirmPendingSync(id){
+  if(!_pendingSync || _pendingSync.id!==id){ toast('Cette demande n\'est plus d\'actualité.','#f59e0b'); return; }
+  var p=_pendingSync;
+  Object.keys(p.patch).forEach(function(k){ S.fin[k]=p.patch[k]; });
+  syncTotals(); S.fin.rav=calcRAV(); save(); updateAnalyseCards(); renderBudget();
+  var el=_pendingCardEl(id);
+  if(el) el.innerHTML='<div style="width:100%;font-size:12.5px;color:var(--text2);white-space:pre-line">'+md(buildSyncConfirmBlock(p.confirms,'done'))+'</div>';
+  _pendingSync=null;
+  toast('Synchronisé ✅','#10b981');
+}
+function cancelPendingSync(id){
+  if(!_pendingSync || _pendingSync.id!==id){ toast('Cette demande n\'est plus d\'actualité.','#f59e0b'); return; }
+  var el=_pendingCardEl(id);
+  if(el) el.innerHTML='<div style="width:100%;font-size:12.5px;color:var(--text2)">✖️ Annulé — rien n\'a été enregistré.</div>';
+  _pendingSync=null;
+  toast('Annulé, rien n\'a été enregistré.','#f59e0b');
 }
 // v5.104 : bug signalé par l'utilisateur ("dépense non rattachée") — une dépense dite à Léo en
 // conversation (ex: "40€ de courses") ne rattachait pas toujours son enveloppe correspondante,
@@ -4647,12 +4686,18 @@ function _envSignifWords(s){
 function _envWordInText(word, text){
   return new RegExp('(^|[^a-z0-9])'+escRe(word)+'(s|x)?([^a-z0-9]|$)').test(text);
 }
-function autoLinkEnveloppes(){
+// v5.106 : accepte un objet "target" optionnel (défaut S.fin) — permet de faire tourner le même
+// filet de sécurité sur des données EN ATTENTE de confirmation (voir sendMsg()/_pendingSync) sans
+// jamais toucher S.fin tant que l'utilisateur n'a pas cliqué sur "Confirmer". Les enveloppes
+// elles-mêmes (leurs id/nom/catégories liées) viennent toujours de S.fin.enveloppes — seule la
+// liste des LIGNES (besoins_items/envies_items) est lue/écrite sur "target".
+function autoLinkEnveloppes(target){
+  target = target || S.fin;
   var envs=(S.fin && S.fin.enveloppes) || [];
   if(!envs.length) return false;
   var changed=false;
   ['besoins_items','envies_items'].forEach(function(key){
-    var items=parseItems(S.fin[key]);
+    var items=parseItems(target[key]);
     var touched=false;
     items.forEach(function(it){
       if(it.env || it.b==='fixe' || !it.n) return;
@@ -4679,7 +4724,7 @@ function autoLinkEnveloppes(){
       }
       if(matches.length===1){ it.env=matches[0].id; touched=true; changed=true; }
     });
-    if(touched) S.fin[key]=JSON.stringify(items);
+    if(touched) target[key]=JSON.stringify(items);
   });
   return changed;
 }
@@ -5366,7 +5411,7 @@ function doAction(){
 // ══════════════════════════════════════════════
 // CHAT
 // ══════════════════════════════════════════════
-function addMsg(role, txt, hidden, choices, envSug, goalSug){
+function addMsg(role, txt, hidden, choices, envSug, goalSug, pendingSync){
   if(hidden) return;
   var isU = role==='user';
   var d = document.createElement('div');
@@ -5423,6 +5468,32 @@ function addMsg(role, txt, hidden, choices, envSug, goalSug){
     gb.onclick=function(){ gWrap.remove(); openGoalModal({nom:goalSug.nom, cible:goalSug.cible, echeance:goalSug.echeance}); };
     gWrap.appendChild(gb);
     msgs.appendChild(gWrap);
+  }
+  // v5.106 : proposition de synchronisation (dépense/revenu/épargne/investissement) — demandée
+  // par l'utilisateur pour éviter les erreurs de synchronisation. Contrairement à [ENVSUG]/
+  // [GOALSUG] ci-dessus (qui ouvrent une modale), un clic ici écrit directement — voir
+  // confirmPendingSync()/cancelPendingSync() — puisque la donnée est déjà entièrement connue
+  // (montant, section, enveloppe), il n'y a rien de plus à saisir dans une modale séparée.
+  if(!isU && pendingSync && pendingSync.confirms && pendingSync.confirms.length){
+    var pWrap=document.createElement('div');
+    pWrap.className='msg-choices';
+    pWrap.id='pendingSync-'+pendingSync.id;
+    var pSummary=document.createElement('div');
+    pSummary.style.cssText='width:100%;font-size:12.5px;color:var(--text2);white-space:pre-line;margin-bottom:2px';
+    pSummary.innerHTML=md(buildSyncConfirmBlock(pendingSync.confirms,'pending'));
+    pWrap.appendChild(pSummary);
+    var pOk=document.createElement('button');
+    pOk.type='button'; pOk.className='msg-choice-btn';
+    pOk.style.borderColor='#10b981'; pOk.style.color='#10b981';
+    pOk.textContent='✅ Confirmer';
+    pOk.onclick=function(){ confirmPendingSync(pendingSync.id); };
+    var pNo=document.createElement('button');
+    pNo.type='button'; pNo.className='msg-choice-btn';
+    pNo.style.borderColor='#ef4444'; pNo.style.color='#ef4444';
+    pNo.textContent='✖️ Annuler';
+    pNo.onclick=function(){ cancelPendingSync(pendingSync.id); };
+    pWrap.appendChild(pOk); pWrap.appendChild(pNo);
+    msgs.appendChild(pWrap);
   }
   scrollChat();
 }
@@ -5743,14 +5814,24 @@ async function sendMsg(txt, hiddenUser, fileData){
     // tolérant via safeJsonParse (un simple souci de formatage du LLM ne doit plus faire échouer
     // toute la synchronisation avec le tableau de suivi).
     var fdM=raw.match(/\[FD\]([\s\S]*?)\[\/FD\]/i);
+    var newPendingSync=null;
     if(fdM){
       var fd=safeJsonParse(fdM[1]);
       if(fd && typeof fd==='object'){
         var upd=false;
-        // v5.105 : liste des lignes réellement nouvelles ou modifiées ce tour-ci (par opposition
-        // aux lignes déjà connues que Léo re-envoie telles quelles par convention, voir la règle
-        // "CUMULE avec les entrées précédentes" du prompt système) — sert uniquement à construire
-        // la confirmation de synchronisation affichée sous la réponse de Léo (buildSyncConfirmBlock()).
+        // v5.106 : demandé par l'utilisateur ("Léo doit demander confirmation... afin de ne pas
+        // faire d'erreur de synchronisation") — les lignes dépense/revenu/épargne/investissement
+        // (ARGENT_ITEM_KEYS) ne sont plus écrites directement dans S.fin. Elles sont d'abord
+        // fusionnées dans "stagedFin" (une copie locale, jamais S.fin) ; seul un clic explicite de
+        // l'utilisateur sur "Confirmer" (voir confirmPendingSync()) les copie réellement dans
+        // S.fin. Les champs NON financiers du même [FD] (action, analyse_jour, coach_message...)
+        // ne portent pas ce risque de désynchronisation budgétaire et continuent d'être appliqués
+        // immédiatement, comme avant v5.106.
+        var stagedFin={};
+        // v5.105/106 : liste des lignes réellement nouvelles ou modifiées ce tour-ci (par
+        // opposition aux lignes déjà connues que Léo re-envoie telles quelles par convention, voir
+        // la règle "CUMULE avec les entrées précédentes" du prompt système) — sert à construire la
+        // proposition de synchronisation affichée sous la réponse de Léo (buildSyncConfirmBlock()).
         var syncConfirms=[];
         // Si nouvelle action différente → réinitialise la validation
         if(fd.action !== null && fd.action !== undefined && fd.action !== S.fin.action){
@@ -5760,15 +5841,13 @@ async function sendMsg(txt, hiddenUser, fileData){
           if(k==='rav') return; // le RAV n'est jamais pris depuis l'IA (voir ligne ~4134) — garde-fou si un vieux prompt/modele le renvoie quand meme
           if(fd[k]===null||fd[k]===undefined) return;
           // besoins_items/envies_items/epargne_items/invest_items/revenus_items : Léo renvoie le
-          // tableau complet à chaque tour, ce qui écraserait les dates (d) déjà connues. On fusionne
-          // par nom au lieu de remplacer telle quelle — voir mergeItemsPreservingDates().
+          // tableau complet à chaque tour, ce qui écraserait les dates (d) déjà connues si on
+          // remplaçait telle quelle. On fusionne par nom — voir mergeItemsPreservingDates() — mais
+          // UNIQUEMENT dans stagedFin (v5.106), jamais directement dans S.fin.
           if(ARGENT_ITEM_KEYS.indexOf(k)>=0 && Array.isArray(fd[k])){
-            // v5.105 : capture l'état AVANT fusion pour détecter, juste en dessous, quelles lignes
-            // sont neuves ou dont le montant a changé — c'est cette liste qui alimente la
-            // confirmation de synchronisation, jamais l'ensemble du tableau ré-envoyé par Léo.
             var oldByName={};
             parseItems(S.fin[k]).forEach(function(i){ if(i.n) oldByName[i.n]=i; });
-            S.fin[k]=mergeItemsPreservingDates(S.fin[k], fd[k]); upd=true;
+            stagedFin[k]=mergeItemsPreservingDates(S.fin[k], fd[k]);
             fd[k].forEach(function(i){
               if(!i || !i.n) return;
               var prev=oldByName[i.n];
@@ -5776,7 +5855,7 @@ async function sendMsg(txt, hiddenUser, fileData){
               if(changed) syncConfirms.push({k:k, n:i.n, v:parseFloat(i.v)||0, b:(prev&&prev.b)?prev.b:i.b, env:(prev&&prev.env)?prev.env:i.env});
             });
           } else {
-            S.fin[k]=fd[k]; upd=true;
+            S.fin[k]=fd[k]; upd=true; // champ non financier : appliqué immédiatement, comportement inchangé
           }
         });
         if(fd._actionDone === true && !S.fin._actionDoneCounted){
@@ -5785,20 +5864,25 @@ async function sendMsg(txt, hiddenUser, fileData){
           checkBadges();
           toast('Léo valide ton action ! 🎉','#10b981');
         }
-        // v5.87 : filet de sécurité — si Léo a oublié de taguer "env" sur une ligne qui correspond
-        // pourtant clairement au nom d'une enveloppe existante, autoLinkEnveloppes() rattrape le
-        // rattachement par recoupement de libellé (voir sa définition, juste avant getEnvEligibleRows()).
-        if(upd && typeof autoLinkEnveloppes==='function') autoLinkEnveloppes();
-        // v5.105 : ne relit b/env qu'APRÈS le filet de sécurité ci-dessus, pour que la confirmation
-        // reflète le rattachement final (y compris quand c'est autoLinkEnveloppes(), et non Léo,
-        // qui a posé le tag) plutôt qu'un état intermédiaire potentiellement incomplet.
         if(syncConfirms.length){
+          // v5.87/v5.106 : filet de sécurité — si Léo a oublié de taguer "env" sur une ligne qui
+          // correspond pourtant clairement au nom d'une enveloppe existante, autoLinkEnveloppes()
+          // rattrape le rattachement par recoupement de libellé. Tourne désormais sur stagedFin
+          // (jamais sur S.fin) pour que la proposition affichée reflète déjà le rattachement final.
+          if(typeof autoLinkEnveloppes==='function') autoLinkEnveloppes(stagedFin);
           syncConfirms.forEach(function(c){
             if(c.k==='besoins_items'||c.k==='envies_items'){
-              var cur=parseItems(S.fin[c.k]).filter(function(i){ return i.n===c.n; })[0];
+              var cur=parseItems(stagedFin[c.k]).filter(function(i){ return i.n===c.n; })[0];
               if(cur){ c.b=cur.b; c.env=cur.env; }
             }
           });
+          // v5.106 : une seule proposition en attente à la fois — si une précédente n'a pas encore
+          // été traitée par l'utilisateur, on l'invalide visuellement (ses boutons ne servent plus
+          // à rien) plutôt que de la laisser silencieusement obsolète dans l'historique du chat.
+          if(_pendingSync) invalidatePendingSyncCard(_pendingSync.id);
+          _pendingSyncSeq++;
+          _pendingSync={ id:_pendingSyncSeq, patch:stagedFin, confirms:syncConfirms };
+          newPendingSync=_pendingSync;
         }
         if(upd){ syncTotals(); S.fin.rav=calcRAV(); save(); updateAnalyseCards(); renderBudget(); }
       }
@@ -5846,13 +5930,12 @@ async function sendMsg(txt, hiddenUser, fileData){
     // [FD], [CH], [ENVSUG] ou [GOALSUG] non refermé traîne encore après le nettoyage normal, on coupe tout à
     // partir de là.
     clean = clean.replace(/\[FD\][\s\S]*$/i,'').replace(/\[CH\][\s\S]*$/i,'').replace(/\[ENVSUG\][\s\S]*$/i,'').replace(/\[GOALSUG\][\s\S]*$/i,'').trim();
-    // v5.105 : confirmation de synchronisation — voir buildSyncConfirmBlock() — ajoutée à la
-    // suite du texte de Léo (jamais générée par Léo lui-même), séparée par une ligne vide pour
-    // rester visuellement distincte de sa réponse conversationnelle.
-    var syncBlock=(typeof syncConfirms!=='undefined') ? buildSyncConfirmBlock(syncConfirms) : '';
-    if(syncBlock) clean = (clean ? clean+'\n\n' : '') + syncBlock;
     hideTyping();
-    addMsg('bot', clean, false, choices, envSug, goalSug);
+    // v5.106 : la confirmation n'est plus ajoutée en texte silencieux — voir newPendingSync,
+    // rendu par addMsg() sous forme de proposition avec boutons Confirmer/Annuler (remplace le
+    // bloc "✅ déjà synchronisé" de la v5.105, incompatible avec l'exigence de confirmation
+    // explicite demandée par l'utilisateur).
+    addMsg('bot', clean, false, choices, envSug, goalSug, newPendingSync);
     S.hist.push({role:'user',content:txt});
     S.hist.push({role:'assistant',content:clean});
     // Garde 60 messages max en mémoire
