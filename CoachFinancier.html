@@ -937,6 +937,10 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 .txn-cat.sel{border-color:var(--accent);background:rgba(13,148,136,.15)}
 .txn-cat-ico{font-size:20px}
 .txn-cat-lbl{font-size:10px;color:var(--text2)}
+/* v5.103 : intitulé "🧾 Charges fixes" entre les catégories variables et les tuiles fusionnées —
+   grid-column:1/-1 lui fait prendre toute la largeur des 4 colonnes, comme un séparateur. */
+.txn-cat-divider{grid-column:1/-1;font-size:11px;font-weight:700;color:var(--text2);
+  padding:6px 2px 0;margin-top:2px;border-top:1px solid var(--border)}
 
 /* ════ LOGIN / REGISTER PAGE ════ */
 #pg-login{align-items:center;justify-content:center;padding:32px 24px;background:var(--bg);overflow-y:auto}
@@ -1019,7 +1023,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.102';
+window.APP_VERSION = '5.103';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1723,7 +1727,7 @@ window.APP_VERSION = '5.102';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.102</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.103</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="location.reload()">
@@ -1995,7 +1999,7 @@ window.APP_VERSION = '5.102';
         <div class="tuto-card-body"><div class="tuto-card-content">
           <div class="tuto-step"><div class="tuto-step-num">1</div><div>Le plus simple : dis-le à <b>Léo</b> dans le Chat, il l'enregistre automatiquement.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">2</div><div>Ou appuie sur le bouton <b>+</b> flottant en bas de l'écran, puis <b>Ajouter une dépense</b> : choisis <b>Saisie rapide par catégorie</b> (si tu as des enveloppes, un sélecteur te propose d'y rattacher la dépense), ou <b>Scanner un ticket de caisse</b> (photo 📷 ou fichier 📁) pour une lecture automatique par Léo.</div></div>
-          <div class="tuto-step"><div class="tuto-step-num">3</div><div>Dans <b>Saisie rapide</b>, choisis le type dans le menu <b>🧾 Charge fixe</b> : Crédit, Loyer, Assurance, Mutuelle, Abonnement, Électricité/Gaz, Eau, Internet/Box, Impôts/Taxes, Salle de sport... La dépense est alors comptée à part et ne vient plus gonfler ton budget "Quotidien". Le menu se présélectionne tout seul si ton libellé contient un mot comme "crédit", "loyer" ou "abonnement", mais reste modifiable avant d'enregistrer.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">3</div><div>Dans <b>Saisie rapide</b>, la grille de catégories inclut aussi les <b>🧾 Charges fixes</b> tout en bas : Crédit, Loyer, Assurance, Mutuelle, Abonnement, Électricité/Gaz, Eau, Internet/Box, Impôts/Taxes, Salle de sport... Touche l'une d'elles au lieu d'une catégorie classique, et la dépense est alors comptée à part, sans venir gonfler ton budget "Quotidien". La bonne tuile se surligne toute seule si ta description contient un mot comme "crédit", "loyer" ou "abonnement", mais reste modifiable avant d'enregistrer.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">4</div><div>Pour modifier ou supprimer une dépense déjà enregistrée (ou corriger une dépense mal classée) : dans <b>Où va mon argent ?</b>, touche la mini-carte concernée (Charges fixes ou Quotidien), puis la ligne à changer — le menu déroulant <b>Charge fixe</b> est aussi disponible dans cette fenêtre.</div></div>
           <div class="tuto-tip">💡 Toutes tes dépenses, quelle que soit la méthode, apparaissent au même endroit : Où va mon argent ?</div>
         </div></div>
@@ -2103,27 +2107,25 @@ window.APP_VERSION = '5.102';
 
 <!-- Modal Transaction rapide -->
 <div class="ov" id="ovTxn" onclick="if(event.target===this)closeTxnModal()">
-  <div class="modal">
+  <!-- v5.103 : max-height + overflow-y:auto ajoutés en fusionnant les tuiles de charges fixes
+       dans la grille (voir renderTxnCats()) — sans ça, le contenu (déjà bien rempli avant même
+       l'ajout de 11 tuiles) risquait de dépasser la hauteur de l'écran sur les petits mobiles,
+       avec le même défaut que la bulle d'info corrigée en v5.102 : rien pour faire défiler ni
+       pour atteindre le bas du formulaire (montant, boutons). -->
+  <div class="modal" style="max-height:88vh;overflow-y:auto">
     <div class="modal-drag"></div>
     <div class="modal-title">Dépense rapide</div>
     <div id="txnSectionBadge" class="txn-section-badge txn-section-envies">🎉 Envie</div>
     <!-- Contenu généré par renderTxnCats() (v5.64) : évite la duplication manuelle des SVG/couleurs,
          qui avait dérivé d'ARGENT_ICON_PATHS (ex: Épargne montrait encore l'ancien bouclier après
-         la mise à jour v5.63 de son icône ailleurs dans l'app). -->
+         la mise à jour v5.63 de son icône ailleurs dans l'app). v5.103 : inclut désormais aussi les
+         tuiles "Charges fixes" (fusionnées à la demande de l'utilisateur — remplace le menu
+         déroulant séparé des v5.97/v5.102, voir FIXED_CHARGE_TYPES et selTxnFixedCat() plus bas). -->
     <div class="txn-cats" id="txnCats"></div>
     <div class="m-lbl">Montant (&#8364;)</div>
     <input class="m-in" id="txnAmt" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" style="font-size:24px;text-align:center;font-weight:700" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();saveTxn();}"/>
     <div class="m-lbl">Description (optionnel)</div>
     <input class="m-in" id="txnDesc" placeholder="Ex: D&#233;jeuner avec Paul" maxlength="60" oninput="refreshTxnFixeGuess()"/>
-    <!-- v5.97 : menu déroulant "Charge fixe" — remplace le toggle simple de la v5.96, à la demande
-         de l'utilisateur (liste complète des types de charges fixes les plus courants, pas juste
-         une case à cocher). Options générées par renderTxnFixeOptions() depuis FIXED_CHARGE_TYPES.
-         Présélectionné automatiquement quand la description contient un mot-clé connu (voir
-         detectFixedChargeType()/refreshTxnFixeGuess()), toujours modifiable avant d'enregistrer.
-         Masque le sélecteur d'enveloppe quand un type est choisi (charges fixes non éligibles aux
-         enveloppes, voir getEnvEligibleRows()). -->
-    <div class="m-lbl">🧾 Charge fixe (optionnel)</div>
-    <select class="m-in" id="txnFixeType" onchange="onTxnFixeTypeChange()"></select>
     <!-- v5.83 : sélecteur d'enveloppe — corrige le bug signalé par l'utilisateur (une dépense
          ajoutée ici n'était jamais déduite de son enveloppe). Masqué pour Épargne/Investiss. et pour
          les charges fixes (v5.96), qui ne sont pas éligibles aux enveloppes (voir
@@ -3381,10 +3383,11 @@ function closeEditArgentItem(){
   var m=document.getElementById('ovEditArgent'); if(m) m.classList.remove('open');
   _editArgKey=null; _editArgIdx=null;
 }
-// v5.97 : menu déroulant "Charge fixe" de la fenêtre Modifier la ligne — contrairement au menu de
-// la Dépense rapide (setTxnFixeType()), ici repasser sur "Aucune" EFFACE bien le tag "fixe"
-// existant : cette fenêtre est un éditeur complet d'une ligne déjà connue (pas une saisie/fusion),
-// donc l'action de l'utilisateur est toujours explicite et doit être respectée telle quelle.
+// v5.97 : menu déroulant "Charge fixe" de la fenêtre Modifier la ligne — contrairement aux tuiles
+// fusionnées de la Dépense rapide (v5.103, voir selTxnFixedCat()), ici repasser sur "Aucune"
+// EFFACE bien le tag "fixe" existant : cette fenêtre est un éditeur complet d'une ligne déjà
+// connue (pas une saisie/fusion), donc l'action de l'utilisateur est toujours explicite et doit
+// être respectée telle quelle.
 var _editArgFixeType='';
 function setEditArgFixeType(val){
   _editArgFixeType=val||'';
@@ -3512,7 +3515,23 @@ var CAT_SECTION = {
   'Santé'    : 'besoins',
   'Épargne'  : 'epargne',
   'Investiss.': 'invest',
-  'Autre'    : 'envies'
+  'Autre'    : 'envies',
+  // v5.103 : tuiles de charges fixes fusionnées dans la grille (voir renderTxnCats()) — mêmes
+  // libellés que FIXED_CHARGE_TYPES une fois nettoyés du "(...)" final (voir fixedTypeShortLabel()).
+  // Toutes rangées en "besoins" par défaut : peu importe en pratique, puisque le tag b:"fixe"
+  // les exclut de toute façon du calcul Quotidien et des enveloppes (getFixedVariableSplit(),
+  // getEnvEligibleRows()), quelle que soit la section où la ligne est réellement stockée.
+  'Crédit'            : 'besoins',
+  'Loyer'             : 'besoins',
+  'Assurance'         : 'besoins',
+  'Mutuelle santé'    : 'besoins',
+  'Abonnement'        : 'besoins',
+  'Électricité / Gaz' : 'besoins',
+  'Eau'               : 'besoins',
+  'Internet / Box'    : 'besoins',
+  'Impôts / Taxes'    : 'besoins',
+  'Salle de sport'    : 'besoins',
+  'Autre charge fixe' : 'besoins'
 };
 var CAT_SECTION_LABEL = {
   besoins: '🏠 Besoin',
@@ -3520,10 +3539,19 @@ var CAT_SECTION_LABEL = {
   epargne: '💰 Épargne',
   invest : '📈 Investissement'
 };
+// v5.103 : _lastVarCat mémorise la dernière catégorie VARIABLE choisie (ou le défaut Resto),
+// distincte de _selTxnCat — sert à revenir dessus si la détection automatique de charge fixe
+// (voir refreshTxnFixeGuess()) perd sa correspondance après avoir surligné une tuile fixe, sans
+// perdre un choix de catégorie déjà fait explicitement par l'utilisateur avant de taper.
 var _selTxnCat={ico:'🍽️',name:'Resto'};
+var _lastVarCat={ico:'🍽️',name:'Resto'};
 function selTxnCat(el,ico,name){
   document.querySelectorAll('#txnCats .txn-cat').forEach(function(c){c.classList.remove('sel');});
-  el.classList.add('sel'); _selTxnCat={ico:ico,name:name};
+  el.classList.add('sel'); _selTxnCat={ico:ico,name:name}; _lastVarCat={ico:ico,name:name};
+  // v5.103 : choisir une catégorie variable est un geste explicite — comme pour une tuile de
+  // charge fixe (selTxnFixedCat()), il arrête définitivement la détection automatique par
+  // mot-clé pour cette ouverture du formulaire (même convention que _envEmojiAuto/_txnFixeAuto).
+  _txnFixeType=''; _txnFixeAuto=false;
   // Afficher la section dans le modal
   var section = CAT_SECTION[name] || 'envies';
   var badge = document.getElementById('txnSectionBadge');
@@ -3532,6 +3560,59 @@ function selTxnCat(el,ico,name){
     badge.className = 'txn-section-badge txn-section-'+section;
   }
   updateTxnEnvSelector(section, name);
+}
+// v5.103 : sélection d'une tuile "Charge fixe" fusionnée dans la grille (remplace le menu
+// déroulant #txnFixeType des v5.97/v5.102) — pose directement _selTxnCat ET _txnFixeType en un
+// seul geste, plus besoin d'un second contrôle après avoir choisi la catégorie. manual=true
+// (clic réel) arrête la détection automatique ; manual=false (appelé par
+// refreshTxnFixeGuess() quand la description tapée correspond à un mot-clé connu) la laisse
+// active, pour continuer à suivre ce que l'utilisateur tape ensuite.
+function selTxnFixedCat(el, value, manual){
+  if(manual===undefined) manual=true;
+  var t=FIXED_CHARGE_TYPES.filter(function(x){return x.value===value;})[0];
+  if(!t) return;
+  document.querySelectorAll('#txnCats .txn-cat').forEach(function(c){c.classList.remove('sel');});
+  if(el) el.classList.add('sel');
+  var lbl=fixedTypeShortLabel(t);
+  _selTxnCat={ico:t.ico,name:lbl};
+  _txnFixeType=value;
+  if(manual) _txnFixeAuto=false;
+  var section=CAT_SECTION[lbl]||'besoins';
+  var badge=document.getElementById('txnSectionBadge');
+  if(badge){
+    badge.textContent=CAT_SECTION_LABEL[section];
+    badge.className='txn-section-badge txn-section-'+section;
+  }
+  // Une charge fixe n'est jamais éligible aux enveloppes (getEnvEligibleRows()).
+  var wrap=document.getElementById('txnEnvWrap');
+  if(wrap) wrap.style.display='none';
+  // v5.97 : pré-remplit la description si elle est encore vide, pour que l'utilisateur n'ait rien
+  // à taper (reste librement modifiable ensuite, avant l'enregistrement). Seulement au clic manuel
+  // — inutile en mode auto, puisque la description contient déjà le mot-clé qui a déclenché la
+  // détection.
+  if(manual){
+    var descEl=document.getElementById('txnDesc');
+    if(descEl && !descEl.value.trim()) descEl.value=lbl;
+  }
+}
+// v5.103 : revient sur la dernière catégorie variable connue (_lastVarCat) sans marquer le geste
+// comme manuel — utilisé par refreshTxnFixeGuess() quand le texte tapé ne correspond plus à
+// aucun mot-clé de charge fixe. Cherche la tuile correspondante via data-cat-name pour la
+// resurligner visuellement (elle existe forcément, _lastVarCat vient toujours d'une des tuiles
+// variables réellement rendues par renderTxnCats()).
+function _revertToLastVarCat(){
+  _selTxnCat={ico:_lastVarCat.ico,name:_lastVarCat.name};
+  _txnFixeType='';
+  document.querySelectorAll('#txnCats .txn-cat').forEach(function(c){c.classList.remove('sel');});
+  var tile=document.querySelector('#txnCats [data-cat-name="'+_lastVarCat.name+'"]');
+  if(tile) tile.classList.add('sel');
+  var section=CAT_SECTION[_lastVarCat.name]||'envies';
+  var badge=document.getElementById('txnSectionBadge');
+  if(badge){
+    badge.textContent=CAT_SECTION_LABEL[section];
+    badge.className='txn-section-badge txn-section-'+section;
+  }
+  updateTxnEnvSelector(section, _lastVarCat.name);
 }
 // v5.83 : affiche/peuple le sélecteur d'enveloppe de la Dépense rapide selon la section choisie —
 // masqué pour Épargne/Investiss. (non éligibles, voir getEnvEligibleRows()). Pré-sélectionne
@@ -3544,9 +3625,9 @@ function updateTxnEnvSelector(section, catName){
   var wrap=document.getElementById('txnEnvWrap');
   var sel=document.getElementById('txnEnv');
   if(!wrap||!sel) return;
-  // v5.97 : une charge fixe (type choisi dans le menu déroulant, voir setTxnFixeType()) n'est
-  // jamais éligible aux enveloppes, même après un changement de catégorie — sinon changer de
-  // catégorie après avoir choisi un type de charge fixe réaffichait le sélecteur d'enveloppe.
+  // v5.97 (tuiles fusionnées en v5.103, voir selTxnFixedCat()) : une charge fixe n'est jamais
+  // éligible aux enveloppes, même après un changement de catégorie — sinon changer de catégorie
+  // après avoir choisi une charge fixe réaffichait le sélecteur d'enveloppe.
   if((typeof _txnFixeType!=='undefined' && _txnFixeType) || (section!=='besoins' && section!=='envies')){
     wrap.style.display='none';
     return;
@@ -3609,45 +3690,34 @@ function openTxnModal(){
   document.getElementById('txnAmt').value='';
   document.getElementById('txnDesc').value='';
   document.querySelectorAll('.txn-cat').forEach(function(c,i){c.classList.toggle('sel',i===0);});
-  _selTxnCat={ico:'🍽️',name:'Resto'};
+  _selTxnCat={ico:'🍽️',name:'Resto'}; _lastVarCat={ico:'🍽️',name:'Resto'};
+  _txnFixeType=''; _txnFixeAuto=true;
   updateTxnEnvSelector(CAT_SECTION['Resto']||'envies', 'Resto');
-  renderTxnFixeOptions('txnFixeType');
-  _txnFixeAuto=true; setTxnFixeType('', false);
   document.getElementById('ovTxn').classList.add('open');
 }
 function closeTxnModal(){ document.getElementById('ovTxn').classList.remove('open'); }
-// v5.97 : menu déroulant "Charge fixe" de la Dépense rapide (remplace le toggle simple de la
-// v5.96, à la demande de l'utilisateur) — _txnFixeAuto reste vrai (comme _envEmojiAuto en v5.90)
-// tant que l'utilisateur n'a pas choisi le menu lui-même : dans cet état, il se met à jour tout
-// seul à chaque frappe dans la description (voir refreshTxnFixeGuess()). Passe à faux dès le
-// premier choix manuel (onTxnFixeTypeChange()) : la saisie de l'utilisateur n'est alors plus
-// jamais écrasée par la détection automatique.
+// v5.103 : les tuiles "Charge fixe" sont désormais fusionnées dans la grille #txnCats (voir
+// selTxnFixedCat()) — remplace le menu déroulant #txnFixeType des v5.97/v5.102 et ses fonctions
+// setTxnFixeType()/onTxnFixeTypeChange(), supprimées. _txnFixeAuto reste vrai (comme
+// _envEmojiAuto en v5.90) tant que l'utilisateur n'a touché aucune tuile lui-même : dans cet
+// état, la tuile surlignée se met à jour toute seule à chaque frappe dans la description (voir
+// refreshTxnFixeGuess()). Passe à faux dès le premier tuile choisie manuellement (selTxnCat() ou
+// selTxnFixedCat() avec manual=true) : la saisie de l'utilisateur n'est alors plus jamais
+// écrasée par la détection automatique.
 var _txnFixeType='', _txnFixeAuto=true;
-function setTxnFixeType(val, manual){
-  _txnFixeType=val||'';
-  if(manual) _txnFixeAuto=false;
-  var sel=document.getElementById('txnFixeType');
-  if(sel && sel.value!==_txnFixeType) sel.value=_txnFixeType;
-  var wrap=document.getElementById('txnEnvWrap');
-  if(_txnFixeType){ if(wrap) wrap.style.display='none'; }
-  else { updateTxnEnvSelector(CAT_SECTION[_selTxnCat.name]||'envies', _selTxnCat.name); }
-}
-function onTxnFixeTypeChange(){
-  var sel=document.getElementById('txnFixeType');
-  var val=sel?sel.value:'';
-  setTxnFixeType(val, true);
-  // v5.97 : pré-remplit la description si elle est encore vide, pour que l'utilisateur n'ait rien
-  // à taper (reste librement modifiable ensuite, avant l'enregistrement).
-  var descEl=document.getElementById('txnDesc');
-  if(val && descEl && !descEl.value.trim()){
-    var t=FIXED_CHARGE_TYPES.filter(function(x){return x.value===val;})[0];
-    if(t) descEl.value=t.label.replace(/\s*\(.*?\)\s*$/,'');
-  }
-}
 function refreshTxnFixeGuess(){
   if(!_txnFixeAuto) return;
   var desc=(document.getElementById('txnDesc').value||'').trim();
-  setTxnFixeType(detectFixedChargeType(desc), false);
+  var val=detectFixedChargeType(desc);
+  if(val){
+    var tile=document.querySelector('#txnCats [data-fixe-value="'+val+'"]');
+    selTxnFixedCat(tile, val, false);
+  } else if(_txnFixeType){
+    // Le texte ne correspond plus à aucun mot-clé connu alors qu'une tuile fixe était surlignée
+    // automatiquement — revient sur la dernière catégorie variable plutôt que de laisser une
+    // tuile fixe sélectionnée sans raison apparente.
+    _revertToLastVarCat();
+  }
 }
 function saveTxn(){
   var amt=parseMontant(document.getElementById('txnAmt').value);
@@ -3677,8 +3747,8 @@ function saveTxn(){
   // updateTxnEnvSelector()) ou si l'utilisateur n'en a choisi aucune.
   var envWrap=document.getElementById('txnEnvWrap');
   var envVal=(envWrap && envWrap.style.display!=='none') ? document.getElementById('txnEnv').value : '';
-  // v5.97 : tag "b":"fixe" posé si un type de charge fixe est choisi dans le menu — voir
-  // setTxnFixeType(). Une charge fixe n'est jamais éligible aux enveloppes (getEnvEligibleRows()),
+  // v5.97 (tuiles fusionnées en v5.103, voir selTxnFixedCat()) : tag "b":"fixe" posé si une
+  // charge fixe est choisie. Une charge fixe n'est jamais éligible aux enveloppes (getEnvEligibleRows()),
   // donc l'env existant est retiré dans ce cas ; en revanche on ne retire JAMAIS un tag "fixe" déjà
   // présent juste parce que cette saisie-ci n'a pas choisi de type (même logique prudente que
   // mergeItemsPreservingDates() pour "b").
@@ -4086,7 +4156,12 @@ var ARGENT_ICON_PATHS = {
 var ARG_EMOJI = {
   revenu:'💶', fixe:'🧾', courses:'🛒', plaisirs:'🎟️', imprevus:'☂️',
   epargne:'🏦', invest:'📈', resto:'🍽️', transport:'🚗', shopping:'👕',
-  logement:'🏠', sante:'🩺', autre:'📦', assurance:'🛡️', layers:'💎'
+  logement:'🏠', sante:'🩺', autre:'📦', assurance:'🛡️', layers:'💎',
+  // v5.103 : mêmes clés que FIXED_CHARGE_TYPES[].value, ajoutées pour fusionner les charges
+  // fixes dans la grille de catégories de la Dépense rapide (#txnCats, voir renderTxnCats()) —
+  // mêmes emoji que ceux déjà utilisés dans FIXED_CHARGE_TYPES, pour un rendu identique partout.
+  credit:'💳', loyer:'🏠', mutuelle:'🩺', abonnement:'📱', energie:'⚡',
+  eau:'💧', internet:'🌐', impots:'🏛️', sport:'🏋️', autre_fixe:'🧾'
 };
 // v5.70 : ARG_EMOJI ci-dessus ne donne qu'un emoji par CATÉGORIE (ex: toutes les "Charges
 // fixes" ont le même 🧾). L'utilisateur veut que chaque LIGNE reflète son libellé précis
@@ -4271,12 +4346,26 @@ var TXN_CAT_TYPES = [
 ];
 function renderTxnCats(){
   var el=document.getElementById('txnCats'); if(!el) return;
-  el.innerHTML=TXN_CAT_TYPES.map(function(t,i){
-    return '<div class="txn-cat'+(i===0?' sel':'')+'" onclick="selTxnCat(this,\''+t.ico+'\',\''+t.name+'\')">'
+  var varHtml=TXN_CAT_TYPES.map(function(t,i){
+    return '<div class="txn-cat'+(i===0?' sel':'')+'" data-cat-name="'+esc(t.name)+'" onclick="selTxnCat(this,\''+t.ico+'\',\''+t.name+'\')">'
       +arg3dBadge(t.svgKey, t.bg, 34, t.col)
       +'<div class="txn-cat-lbl">'+t.name+'</div>'
     +'</div>';
   }).join('');
+  // v5.103 : tuiles "Charges fixes" fusionnées ici à la demande de l'utilisateur (préférées à un
+  // menu déroulant séparé, voir FIXED_CHARGE_TYPES/selTxnFixedCat() plus haut) — couleur orange
+  // partagée par toutes (même famille que la mini-carte "Charges fixes" de "Où va mon argent"),
+  // pour se distinguer d'un coup d'œil des catégories variables ci-dessus, chacune avec sa
+  // propre couleur. Un intitulé de section les sépare visuellement (.txn-cat-divider).
+  var fixedCol='#f97316', fixedBg='rgba(249,115,22,.18)';
+  var fixedHtml=FIXED_CHARGE_TYPES.map(function(t){
+    var lbl=fixedTypeShortLabel(t);
+    return '<div class="txn-cat" data-fixe-value="'+t.value+'" onclick="selTxnFixedCat(this,\''+t.value+'\')">'
+      +arg3dBadge(t.value, fixedBg, 34, fixedCol)
+      +'<div class="txn-cat-lbl">'+esc(lbl)+'</div>'
+    +'</div>';
+  }).join('');
+  el.innerHTML=varHtml+'<div class="txn-cat-divider">🧾 Charges fixes</div>'+fixedHtml;
 }
 // Migration ponctuelle (v5.58, suppression de la section Abonnements) : avant cette version, une
 // dépense besoins_items/envies_items était classée "Dépenses fixes" si son libellé correspondait
@@ -4393,14 +4482,19 @@ function detectExpenseCategory(label){
 // cette fenêtre n'offrait jusqu'ici AUCUN moyen (ni manuel, ni automatique) de poser le tag
 // "b":"fixe" — seul Léo, en conversation, savait le faire (voir règle CHARGES FIXES du prompt
 // système).
-// v5.97 : à la demande de l'utilisateur, remplace le simple toggle par un MENU DÉROULANT listant
-// les types de charges fixes les plus courants (crédits, assurances, abonnements, mutuelle,
-// électricité, impôts...), voir #txnFixeType / renderTxnFixeOptions(). Chaque type porte ses
-// propres mots-clés de détection (liste SÉPARÉE de ENV_CATEGORY_KEYWORDS : catégorie de dépense ≠
-// caractère fixe/récurrent, ce sont deux informations indépendantes). Sert uniquement à PRÉ-
-// SÉLECTIONNER le menu (voir refreshTxnFixeGuess()/setTxnFixeType()) — jamais à poser le tag tout
-// seul sans passage par le menu, que l'utilisateur reste toujours libre de repasser sur "Aucune"
-// avant d'enregistrer.
+// v5.97 : à la demande de l'utilisateur, remplace le simple toggle par une liste des types de
+// charges fixes les plus courants (crédits, assurances, abonnements, mutuelle, électricité,
+// impôts...). Chaque type porte ses propres mots-clés de détection (liste SÉPARÉE de
+// ENV_CATEGORY_KEYWORDS : catégorie de dépense ≠ caractère fixe/récurrent, ce sont deux
+// informations indépendantes).
+// v5.103 : dans la Dépense rapide (#ovTxn), ces types sont désormais fusionnés en tuiles
+// directement dans la grille de catégories #txnCats (voir renderTxnCats()/selTxnFixedCat()), à
+// la demande de l'utilisateur — remplace le menu déroulant #txnFixeType des v5.97/v5.102. Choisir
+// une tuile pose directement le tag, sans second contrôle séparé. La détection par mot-clé sert
+// à présélectionner la bonne tuile (voir refreshTxnFixeGuess()) tant que l'utilisateur n'a touché
+// aucune tuile lui-même, jamais à poser le tag sans passer par une sélection visible. Le menu
+// déroulant original (renderTxnFixeOptions()) reste utilisé tel quel dans la fenêtre "Modifier la
+// ligne" (#ovEditArgent) — non concernée par cette fusion, qui ne touche que la saisie rapide.
 var FIXED_CHARGE_TYPES=[
   {value:'credit',     label:'Crédit (immo, auto, conso...)',        ico:'💳', kw:['credit','pret immo','pret immobilier','hypotheque','pret auto','pret conso']},
   {value:'loyer',      label:'Loyer',                                 ico:'🏠', kw:['loyer']},
@@ -4414,6 +4508,11 @@ var FIXED_CHARGE_TYPES=[
   {value:'sport',      label:'Salle de sport',                       ico:'🏋️', kw:['salle de sport','gym']},
   {value:'autre_fixe', label:'Autre charge fixe',                    ico:'🧾', kw:[]}
 ];
+// Libellé court (sans le "(...)" final) — utilisé comme intitulé de tuile dans #txnCats et comme
+// pré-remplissage de la description (voir selTxnFixedCat()), plus compact que le label complet.
+function fixedTypeShortLabel(t){
+  return t.label.replace(/\s*\(.*?\)\s*$/,'');
+}
 var _FIXED_CHARGE_TYPE_RE=FIXED_CHARGE_TYPES.map(function(t){
   return t.kw.map(function(kw){ return new RegExp('(^|[^a-z0-9])'+escRe(kw)+'(s|x)?([^a-z0-9]|$)'); });
 });
