@@ -1023,7 +1023,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.110';
+window.APP_VERSION = '5.111';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1727,7 +1727,7 @@ window.APP_VERSION = '5.110';
         <span class="s-row-ico">&#128196;</span>
         <div><div class="s-row-lbl">RescueBudget</div><div class="s-row-sub">Coach financier IA L&#233;o</div></div>
       </div>
-      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.110</span>
+      <span class="s-row-arr" id="aboutVersionTag" style="font-size:13px;color:var(--accent2);font-weight:700">v5.111</span>
     </div>
     <script>document.getElementById('aboutVersionTag').textContent='v'+window.APP_VERSION;</script>
     <div class="setting-row" onclick="location.reload()">
@@ -4701,12 +4701,31 @@ function invalidatePendingSyncCard(id){
 function confirmPendingSync(id){
   if(!_pendingSync || _pendingSync.id!==id){ toast('Cette demande n\'est plus d\'actualité.','#f59e0b'); return; }
   var p=_pendingSync;
-  Object.keys(p.patch).forEach(function(k){ S.fin[k]=p.patch[k]; });
-  syncTotals(); S.fin.rav=calcRAV(); save(); updateAnalyseCards(); renderBudget();
-  var el=_pendingCardEl(id);
-  if(el) el.innerHTML='<div style="width:100%;font-size:12.5px;color:var(--text2);white-space:pre-line">'+md(buildSyncConfirmBlock(p.confirms,'done'))+'</div>';
-  _pendingSync=null;
-  toast('Synchronisé ✅','#10b981');
+  // v5.111 : bug signalé par l'utilisateur — cliquer Confirmer n'actualisait pas "Où va mon
+  // argent". Deux durcissements défensifs ici, sans changement fonctionnel pour le cas normal :
+  // (1) p.patch[k] peut être un tableau JS brut (retour direct de mergeItemsPreservingDates()) OU
+  // une chaîne JSON (si autoLinkEnveloppes() l'a re-sérialisé) selon qu'un rattachement d'enveloppe
+  // ait eu lieu ou non ce tour-ci — parseItems() gère bien les deux formats partout ailleurs dans
+  // l'app, mais on normalise ici en chaîne JSON systématiquement pour éliminer toute ambiguïté à
+  // la source, plutôt que de compter sur la tolérance de chaque lecteur en aval. (2) toute la
+  // chaîne d'écriture est protégée par un try/catch : une exception silencieuse à cet endroit
+  // laissait jusqu'ici l'utilisateur devant un bouton qui semblait fonctionner (le message se
+  // transformait bien en "Synchronisé") sans qu'aucune donnée ne soit réellement mise à jour —
+  // désormais une erreur reelle s'affiche clairement au lieu d'échouer en silence.
+  try{
+    Object.keys(p.patch).forEach(function(k){
+      var v=p.patch[k];
+      S.fin[k]=Array.isArray(v) ? JSON.stringify(v) : v;
+    });
+    syncTotals(); S.fin.rav=calcRAV(); save(); updateAnalyseCards(); renderBudget();
+    var el=_pendingCardEl(id);
+    if(el) el.innerHTML='<div style="width:100%;font-size:12.5px;color:var(--text2);white-space:pre-line">'+md(buildSyncConfirmBlock(p.confirms,'done'))+'</div>';
+    _pendingSync=null;
+    toast('Synchronisé ✅','#10b981');
+  }catch(e){
+    console.error('[confirmPendingSync] échec de la synchronisation :', e);
+    toast('Erreur de synchronisation : '+(e&&e.message||'inconnue'),'#ef4444');
+  }
 }
 function cancelPendingSync(id){
   if(!_pendingSync || _pendingSync.id!==id){ toast('Cette demande n\'est plus d\'actualité.','#f59e0b'); return; }
