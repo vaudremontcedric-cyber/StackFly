@@ -594,8 +594,10 @@ var server = http.createServer(function(req, res) {
     var ext  = path.extname(filePath);
     var mime = MIME[ext] || 'text/plain';
     var headers = { 'Content-Type': mime };
-    // Ne jamais mettre le HTML en cache (évite les conflits avec le SW)
-    if (ext === '.html' || filePath.endsWith('CoachFinancier.html')) {
+    // Ne jamais mettre le HTML en cache (évite les conflits avec le SW). sw.js aussi (v5.136) :
+    // ce fichier change a chaque version et doit toujours etre revalide par le navigateur pour
+    // que la mise a jour du Service Worker se propage sans delai a la prochaine visite.
+    if (ext === '.html' || filePath.endsWith('CoachFinancier.html') || filePath.endsWith('sw.js')) {
       headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
       headers['Pragma'] = 'no-cache';
     }

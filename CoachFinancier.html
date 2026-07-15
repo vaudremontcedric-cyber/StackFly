@@ -1056,50 +1056,23 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.135';
+window.APP_VERSION = '5.136';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
+// v5.136 : bug trouve en verifiant la console du site en production - l'ancienne version
+// construisait le script du Service Worker en memoire (Blob) et l'enregistrait via une URL
+// blob:, ce que navigator.serviceWorker.register() rejette categoriquement (erreur "The URL
+// protocol of the script (...) is not supported"). Le SW n'a donc JAMAIS reussi a s'enregistrer,
+// sur aucun navigateur ni aucun environnement - seul le message d'erreur ("non supporte sur
+// file://") etait trompeur, laissant croire au probleme uniquement en test local. Remplace par
+// un vrai fichier statique (sw.js, servi par serve.js), seule maniere valide d'enregistrer un
+// Service Worker. La version est passee en query string pour invalider le cache a chaque release.
 (function(){
   if(!('serviceWorker' in navigator)) return;
-  var SW_VERSION = window.APP_VERSION;
-  var CACHE = 'rb-cache-v'+SW_VERSION;
-  var swCode = [
-    'var CACHE="rb-cache-v'+SW_VERSION+'";',
-    'self.addEventListener("install",function(e){',
-    '  e.waitUntil(caches.open(CACHE).then(function(c){',
-    '    return c.addAll(["./","./CoachFinancier.html"]);',
-    '  }).catch(function(){}));',
-    '  self.skipWaiting();',
-    '});',
-    'self.addEventListener("activate",function(e){',
-    '  e.waitUntil(caches.keys().then(function(keys){',
-    '    return Promise.all(keys.filter(function(k){return k!==CACHE;}).map(function(k){return caches.delete(k);}));',
-    '  }));',
-    '  self.clients.claim();',
-    '});',
-    'self.addEventListener("fetch",function(e){',
-    '  var req=e.request;',
-    '  if(req.method!=="GET") return;',
-    '  if(req.url.indexOf("/api/")>-1||req.url.indexOf("generativelanguage")>-1) return;',
-    '  e.respondWith(',
-    '    fetch(req).then(function(resp){',
-    '      var clone=resp.clone();',
-    '      caches.open(CACHE).then(function(c){c.put(req,clone);});',
-    '      return resp;',
-    '    }).catch(function(){',
-    '      return caches.match(req);',
-    '    })',
-    '  );',
-    '});'
-  ].join("\n");
-  try{
-    var blob=new Blob([swCode],{type:'application/javascript'});
-    var swUrl=URL.createObjectURL(blob);
-    navigator.serviceWorker.register(swUrl,{scope:'./'})
-      .then(function(reg){ console.log('[SW] inscrit',reg.scope); })
-      .catch(function(err){ console.warn('[SW] non supporté sur file://',err.message); });
-  }catch(e){}
+  navigator.serviceWorker.register('./sw.js?v='+window.APP_VERSION, {scope:'./'})
+    .then(function(reg){ console.log('[SW] inscrit',reg.scope); })
+    .catch(function(err){ console.warn('[SW] echec inscription',err.message); });
 })();
 </script>
 <script>
