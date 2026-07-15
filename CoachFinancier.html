@@ -668,6 +668,11 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
   display:flex;align-items:center;gap:8px}
 .proj-txt{font-size:13px;color:var(--green);line-height:1.4}
 .proj-txt strong{font-weight:700}
+/* v5.153 : variante "hors échéance" (voir renderGoals()) — orange doux, jamais rouge, cohérent avec
+   les autres avertissements de l'app (mensualité conseillée trop élevée, etc.), pour signaler sans
+   alarmer qu'au rythme actuel l'échéance choisie ne sera pas tenue. */
+.goal-proj.off{background:var(--orange2);border:1px solid rgba(245,158,11,.3)}
+.goal-proj.off .proj-txt{color:var(--orange)}
 .goal-steps-wrap{border-top:1px solid var(--border);padding-top:12px}
 .steps-lbl{font-size:11px;font-weight:700;color:var(--text3);
   text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
@@ -1270,7 +1275,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.152';
+window.APP_VERSION = '5.154';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -5025,7 +5030,7 @@ function go(name){
   if(ni) ni.classList.add('active');
   document.getElementById('hdrTitle').innerHTML = TITLES[name]||'<img src="icons/rb-badge-v2.png" alt="" class="rb-logo-img-hdr" aria-hidden="true"/>Rescue<span class="rb-red">Budget</span>';
   if(name==='budget'){ renderBudget(); renderTriCards(); renderSynthTable(); }
-  if(name==='chat')  { miloFirstGreeting(); scrollChat(); }
+  if(name==='chat')  { renderChatHistory(); miloFirstGreeting(); scrollChat(); }
   if(name==='obj')   { renderGoals(); }
   if(name==='profil'){ renderProfil(); }
 }
@@ -5219,7 +5224,13 @@ function mergeItemsPreservingDates(oldRaw, newItems){
     if(isDistinctDay && !sameValue && !isFixed){
       var newOut={n:i.n, v:i.v, d:td};
       if(i.b) newOut.b=i.b;
-      if(i.env) newOut.env=i.env;
+      // v5.153 : bug corrigé (trouvé en testant l'app) — "env" pouvait être copié depuis "i" même
+      // quand "i.b==='fixe'", produisant une ligne avec les deux tags à la fois. Une charge fixe
+      // n'est jamais éligible aux enveloppes (voir getEnvEligibleRows()) : les dépenses qu'elle
+      // porte n'apparaissaient alors JAMAIS comme "dépensées" dans l'enveloppe correspondante
+      // (getEnvSpentInMonth l'exclut), gonflant artificiellement le "restant" affiché sur la carte
+      // enveloppe et le Reste à vivre théorique (v5.152).
+      if(i.env && i.b!=='fixe') newOut.env=i.env;
       merged.push(newOut);
       return; // ne marque pas "seen" : l'ancienne ligne (autre jour) doit survivre elle aussi
     }
@@ -5231,8 +5242,14 @@ function mergeItemsPreservingDates(oldRaw, newItems){
     // enveloppe manuellement (voir saveEditArgentItem()), on la garde même si Léo renvoie la ligne
     // sans "env" (il ne connaît pas forcément l'assignation manuelle). Sinon on prend celle que
     // Léo propose, le cas échéant.
-    var env=(prev&&prev.env)?prev.env:i.env;
-    if(env) out.env=env;
+    // v5.153 : "b" et "env" étaient calculés indépendamment l'un de l'autre (l'un pouvant venir de
+    // "prev", l'autre de "i") — b==='fixe' n'empêchait donc pas env d'être posé au même moment (bug
+    // trouvé en testant l'app : une ligne réelle portait les deux tags). Règle imposée explicitement
+    // ici, comme partout ailleurs dans l'app : une charge fixe n'a jamais d'enveloppe.
+    if(b!=='fixe'){
+      var env=(prev&&prev.env)?prev.env:i.env;
+      if(env) out.env=env;
+    }
     merged.push(out);
   });
   // v5.114 : bug critique découvert en testant l'app de bout en bout — cette fonction supposait que
@@ -5527,6 +5544,25 @@ function migrateSubsToFixedTag(){
     if(!items.length) return;
     var keyChanged=false;
     items.forEach(function(it){ if(subNames[it.n] && it.b!=='fixe'){ it.b='fixe'; keyChanged=true; } });
+    if(keyChanged){ f[key]=JSON.stringify(items); changed=true; }
+  });
+  if(changed) save();
+}
+// v5.153 : migration auto-réparatrice, même principe que migrateSubsToFixedTag() ci-dessus — trouvée
+// en testant l'app : mergeItemsPreservingDates() pouvait produire une ligne avec à la fois
+// b:'fixe' ET env:<id> (bug désormais corrigé à la source, voir plus haut), ce qui faussait
+// silencieusement le calcul "dépensé" de l'enveloppe concernée (une charge fixe n'est jamais
+// éligible aux enveloppes, voir getEnvEligibleRows() — ces dépenses n'étaient donc jamais comptées
+// dans l'enveloppe alors qu'elles lui étaient encore rattachées). Nettoie les données déjà
+// existantes qui portaient les deux tags, sans intervention manuelle de l'utilisateur.
+function migrateFixeEnvConflict(){
+  var f=S.fin||{};
+  var changed=false;
+  ['besoins_items','envies_items'].forEach(function(key){
+    var items=parseItems(f[key]);
+    if(!items.length) return;
+    var keyChanged=false;
+    items.forEach(function(it){ if(it.b==='fixe' && it.env){ delete it.env; keyChanged=true; } });
     if(keyChanged){ f[key]=JSON.stringify(items); changed=true; }
   });
   if(changed) save();
@@ -6468,6 +6504,7 @@ function buildRavPeriodOptions(){
 
 function renderBudget(){
   migrateSubsToFixedTag();
+  migrateFixeEnvConflict();
   syncTotals();
   var f = S.fin;
   var hasData = !!(f.revenus || f.depenses || f.rav);
@@ -6878,6 +6915,27 @@ function getLeoProactiveMsg(){
 // ══════════════════════════════════════════════
 // GREETING — déclenché à chaque visite du chat
 // ══════════════════════════════════════════════
+// v5.153 : bug signalé par l'utilisateur (repéré en testant l'app) — S.hist (jusqu'à 60 échanges,
+// voir sendMsg()) est bien conservé d'une session à l'autre et sert de mémoire à Léo pour
+// construire ses réponses, mais n'était JAMAIS réaffiché à l'écran : #chatMsgs restait vide à
+// chaque rechargement de page ou retour sur l'onglet Coach, donnant l'impression trompeuse d'une
+// conversation qui recommence à zéro alors que Léo, lui, se souvient de tout. Réaffiche les bulles
+// une seule fois par chargement de page (protégé par le même garde-fou que miloFirstGreeting() :
+// ne fait rien si #chatMsgs contient déjà des bulles, donc jamais de doublon en revenant sur
+// l'onglet). Les anciens messages sont rejoués tels quels via addMsg(), sans les extras liés à une
+// session en cours (choix rapides, suggestions d'enveloppe/objectif, confirmation en attente) : ces
+// artefacts n'ont plus de sens une fois la conversation qui les a produits terminée, et ne sont de
+// toute façon pas conservés dans S.hist (qui ne stocke que {role, content}).
+function renderChatHistory(){
+  var msgs = document.getElementById('chatMsgs');
+  if(!msgs) return;
+  if(msgs.children && msgs.children.length > 0) return; // déjà peuplé (par cette fonction ou par la conversation en cours)
+  if(!S.hist || !S.hist.length) return;
+  S.hist.forEach(function(m){
+    if(!m || !m.content) return;
+    addMsg(m.role==='assistant' ? 'bot' : 'user', m.content);
+  });
+}
 function miloFirstGreeting(){
   var msgs = document.getElementById('chatMsgs');
   if(!msgs) return;
@@ -7516,9 +7574,23 @@ function renderGoals(){
       projHtml='<div class="goal-proj"><span style="font-size:20px">&#127881;</span><span class="proj-txt"><strong>Objectif atteint !</strong> Félicitations !</span></div>';
     } else if(proj!=null){
       var arrDate=monthName(proj);
-      var motiv=proj<=(g.target>0?Math.ceil((g.target-g.current)/(((S.fin.epargne||0)+(S.fin.invest||0))||100))+1:12)
-        ? 'Continue comme ça !' : 'Augmente un peu ton épargne mensuelle pour aller plus vite.';
-      projHtml='<div class="goal-proj"><span style="font-size:18px">&#128200;</span><span class="proj-txt">Objectif atteint dans <strong>'+proj+' mois</strong> ('+arrDate+')<br>'+motiv+'</span></div>';
+      // v5.153 : bug corrigé (trouvé en testant l'app) — l'ancienne comparaison confrontait "proj"
+      // à une simple redite de la même formule (target-current)/capacité actuelle, ce qui la
+      // rendait quasiment toujours vraie : "Continue comme ça !" s'affichait en vert même quand la
+      // projection réelle dépassait l'échéance choisie de plusieurs dizaines d'années (repéré sur un
+      // objectif à échéance janvier 2031 mais projeté en septembre 2052). Le bon test : comparer le
+      // nombre de mois projeté au nombre de mois qui restent RÉELLEMENT jusqu'à l'échéance (même
+      // calcul de date que calcMonthlyNeeded() un peu plus haut).
+      var monthsToDeadline=null;
+      if(g.deadline){
+        var _now=new Date(), _dl=new Date(g.deadline+'-01');
+        monthsToDeadline=(_dl.getFullYear()-_now.getFullYear())*12+(_dl.getMonth()-_now.getMonth());
+      }
+      var onTrack = monthsToDeadline==null ? true : proj<=monthsToDeadline;
+      var motiv = onTrack ? 'Continue comme ça !' : 'Au rythme actuel, tu n\'atteindras pas ton échéance à temps — augmente ton épargne ou recule ta date cible.';
+      var projCls = onTrack ? 'goal-proj' : 'goal-proj off';
+      var projIco = onTrack ? '&#128200;' : '&#8987;';
+      projHtml='<div class="'+projCls+'"><span style="font-size:18px">'+projIco+'</span><span class="proj-txt">Objectif atteint dans <strong>'+proj+' mois</strong> ('+arrDate+')<br>'+motiv+'</span></div>';
     }
     var steps=(g.steps||[]).map(function(s,si){
       var ck=s.done?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':'';
