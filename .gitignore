@@ -3,6 +3,12 @@
 # Captures d'écran et artefacts de tests manuels
 *.png
 !favicon.png
+# v5.127 : bug découvert en corrigeant — la règle *.png ci-dessus excluait AUSSI icons/, qui n'a
+# donc jamais été commité depuis sa création (tâche manifest.json PWA) : icon-192.png/icon-512.png/
+# icon-512-maskable.png référencés par manifest.json et l'apple-touch-icon sont 404 en production
+# depuis le début. Exception explicite pour que ce dossier soit enfin versionné et déployé.
+!icons/
+!icons/**
 
 # Scripts d'automatisation locale (déploiement, calibrage)
 *.bat
