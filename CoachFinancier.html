@@ -1037,7 +1037,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.122';
+window.APP_VERSION = '5.123';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1893,7 +1893,7 @@ window.APP_VERSION = '5.122';
         <span style="font-size:17px;font-weight:700;color:var(--text)">&#9749; Faire un don</span>
         <button onclick="closeDonationModal()" style="background:none;border:none;font-size:22px;color:var(--sub);cursor:pointer">&#10005;</button>
       </div>
-      <div style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.5">RescueBudget est gratuit et le restera. Si l'app t'aide au quotidien, un petit coup de pouce est toujours appr&#233;ci&#233; &#8212; mais jamais obligatoire !</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.5">RescueBudget est gratuit et le restera, surtout pour ceux qui traversent une p&#233;riode difficile. Si l'app t'a aid&#233; &#224; reprendre pied, ton soutien permet de garder la bou&#233;e lanc&#233;e pour ceux qui sont encore dans la temp&#234;te. Jamais obligatoire &#8212; juste donner au suivant, si tu peux.</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
         <button onclick="donate(2)" style="padding:16px 8px;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:16px;font-weight:700;cursor:pointer">2 &#8364;</button>
         <button onclick="donate(5)" style="padding:16px 8px;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:16px;font-weight:700;cursor:pointer">5 &#8364;</button>
@@ -2170,6 +2170,15 @@ window.APP_VERSION = '5.122';
     <div class="modal-title" id="goalModalTitle">Nouvel objectif</div>
     <input class="m-in" id="goalEmoji" placeholder="&#127919; Emoji (ex: &#128664; &#127968; &#9992; &#127958;)" maxlength="4" style="font-size:24px;text-align:center"/>
     <input class="m-in" id="goalName" placeholder="Nom de l'objectif (ex: Achat voiture)" maxlength="60"/>
+    <!-- v5.123 : type d'objectif — à la demande explicite de l'utilisateur, pour détecter de façon
+         fiable (sans dépendre du nom choisi) les jalons "épargne de précaution 500€" et "dette
+         remboursée" côté chat (voir ALL_MILESTONES/checkMilestones()). 'classique' par défaut :
+         100% rétrocompatible avec les objectifs existants (S.goals sans champ type). -->
+    <select class="m-in" id="goalType">
+      <option value="classique">&#127919; Objectif classique</option>
+      <option value="urgence">&#128732; &#201;pargne de pr&#233;caution</option>
+      <option value="dette">&#128179; Dette &#224; rembourser</option>
+    </select>
     <div class="m-row">
       <div><div class="m-lbl">Montant cible (&#8364;)</div>
         <input class="m-in" id="goalTarget" type="number" placeholder="8000" min="0" style="margin:0" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('goalCurrent').focus();}"/></div>
@@ -2476,6 +2485,8 @@ var S = {
   startDate: localStorage.getItem('cf_start') || new Date().toISOString(),
   dailySnaps: [],
   monthRates: {},
+  monthRav: {},
+  milestones: [],
   lastGreeting: '',
   lastAnalysis: '',
   busy: false
@@ -3856,7 +3867,7 @@ function saveGoalDeposit(){
   } else {
     toast('+'+euro(v)+' versés. Reste : '+euro(g.target-g.current),'#0d9488');
   }
-  S.actions++; save(); renderGoals(); checkBadges(); closeGoalDepositModal();
+  S.actions++; save(); renderGoals(); checkBadges(); checkMilestones(); closeGoalDepositModal();
 }
 
 // ══════════════════════════════════════════════
@@ -4207,6 +4218,7 @@ function updateStreak(){
   S.lastLogin=td;
   save();
   checkBadges();
+  checkMilestones();
 }
 
 // ══════════════════════════════════════════════
@@ -4242,6 +4254,60 @@ function renderBadges(){
       +'<div class="badge-ico">'+b.ico+'</div>'
       +'<div class="badge-name">'+b.name+'</div></div>';
   }).join('');
+}
+// ══════════════════════════════════════════════
+// JALONS DE REUSSITE (v5.123)
+// ══════════════════════════════════════════════
+// À la demande explicite de l'utilisateur (vision "donner au suivant" / pay it forward) : quand
+// l'utilisateur franchit une étape critique de son parcours, Léo doit le célébrer dans le chat au
+// lieu de laisser ce moment passer inaperçu — "il faut lui faire prendre conscience du chemin
+// parcouru". Détection 100% déterministe côté client, même philosophie que checkBadges() : jamais
+// laissé à l'appréciation du LLM (qui ne "voit" pas l'historique complet des mois précédents).
+// Chaque jalon n'est célébré qu'une seule fois (S.milestones mémorise les id déjà atteints).
+var DONATION_NUDGE = '\n\nSi RescueBudget t\'a aidé à en arriver là, tu peux **donner au suivant** et soutenir l\'appli pour ceux qui sont encore dans la tempête — juste dans Profil → Faire un don. Jamais obligatoire, juste si le cœur t\'en dit 💛';
+function monthsSinceStart(){
+  var start=new Date(S.startDate||Date.now());
+  var now=new Date();
+  var months=(now.getFullYear()-start.getFullYear())*12+(now.getMonth()-start.getMonth());
+  if(months<=0) return 'depuis le début';
+  if(months===1) return 'il y a 1 mois';
+  return 'il y a '+months+' mois';
+}
+var ALL_MILESTONES=[
+  {id:'m1', name:'RAV positif 3 mois consécutifs',
+   check:function(){
+     var t=getMonthRavTrend(3);
+     return t.length>=3 && t.every(function(m){return m.v>0;});
+   },
+   msg:function(){
+     return '🎉 **Félicitations !** Regarde d\'où tu es parti '+monthsSinceStart()+' : ton reste à vivre est repassé au vert, et il y est resté 3 mois d\'affilée. Tu as officiellement validé l\'étape de secours ! On continue ensemble pour optimiser la suite ?'+DONATION_NUDGE;
+   }},
+  {id:'m2', name:'Épargne de précaution 500€',
+   check:function(){
+     return (S.goals||[]).some(function(g){ return g.type==='urgence' && (g.current||0)>=500; });
+   },
+   msg:function(){
+     return '🛟 **Bravo !** Tu as constitué 500€ d\'épargne de précaution '+monthsSinceStart()+'. C\'est ton filet de sécurité en cas de coup dur — une vraie victoire, et une base solide pour la suite. Une nouvelle étape à viser ?'+DONATION_NUDGE;
+   }},
+  {id:'m3', name:'Dette remboursée',
+   check:function(){
+     return (S.goals||[]).some(function(g){ return g.type==='dette' && g.target>0 && (g.current||0)>=g.target; });
+   },
+   msg:function(){
+     return '💳 **C\'est fait !** Ta dette est totalement remboursée '+monthsSinceStart()+'. Tu as officiellement tourné la page — félicitations pour cette victoire, elle n\'a rien d\'évident. On regarde ce qu\'on fait de cette marge retrouvée ?'+DONATION_NUDGE;
+   }}
+];
+function checkMilestones(){
+  if(!S.milestones) S.milestones=[];
+  ALL_MILESTONES.forEach(function(m){
+    if(S.milestones.indexOf(m.id)<0 && m.check()){
+      S.milestones.push(m.id);
+      var txt=m.msg();
+      if(typeof addMsg==='function') addMsg('bot', txt);
+      if(S.hist) S.hist.push({role:'assistant', content: txt});
+      save();
+    }
+  });
 }
 function renderStreak(){
   var el=document.getElementById('streakBanner'); if(!el) return;
@@ -4365,6 +4431,27 @@ function getMonthRateTrend(n){
     var parts=k.split('-'); var m=parseInt(parts[1],10)-1;
     return {k:k, lbl:moisAbr[m]||k, v:S.monthRates[k]};
   });
+}
+
+// v5.123 : historique mensuel de la POSITIVITE du reste à vivre — un point par mois (dernière
+// valeur connue à chaque rendu de la carte RAV, écrasée tant que le mois n'est pas terminé),
+// conservé 24 mois. Distinct de S.monthRates (qui suit un taux d'épargne, pas le RAV) : ajouté
+// spécifiquement pour le jalon "RAV positif 3 mois consécutifs" (voir ALL_MILESTONES plus bas),
+// qui n'a aucun équivalent fiable dans S.dailySnaps (40 jours de profondeur seulement, donc moins
+// de 2 mois — insuffisant pour vérifier 3 mois consécutifs).
+function trackMonthRav(){
+  var rav=calcRAV();
+  var now=new Date();
+  var key=now.getFullYear()+'-'+(now.getMonth()<9?'0':'')+(now.getMonth()+1);
+  if(!S.monthRav) S.monthRav={};
+  S.monthRav[key]=rav;
+  var keys=Object.keys(S.monthRav).sort();
+  if(keys.length>24){ keys.slice(0,keys.length-24).forEach(function(k){ delete S.monthRav[k]; }); }
+}
+function getMonthRavTrend(n){
+  var keys=Object.keys(S.monthRav||{}).sort();
+  var last=keys.slice(-n);
+  return last.map(function(k){ return {k:k, v:S.monthRav[k]}; });
 }
 
 // ══════════════════════════════════════════════
@@ -5813,6 +5900,8 @@ function renderBudget(){
   // Zone 2: Evolution
   trackSnap();
   trackMonthRate();
+  trackMonthRav();
+  checkMilestones();
   var e7  = getEvol(7);
   var e30 = getEvol(30);
   var el7  = document.getElementById('evol7');
@@ -5904,6 +5993,7 @@ function renderBudget(){
   renderBudgetAlertBanner();
   trackSnap();
   checkBadges();
+  checkMilestones();
 }
 
 function doAction(){
@@ -6384,6 +6474,7 @@ async function sendMsg(txt, hiddenUser, fileData){
           S.actions = (S.actions||0) + 1;
           S.fin._actionDoneCounted = true;
           checkBadges();
+          checkMilestones();
           toast('Léo valide ton action ! 🎉','#10b981');
         }
         if(syncConfirms.length){
@@ -6925,6 +7016,7 @@ function openGoalModal(prefill){
   document.getElementById('goalTarget').value = (prefill && prefill.cible) || '';
   document.getElementById('goalCurrent').value = '';
   document.getElementById('goalDeadline').value = (prefill && prefill.echeance) || '';
+  document.getElementById('goalType').value = 'classique';
   document.getElementById('goalModalTitle').textContent = 'Nouvel objectif';
   document.getElementById('goalModalSaveBtn').textContent = 'Créer l\'objectif';
   document.getElementById('ovGoal').classList.add('open');
@@ -6938,6 +7030,7 @@ function openEditGoalModal(gi){
   document.getElementById('goalTarget').value = g.target || '';
   document.getElementById('goalCurrent').value = g.current != null ? g.current : 0;
   document.getElementById('goalDeadline').value = g.deadline || '';
+  document.getElementById('goalType').value = g.type || 'classique';
   document.getElementById('goalModalTitle').textContent = 'Modifier l\'objectif';
   document.getElementById('goalModalSaveBtn').textContent = 'Enregistrer';
   document.getElementById('ovGoal').classList.add('open');
@@ -6956,6 +7049,7 @@ function addGoal(){
   var target=parseMontant(document.getElementById('goalTarget').value)||0;
   var current=parseMontant(document.getElementById('goalCurrent').value)||0;
   var deadline=document.getElementById('goalDeadline').value||'';
+  var type=(document.getElementById('goalType')||{}).value||'classique';
   if(!name){ toast('Donne un nom à ton objectif','#ef4444'); return; }
   if(target<=0){ toast('Indique un montant cible','#ef4444'); return; }
 
@@ -6966,16 +7060,17 @@ function addGoal(){
     g.emoji = emoji; g.name = name; g.target = target;
     g.current = Math.min(current, target);
     g.deadline = deadline;
-    save(); closeGoalModal(); renderGoals();
+    g.type = type;
+    save(); closeGoalModal(); renderGoals(); checkMilestones();
     toast('Objectif mis à jour ✅','#0d9488');
     return;
   }
 
   // Mode création
-  S.goals.push({emoji:emoji,name:name,target:target,current:current,deadline:deadline,steps:[]});
+  S.goals.push({emoji:emoji,name:name,target:target,current:current,deadline:deadline,type:type,steps:[]});
   save(); closeGoalModal(); renderGoals();
   toast('Objectif créé 🎯','#0d9488');
-  S.actions++; save(); checkBadges();
+  S.actions++; save(); checkBadges(); checkMilestones();
   setTimeout(function(){
     go('chat');
     setTimeout(function(){
