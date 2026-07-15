@@ -1297,7 +1297,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.157';
+window.APP_VERSION = '5.158';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -2057,8 +2057,10 @@ window.APP_VERSION = '5.157';
           <line x1="9" y1="22" x2="15" y2="22"/>
         </svg>
       </button>
-      <textarea id="chatIn" placeholder="&#201;cris ou parle &#224; L&#233;o..." rows="1" maxlength="1000"
-        onkeydown="if(event.key==='Enter'&amp;&amp;!event.shiftKey){event.preventDefault();send();}"></textarea>
+      <!-- v5.158 : la touche Entree ne valide plus l'envoi, demande explicite de l'utilisateur —
+           elle ne fait plus qu'un retour a la ligne (comportement par defaut d'un textarea), seul
+           le bouton d'envoi a droite declenche send(). -->
+      <textarea id="chatIn" placeholder="&#201;cris ou parle &#224; L&#233;o..." rows="1" maxlength="1000"></textarea>
       <button id="sendBtn" onclick="send()">
         <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
       </button>
