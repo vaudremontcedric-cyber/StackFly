@@ -972,6 +972,36 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 #pg-login{align-items:center;padding:32px 24px;background:var(--bg);overflow-y:auto}
 .login-box{width:100%;max-width:360px;margin:auto 0}
 .login-hero{text-align:center;margin-bottom:28px}
+/* v5.138 : panneau "Éclosion de Projets" (concept 2 fourni par l'utilisateur), affiché uniquement
+   à partir de la taille tablette — le mobile garde la carte compacte existante ("Cocon Apaisant",
+   concept 1, inchangée). Purement décoratif : le formulaire reste dans .login-box. */
+.login-side-hero{display:none}
+@media (min-width:768px){
+  #pg-login{flex-direction:row;align-items:stretch;justify-content:center;padding:0;overflow-x:hidden;overflow-y:auto}
+  .login-side-hero{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    position:relative;overflow:hidden;flex:1 1 56%;min-width:0;padding:40px;
+    background:linear-gradient(120deg,#16324f 0%,#0a1930 100%);color:#fff;
+  }
+  .lsh-icons{position:absolute;inset:0;pointer-events:none}
+  .lsh-icon{position:absolute;width:44px;height:44px;color:#fff;opacity:.22}
+  .lsh-i1{top:12%;left:14%}
+  .lsh-i2{top:20%;right:12%;width:52px;height:52px}
+  .lsh-i3{bottom:16%;left:10%;width:50px;height:50px}
+  .lsh-i4{top:8%;right:28%;width:36px;height:36px}
+  .lsh-i5{bottom:12%;right:16%;width:46px;height:46px}
+  .lsh-badge{width:clamp(110px,14vw,160px);height:clamp(110px,14vw,160px);position:relative;z-index:2;margin-bottom:20px}
+  .lsh-badge img{width:100%;height:100%;object-fit:contain}
+  .lsh-title{font-size:clamp(32px,4.2vw,52px);font-weight:800;letter-spacing:-1px;position:relative;z-index:2}
+  .lsh-budget{color:#fff}
+  .lsh-sub{font-size:clamp(13px,1.3vw,16px);color:rgba(255,255,255,.75);margin-top:10px;position:relative;z-index:2}
+  .login-box{flex:1 1 44%;max-width:420px;padding:48px 40px;background:var(--bg)}
+  .login-box .login-hero{display:none}
+}
+@media (min-width:768px) and (max-width:1023px){
+  .login-side-hero{flex:1 1 46%}
+  .login-box{flex:1 1 54%}
+}
 /* v5.127 : logo illustré fourni par l'utilisateur, remplace le logo texte rb-logo-block sur la
    page de connexion uniquement (le rb-logo-block CSS reste utilisé ailleurs, ex. en-tête). */
 .login-logo-img{width:clamp(150px,42vw,220px);height:auto;display:block;margin:0 auto}
@@ -1056,7 +1086,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.137';
+window.APP_VERSION = '5.138';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1300,6 +1330,24 @@ window.APP_VERSION = '5.137';
 
   <!-- ════════ LOGIN ════════ -->
   <section id="pg-login" class="page active">
+    <!-- v5.138 : panneau visible uniquement sur tablette/PC (voir @media dans le CSS ci-dessus),
+         a la demande explicite de l'utilisateur qui a fourni 2 concepts visuels : "Cocon Apaisant"
+         (carte compacte existante, deja utilisee sur mobile depuis la v5.129/5.130 - inchangee) et
+         "Eclosion de Projets" (grand panneau sombre a gauche avec le mot RescueBudget en grand et
+         des icones de projets de vie autour du badge) pour les grands ecrans. Purement decoratif
+         (aria-hidden), le formulaire reste dans .login-box a droite. -->
+    <div class="login-side-hero" aria-hidden="true">
+      <div class="lsh-icons">
+        <svg class="lsh-icon lsh-i1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11L12 3L21 11"/><path d="M5 10V20C5 20.5523 5.44772 21 6 21H18C18.5523 21 19 20.5523 19 20V10"/><path d="M10 21V14H14V21"/></svg>
+        <svg class="lsh-icon lsh-i2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="7" r="3"/><path d="M2 21v-2a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v2"/><circle cx="17" cy="8" r="2.5"/><path d="M14.5 21v-1.5a4 4 0 0 1 4-4h0a4 4 0 0 1 4 4V21"/></svg>
+        <svg class="lsh-icon lsh-i3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16V12L5 7H16L19 12V16"/><path d="M3 16H19"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="16" cy="17.5" r="1.6"/><path d="M5 12H19"/></svg>
+        <svg class="lsh-icon lsh-i4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9L12 4L22 9L12 14L2 9Z"/><path d="M6 11.5V16C6 17.5 8.5 19 12 19C15.5 19 18 17.5 18 16V11.5"/><path d="M22 9V15"/></svg>
+        <svg class="lsh-icon lsh-i5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12C5 8 8 5 12 5C16 5 18 8 18 12"/><path d="M4 12H19L18 18H6L4 12Z"/><circle cx="8" cy="20" r="1.6"/><circle cx="16" cy="20" r="1.6"/><path d="M18 8L21 6"/></svg>
+      </div>
+      <div class="lsh-badge"><img src="icons/rb-badge-v2.png" alt=""/></div>
+      <div class="lsh-title">Rescue<span class="lsh-budget">Budget</span></div>
+      <div class="lsh-sub">On ne juge pas. On t'aide à avancer.</div>
+    </div>
     <div class="login-box">
       <div class="login-hero">
         <img src="icons/rb-badge-v2.png" alt="RescueBudget" class="login-logo-img"/>
