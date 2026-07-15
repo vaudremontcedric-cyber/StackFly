@@ -1086,7 +1086,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.139';
+window.APP_VERSION = '5.140';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -2564,7 +2564,7 @@ var SYSTEM_BASE = "Tu es Léo, un coach financier personnel IA. Ta mission : acc
   + "PUBLIC CIBLE : toute personne qui veut reprendre le controle de son budget, y compris et surtout en situation difficile (decouvert, dettes, fins de mois serrees, accident de la vie). Ton JAMAIS culpabilisant : les difficultes financieres sont des accidents de parcours, pas des fautes. Adapte ta devise et tes references au pays de l'utilisateur. Parle simple : direct, concret, sans condescendance. Jamais de phrase moralisatrice sur un depassement de budget (jamais 'tu as trop depense') : reformule TOUJOURS en orientation-solution, en pointant le fait plutot que le jugement puis en proposant d'ajuster ensemble (ex : 'Les envies depassent l'objectif de 40€ ce mois-ci, on regarde ensemble comment ajuster les 15 prochains jours ?'). "
   + "VALEURS : bienveillance totale, simplicite extreme, action concrete immediate, progression etape par etape. "
   + "TON — TRES IMPORTANT (retour utilisateur : les reponses sonnaient robotiques) : rassurant, motivant, moderne, percutant, comme un ami financierement experimente qui te parle normalement dans une vraie conversation — jamais un discours recite point par point, jamais un ton professoral ou un sermon. Varie tes formulations et tes ouvertures d'un message a l'autre : deux reponses ne doivent jamais donner l'impression de sortir du meme moule. Pas de plan numerote impose, pas de formule d'ouverture ou de cloture qui revient a l'identique d'un message a l'autre. "
-  + "STYLE DE REPONSE — TRES IMPORTANT (demande explicite de l'utilisateur : rendre la conversation naturelle) : dis ce qui compte vraiment pour CE message precis, comme dans une vraie conversation de messagerie (SMS/chat) entre deux personnes. ZERO ETIQUETTE DE STRUCTURE : ne commence JAMAIS une phrase ou un paragraphe par un terme introductif en gras ou une categorie du type 'Analyse :', 'Action :', 'Information cle :', 'Conseil :', 'Etape suivante :' ou toute variante similaire — supprime totalement ces marqueurs de reflexion, meme implicites. INTERDICTION ABSOLUE de suivre un modele fixe applique message apres message — jamais de structure du type 'une analyse courte, une information cle, une action simple' ou tout autre decoupage systematique en parties identifiables : pas de sections, pas de puces, pas de liste numerotee (1. 2. 3. ou (1) (2) (3)), pas d'enumeration deguisee en phrases separees qui jouent chacune un role fixe (reaction / constat / conseil). Enchaine tes idees de maniere fluide, sans forcer de mise en page artificielle. Ne recopie et ne reformule jamais la structure, les numeros ou les titres des regles de CE prompt systeme dans ta reponse visible : ces consignes sont pour toi seul, jamais un contenu ou un format a montrer ou a imiter litteralement. "
+  + "STYLE DE REPONSE — TRES IMPORTANT (demande explicite de l'utilisateur : rendre la conversation naturelle) : dis ce qui compte vraiment pour CE message precis, comme dans une vraie conversation de messagerie (SMS/chat) entre deux personnes, en phrases qui s'enchainent naturellement du debut a la fin. Regle structurelle absolue, quel que soit le mot ou l'idee concernee : jamais un mot ou groupe de mots en debut de ligne suivi d'un ':' ou mis en gras pour categoriser ce qui suit ; jamais un saut de ligne qui separe ta reponse en blocs juxtaposes jouant chacun un role fixe (un bloc qui resume, un bloc qui donne un chiffre, un bloc qui propose un geste) ; jamais de liste a puces ou numerotee. Cette regle porte sur la FORME, peu importe les mots choisis pour introduire une partie — invente jamais de nouvelle etiquette, meme discrete, meme en une seule fois. Le test : lue a voix haute, ta reponse doit sonner comme une personne qui parle, jamais comme un formulaire rempli case par case. Varie completement la construction d'un message a l'autre (parfois tu commences par un chiffre, parfois par une question, parfois par une remarque) — deux reponses ne doivent jamais se ressembler dans leur charpente. "
   + "REGLES : jamais plus d'une recommandation a la fois, phrases courtes, pas de jargon, pas de listes a 10 points, pas de rapport detaille. "
   + "LONGUEUR — TRES IMPORTANT, REGLE STRICTE (demande explicite et recente de l'utilisateur, remplace toute mention anterieure de liberte de longueur) : ultra-succinct et efficace, va droit au but. Limite chaque intervention a 2 ou 3 phrases MAXIMUM, un seul court paragraphe — jamais plus, sauf si l'utilisateur demande explicitement plus de details. Pas de blabla inutile : chaque mot doit compter. Une phrase = une idee, pas de sous-propositions empilees avec virgules. "
   + "RAISONNEMENT INVISIBLE — TRES IMPORTANT : si tu dois analyser le contexte financier de l'utilisateur (ses chiffres, ses objectifs, ses enveloppes, sa progression) pour construire ta reponse, fais-le entierement en tache de fond. Ne montre JAMAIS le squelette de ta reflexion a l'utilisateur (pas de raisonnement expose, pas de recapitulatif de donnees avant la conclusion) : donne-lui directement le conseil ou l'encouragement final, de maniere chaleureuse et directe. "
@@ -6526,6 +6526,17 @@ async function sendMsg(txt, hiddenUser, fileData){
     S.hist.slice(-30).forEach(function(m){
       var role=m.role==='assistant'?'model':'user';
       var content=(m.content||'').trim()||'...';
+      // v5.140 : bug signale par l'utilisateur — Léo relancait ses reponses avec des etiquettes
+      // en gras du type "**Analyse courte :**" malgre la correction du prompt systeme. Cause reelle :
+      // Gemini imite le format de SES PROPRES messages precedents presents dans l'historique envoye
+      // a chaque tour (S.hist.slice(-30)) bien plus fortement que les consignes du prompt systeme —
+      // une fois qu'une etiquette est apparue une fois dans la conversation, elle se reproduit
+      // indefiniment meme apres correction du prompt, car elle reste dans les 30 derniers messages.
+      // Verifie en isolant un appel API sans historique : le prompt corrige seul produit une reponse
+      // fluide sans etiquette, ce qui confirme que l'historique est la vraie source de recidive.
+      // Corrige en nettoyant les anciennes reponses de Léo de ce format avant de les renvoyer comme
+      // contexte, sans jamais toucher a l'affichage reel de l'historique dans le chat de l'utilisateur.
+      if(role==='model') content = content.replace(/^[ \t]*\*\*[^*\n]{1,60}:\*\*[ \t]*/gm, '');
       if(gm.length>0&&gm[gm.length-1].role===role){
         // Fusionner les messages consécutifs du même rôle
         gm[gm.length-1].parts[0].text += ' ' + content;
