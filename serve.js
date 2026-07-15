@@ -581,8 +581,18 @@ var server = http.createServer(function(req, res) {
   }
 
   // ─── Fichiers statiques ──────────────────────────────────────────
+  // v5.143 : demande explicite de l'utilisateur - une page de présentation publique
+  // (landing.html) accueille désormais les visiteurs sur la racine du domaine, pour
+  // expliquer l'application et rassurer avant l'inscription. L'application elle-même
+  // (ex-page racine) déménage vers /app et /app/. CoachFinancier.html reste
+  // accessible directement à son ancienne adresse (compat. anciens signets), et
+  // manifest.json pointe toujours dessus via un chemin relatif (./CoachFinancier.html),
+  // donc l'app déjà installée en PWA n'est pas affectée par ce changement.
   var urlPath = req.url.split('?')[0];
-  var filePath = urlPath === '/' ? '/CoachFinancier.html' : urlPath;
+  var filePath;
+  if (urlPath === '/') filePath = '/landing.html';
+  else if (urlPath === '/app' || urlPath === '/app/') filePath = '/CoachFinancier.html';
+  else filePath = urlPath;
   filePath = path.join(DIR, filePath);
 
   fs.readFile(filePath, function(err, data) {
@@ -597,7 +607,7 @@ var server = http.createServer(function(req, res) {
     // Ne jamais mettre le HTML en cache (évite les conflits avec le SW). sw.js aussi (v5.136) :
     // ce fichier change a chaque version et doit toujours etre revalide par le navigateur pour
     // que la mise a jour du Service Worker se propage sans delai a la prochaine visite.
-    if (ext === '.html' || filePath.endsWith('CoachFinancier.html') || filePath.endsWith('sw.js')) {
+    if (ext === '.html' || filePath.endsWith('CoachFinancier.html') || filePath.endsWith('landing.html') || filePath.endsWith('sw.js')) {
       headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
       headers['Pragma'] = 'no-cache';
     }

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>RescueBudget — Le coach budgétaire qui t'aide dans les moments difficiles</title>
+<meta name="description" content="RescueBudget est un accompagnement bienveillant et sans jugement pour reprendre le contrôle de ton budget, stabiliser ta situation et reconstruire tes projets, pas à pas. Gratuit, données stockées sur ton appareil."/>
+<meta property="og:title" content="RescueBudget — Le coach budgétaire qui t'aide dans les moments difficiles"/>
+<meta property="og:description" content="Un accompagnement bienveillant et sans jugement pour reprendre le contrôle de ton budget. Gratuit, sans conseil en investissement."/>
+<meta property="og:type" content="website"/>
+<meta property="og:url" content="https://www.rescuebudget.fr/"/>
+<meta property="og:image" content="https://www.rescuebudget.fr/icons/rb-icon-512-v2.png"/>
+<meta name="twitter:card" content="summary"/>
+<link rel="icon" href="icons/rb-icon-192-v2.png"/>
+<style>
+:root{
+  --bg:#f6f8fa;--surface:#ffffff;--card:#ffffff;--card2:#eef2f6;
+  --accent:#0d9488;--accent2:#2dd4bf;--accent3:#0f766e;
+  --text:#0f172a;--text2:#3f4b5c;--text3:#64748b;
+  --border:#e2e8f0;--r:16px;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+.wrap{max-width:960px;margin:0 auto;padding:0 24px}
+.section{padding:64px 0}
+.section-narrow{max-width:720px;margin:0 auto}
+h1,h2,h3{letter-spacing:-.3px}
+
+/* ═══ NAV ═══ */
+.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.nav-in{max-width:960px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:18px}
+.nav-logo img{width:32px;height:32px}
+.nav-logo .rb-budget{color:#dc2626}
+.nav-cta{background:var(--accent);color:#fff;padding:9px 18px;border-radius:10px;font-size:14px;font-weight:700;white-space:nowrap}
+
+/* ═══ HERO ═══ */
+.hero{background:linear-gradient(120deg,#16324f 0%,#0a1930 100%);color:#fff;padding:72px 24px 88px;text-align:center;position:relative;overflow:hidden}
+.hero-badge{width:96px;height:96px;margin:0 auto 22px}
+.hero h1{font-size:clamp(28px,5vw,42px);font-weight:800;max-width:680px;margin:0 auto 16px;line-height:1.25}
+.hero p{font-size:clamp(15px,2vw,18px);color:rgba(255,255,255,.8);max-width:560px;margin:0 auto 32px}
+.hero-ctas{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn{display:inline-block;padding:14px 26px;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;border:none}
+.btn-primary{background:var(--accent2);color:#04211d}
+.btn-ghost{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.35)}
+
+/* ═══ CARDS ═══ */
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-top:36px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:22px}
+.card .ico{font-size:26px;margin-bottom:10px}
+.card h3{font-size:16px;margin:0 0 8px;color:var(--text)}
+.card p{font-size:13.5px;color:var(--text2);margin:0}
+
+.steps{counter-reset:step;margin-top:36px;display:flex;flex-direction:column;gap:18px}
+.step{display:flex;gap:16px;align-items:flex-start}
+.step-num{flex-shrink:0;width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px}
+.step-txt h3{margin:0 0 4px;font-size:15.5px}
+.step-txt p{margin:0;font-size:13.5px;color:var(--text2)}
+
+.trust-box{background:rgba(13,148,136,.06);border:1px solid rgba(13,148,136,.25);border-radius:var(--r);padding:20px 22px;margin-bottom:14px}
+.trust-box h3{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:8px}
+.trust-box p{margin:0;font-size:13.5px;color:var(--text2)}
+
+.disclaimer{background:var(--card2);border-radius:var(--r);padding:22px;font-size:13px;color:var(--text3);line-height:1.7}
+.disclaimer strong{color:var(--text2)}
+
+.cta-band{background:var(--accent3);color:#fff;text-align:center;padding:56px 24px;border-radius:24px;margin:0 24px}
+.cta-band h2{font-size:clamp(22px,3.6vw,30px);margin:0 0 10px}
+.cta-band p{color:rgba(255,255,255,.8);margin:0 0 26px}
+
+footer{padding:32px 24px 48px;text-align:center;font-size:12.5px;color:var(--text3)}
+footer a{color:var(--accent);font-weight:600}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-in">
+    <div class="nav-logo">
+      <img src="icons/rb-badge-v2.png" alt="RescueBudget"/>
+      Rescue<span class="rb-budget">Budget</span>
+    </div>
+    <a class="nav-cta" href="/app">Se connecter</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <img class="hero-badge" src="icons/rb-badge-v2.png" alt=""/>
+  <h1>Le premier coach budgétaire conçu pour t'épauler dans les moments difficiles.</h1>
+  <p>Un accompagnement bienveillant et sans jugement pour sortir de l'impasse financière, stabiliser ta situation et reconstruire tes projets, pas à pas.</p>
+  <div class="hero-ctas">
+    <a class="btn btn-primary" href="/app">Commencer gratuitement →</a>
+    <a class="btn btn-ghost" href="/app">J'ai déjà un compte</a>
+  </div>
+</section>
+
+<div class="wrap">
+
+  <section class="section">
+    <div class="section-narrow" style="text-align:center">
+      <h2>RescueBudget n'est pas une simple application de comptes</h2>
+      <p style="color:var(--text2)">C'est un accompagnement pensé pour celles et ceux qui sentent que leur budget leur échappe — découvert, dettes, fins de mois serrées, accident de la vie. Pas de jugement, pas de jargon financier : juste un état des lieux honnête et un coach IA qui t'aide à reprendre pied, un mois à la fois.</p>
+    </div>
+    <div class="grid3">
+      <div class="card">
+        <div class="ico">🛟</div>
+        <h3>Sortir la tête de l'eau</h3>
+        <p>Un état des lieux honnête de ton reste à vivre, sans culpabilisation, pour comprendre où tu en es vraiment.</p>
+      </div>
+      <div class="card">
+        <div class="ico">🧭</div>
+        <h3>Un coach au quotidien</h3>
+        <p>Léo, ton coach IA, te propose une action simple à faire — jamais un rapport de 10 pages, juste le prochain geste utile.</p>
+      </div>
+      <div class="card">
+        <div class="ico">📈</div>
+        <h3>Vers l'autonomie financière</h3>
+        <p>Budget, épargne, objectifs : tu apprends mois après mois à mieux gérer ton argent, à ton rythme.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <h2 style="text-align:center">Comment ça marche</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-txt">
+          <h3>Tu indiques ta situation</h3>
+          <p>Revenus, dépenses fixes, envies du quotidien — en discutant simplement avec Léo, ton coach IA, comme dans une vraie conversation.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-txt">
+          <h3>Léo analyse et propose une action concrète</h3>
+          <p>Une priorité claire, jamais une liste de recommandations à rallonge — un seul geste utile à la fois.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-txt">
+          <h3>Tu avances, mois après mois</h3>
+          <p>Enveloppes budgétaires, objectifs d'épargne, suivi de ton reste à vivre : tu vois ta situation progresser concrètement.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <h2 style="text-align:center;margin-bottom:8px">Confidentialité, en toute transparence</h2>
+    <p style="text-align:center;color:var(--text3);font-size:13.5px;margin-top:0;margin-bottom:28px">Pas de promesse marketing vague : voici exactement ce qui se passe avec tes données.</p>
+
+    <div class="trust-box">
+      <h3>🔒 Tes chiffres restent sur ton appareil</h3>
+      <p>Revenus, dépenses, enveloppes, objectifs : toutes tes données budgétaires sont stockées dans ton navigateur, sur ton appareil. Elles ne sont pas envoyées vers une base de données centrale.</p>
+    </div>
+    <div class="trust-box">
+      <h3>👤 Pas de compte "dans le cloud"</h3>
+      <p>Ton compte est un simple profil local à ton appareil (identifiant + mot de passe). Seule ton adresse email est demandée, uniquement pour t'envoyer un code si tu perds ton mot de passe — jamais utilisée à d'autres fins.</p>
+    </div>
+    <div class="trust-box">
+      <h3>🤖 Une nuance honnête sur le coach IA</h3>
+      <p>Pour que Léo te réponde, le contexte nécessaire (tes chiffres, tes objectifs) transite au moment de la conversation par un serveur qui interroge l'IA (Google Gemini) — comme pour tout assistant IA. Rien n'est conservé de façon permanente côté serveur après la réponse.</p>
+    </div>
+    <div class="trust-box">
+      <h3>🚫 Aucune publicité, aucune revente de données</h3>
+      <p>RescueBudget est gratuit et financé par les dons volontaires des utilisateurs, jamais par la vente de tes informations.</p>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <div class="disclaimer">
+      <strong>Outil pédagogique d'accompagnement budgétaire</strong>, RescueBudget ne fournit aucun conseil en investissement (aucune recommandation d'achat, de vente ou de produit financier). En cas de surendettement ou de difficulté sérieuse, l'application oriente vers des ressources gratuites : dossier de surendettement de la Banque de France, Points Conseil Budget, association Crésus.
+    </div>
+  </section>
+
+</div>
+
+<div class="cta-band">
+  <h2>Prêt à reprendre pied ?</h2>
+  <p>Gratuit, sans engagement, à ton rythme.</p>
+  <a class="btn btn-primary" href="/app">Créer mon compte →</a>
+</div>
+
+<footer>
+  RescueBudget — Outil pédagogique de gestion budgétaire, sans conseil en investissement.<br/>
+  Une question, un bug, une idée ? <a href="/app">Écris-nous depuis l'application</a>.
+</footer>
+
+</body>
+</html>
