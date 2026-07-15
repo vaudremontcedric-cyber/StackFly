@@ -70,6 +70,19 @@ h1,h2,h3{letter-spacing:-.3px}
 .cta-band h2{font-size:clamp(22px,3.6vw,30px);margin:0 0 10px}
 .cta-band p{color:rgba(255,255,255,.8);margin:0 0 26px}
 
+/* ═══ STORYTELLING (3 slides, v5.144) — même structure que le carrousel d'onboarding de
+   l'application, pour une cohérence visuelle entre le site et l'app dès le premier contact. ═══ */
+.story-track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;border-radius:var(--r)}
+.story-slide{flex:0 0 100%;scroll-snap-align:center;background:linear-gradient(120deg,#16324f 0%,#0a1930 100%);
+  color:#fff;border-radius:var(--r);padding:56px 32px;text-align:center;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:240px}
+.story-ico{font-size:52px;margin-bottom:20px;line-height:1}
+.story-slide h3{font-size:21px;margin:0 0 12px;max-width:440px;font-weight:800;letter-spacing:-.3px}
+.story-slide p{font-size:14.5px;color:rgba(255,255,255,.78);max-width:440px;margin:0;line-height:1.65}
+.story-dots{display:flex;justify-content:center;gap:8px;margin-top:18px}
+.story-dot{width:8px;height:8px;border-radius:50%;background:var(--border);cursor:pointer;transition:all .25s ease;border:none;padding:0}
+.story-dot.on{width:24px;border-radius:4px;background:var(--accent)}
+
 footer{padding:32px 24px 48px;text-align:center;font-size:12.5px;color:var(--text3)}
 footer a{color:var(--accent);font-weight:600}
 </style>
@@ -99,26 +112,31 @@ footer a{color:var(--accent);font-weight:600}
 <div class="wrap">
 
   <section class="section">
-    <div class="section-narrow" style="text-align:center">
+    <div class="section-narrow" style="text-align:center;margin-bottom:8px">
       <h2>RescueBudget n'est pas une simple application de comptes</h2>
       <p style="color:var(--text2)">C'est un accompagnement pensé pour celles et ceux qui sentent que leur budget leur échappe — découvert, dettes, fins de mois serrées, accident de la vie. Pas de jugement, pas de jargon financier : juste un état des lieux honnête et un coach IA qui t'aide à reprendre pied, un mois à la fois.</p>
     </div>
-    <div class="grid3">
-      <div class="card">
-        <div class="ico">🛟</div>
-        <h3>Sortir la tête de l'eau</h3>
-        <p>Un état des lieux honnête de ton reste à vivre, sans culpabilisation, pour comprendre où tu en es vraiment.</p>
+    <div class="story-track" id="storyTrack">
+      <div class="story-slide">
+        <div class="story-ico" aria-hidden="true">🧘</div>
+        <h3>Reprenez le contrôle, sans stress.</h3>
+        <p>Un espace bienveillant et sans jugement pour traverser les passes financières difficiles à votre rythme.</p>
       </div>
-      <div class="card">
-        <div class="ico">🧭</div>
-        <h3>Un coach au quotidien</h3>
-        <p>Léo, ton coach IA, te propose une action simple à faire — jamais un rapport de 10 pages, juste le prochain geste utile.</p>
+      <div class="story-slide">
+        <div class="story-ico" aria-hidden="true">💬</div>
+        <h3>Votre Coach IA personnel.</h3>
+        <p>Des conseils budgétaires sur-mesure, une écoute active et des solutions concrètes à portée de main.</p>
       </div>
-      <div class="card">
-        <div class="ico">📈</div>
-        <h3>Vers l'autonomie financière</h3>
-        <p>Budget, épargne, objectifs : tu apprends mois après mois à mieux gérer ton argent, à ton rythme.</p>
+      <div class="story-slide">
+        <div class="story-ico" aria-hidden="true">🔒</div>
+        <h3>100% Local.</h3>
+        <p>Tes chiffres restent sur ton appareil, jamais dans une base de données centrale. Un compte local léger (identifiant + mot de passe), sans revente de données ni publicité.</p>
       </div>
+    </div>
+    <div class="story-dots" id="storyDots">
+      <button class="story-dot on" onclick="storyGoTo(0)" aria-label="Slide 1"></button>
+      <button class="story-dot" onclick="storyGoTo(1)" aria-label="Slide 2"></button>
+      <button class="story-dot" onclick="storyGoTo(2)" aria-label="Slide 3"></button>
     </div>
   </section>
 
@@ -190,5 +208,21 @@ footer a{color:var(--accent);font-weight:600}
   Une question, un bug, une idée ? <a href="/app">Écris-nous depuis l'application</a>.
 </footer>
 
+<script>
+(function(){
+  var track=document.getElementById('storyTrack');
+  if(!track) return;
+  var dots=document.querySelectorAll('#storyDots .story-dot');
+  window.storyGoTo=function(i){ track.scrollTo({left:track.clientWidth*i,behavior:'smooth'}); };
+  var t=null;
+  track.addEventListener('scroll',function(){
+    clearTimeout(t);
+    t=setTimeout(function(){
+      var i=Math.round(track.scrollLeft/Math.max(1,track.clientWidth));
+      dots.forEach(function(d,j){ d.classList.toggle('on', j===i); });
+    },80);
+  });
+})();
+</script>
 </body>
 </html>

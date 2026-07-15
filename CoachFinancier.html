@@ -173,6 +173,28 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
    haut sans rien couper des que le contenu depasse. */
 #pg-setup{align-items:center;padding:28px 24px;background:var(--bg);overflow-y:auto}
 .setup-box{width:100%;max-width:380px;margin:auto 0}
+
+/* ONBOARDING — carrousel 3 slides façon Plum (v5.144), affiché une seule fois avant le
+   login (voir cf_onboard_seen dans le JS d'init) : storytelling Objectif / Fonctionnalité /
+   Promesse, demandé explicitement par l'utilisateur en s'inspirant de l'app Plum. */
+#pg-onboard{align-items:center;padding:0;background:var(--bg)}
+.onboard-wrap{width:100%;max-width:420px;height:100%;display:flex;flex-direction:column;
+  padding:calc(14px + env(safe-area-inset-top,0px)) 24px calc(24px + env(safe-area-inset-bottom,0px))}
+.onboard-skip{align-self:flex-end;background:none;border:none;color:var(--text3);
+  font-size:13px;font-weight:600;cursor:pointer;padding:8px 6px}
+.onboard-track{flex:1;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;min-height:0}
+.onboard-slide{flex:0 0 100%;scroll-snap-align:center;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:12px 8px}
+.onboard-ico{font-size:60px;margin-bottom:24px;line-height:1}
+.onboard-slide h2{font-size:21px;font-weight:800;letter-spacing:-.3px;margin:0 0 12px}
+.onboard-slide p{font-size:14.5px;color:var(--text2);line-height:1.65;margin:0;max-width:320px}
+.onboard-dots{display:flex;justify-content:center;gap:7px;margin:18px 0 20px;flex-shrink:0}
+.onboard-dot{width:7px;height:7px;border-radius:50%;background:var(--border);transition:all .25s ease}
+.onboard-dot.on{width:22px;border-radius:4px;background:var(--accent)}
+.onboard-next{width:100%;flex-shrink:0;padding:15px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,var(--accent),var(--accent3));color:#fff;
+  font-size:15px;font-weight:700;cursor:pointer}
 .s-hero{text-align:center;margin-bottom:36px}
 .s-ico{margin-bottom:18px;display:flex;justify-content:center}
 .s-title{font-size:28px;font-weight:800;letter-spacing:-.5px;margin-bottom:12px}
@@ -1106,7 +1128,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.144';
+window.APP_VERSION = '5.145';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1348,8 +1370,41 @@ window.APP_VERSION = '5.144';
     <span id="ptrLabel">Tire pour mettre à jour</span>
   </div>
 
+  <!-- ════════ ONBOARDING (v5.144) ════════ -->
+  <!-- Carrousel 3 slides façon Plum, affiché une seule fois avant le login (voir cf_onboard_seen
+       dans le JS d'init). Storytelling demandé par l'utilisateur : Objectif (apaisement) /
+       Fonctionnalité (coach IA) / Promesse (confidentialité — texte du slide 3 volontairement
+       reformulé pour rester exact : l'app a un compte local léger et le contexte transite par un
+       serveur au moment où Léo répond, voir la page de présentation publique pour la même nuance. -->
+  <section id="pg-onboard" class="page active">
+    <div class="onboard-wrap">
+      <button class="onboard-skip" onclick="skipOnboard()">Passer</button>
+      <div class="onboard-track" id="onboardTrack" onscroll="onOnboardScroll()">
+        <div class="onboard-slide">
+          <div class="onboard-ico" aria-hidden="true">🧘</div>
+          <h2>Reprenez le contrôle, sans stress.</h2>
+          <p>Un espace bienveillant et sans jugement pour traverser les passes financières difficiles, à votre rythme.</p>
+        </div>
+        <div class="onboard-slide">
+          <div class="onboard-ico" aria-hidden="true">💬</div>
+          <h2>Votre Coach IA personnel.</h2>
+          <p>Des conseils budgétaires sur-mesure, une écoute active et des solutions concrètes à portée de main.</p>
+        </div>
+        <div class="onboard-slide">
+          <div class="onboard-ico" aria-hidden="true">🔒</div>
+          <h2>100% Local.</h2>
+          <p>Tes chiffres restent sur ton appareil, jamais dans une base de données centrale. Un compte local léger (identifiant + mot de passe), sans revente de données ni publicité.</p>
+        </div>
+      </div>
+      <div class="onboard-dots" id="onboardDots">
+        <span class="onboard-dot on"></span><span class="onboard-dot"></span><span class="onboard-dot"></span>
+      </div>
+      <button class="onboard-next" id="onboardNextBtn" onclick="onboardNext()">Suivant →</button>
+    </div>
+  </section>
+
   <!-- ════════ LOGIN ════════ -->
-  <section id="pg-login" class="page active">
+  <section id="pg-login" class="page">
     <!-- v5.138 : panneau visible uniquement sur tablette/PC (voir @media dans le CSS ci-dessus),
          a la demande explicite de l'utilisateur qui a fourni 2 concepts visuels : "Cocon Apaisant"
          (carte compacte existante, deja utilisee sur mobile depuis la v5.129/5.130 - inchangee) et
@@ -2667,6 +2722,45 @@ var S = {
   lastAnalysis: '',
   busy: false
 };
+// ══════════════════════════════════════════════
+// ONBOARDING — carrousel 3 slides (v5.144)
+// ══════════════════════════════════════════════
+var ONBOARD_N = 3;
+var onboardIdx = 0;
+var _onboardScrollT = null;
+function onboardGoTo(i){
+  var track=document.getElementById('onboardTrack'); if(!track) return;
+  onboardIdx = Math.max(0, Math.min(ONBOARD_N-1, i));
+  track.scrollTo({left: track.clientWidth*onboardIdx, behavior:'smooth'});
+  updateOnboardUI();
+}
+function onboardNext(){
+  if(onboardIdx >= ONBOARD_N-1){ finishOnboard(); return; }
+  onboardGoTo(onboardIdx+1);
+}
+function skipOnboard(){ finishOnboard(); }
+function finishOnboard(){
+  localStorage.setItem('cf_onboard_seen','1');
+  var ob=document.getElementById('pg-onboard'); if(ob) ob.classList.remove('active');
+  document.getElementById('pg-login').classList.add('active');
+  checkNoAccountWarning();
+}
+function onOnboardScroll(){
+  var track=document.getElementById('onboardTrack'); if(!track) return;
+  clearTimeout(_onboardScrollT);
+  _onboardScrollT=setTimeout(function(){
+    var i=Math.round(track.scrollLeft/Math.max(1,track.clientWidth));
+    onboardIdx=Math.max(0, Math.min(ONBOARD_N-1, i));
+    updateOnboardUI();
+  },80);
+}
+function updateOnboardUI(){
+  var dots=document.querySelectorAll('#onboardDots .onboard-dot');
+  dots.forEach(function(d,i){ d.classList.toggle('on', i===onboardIdx); });
+  var btn=document.getElementById('onboardNextBtn');
+  if(btn) btn.textContent = (onboardIdx>=ONBOARD_N-1) ? 'Commencer →' : 'Suivant →';
+}
+
 // ══════════════════════════════════════════════
 // AUTHENTIFICATION LOCALE
 // ══════════════════════════════════════════════
@@ -7183,6 +7277,7 @@ function delGoal(gi){
 // DÉMARRAGE APPLICATION
 // ══════════════════════════════════════════════
 function startApp(){
+  var _obApp=document.getElementById('pg-onboard'); if(_obApp) _obApp.classList.remove('active');
   document.getElementById('pg-login').classList.remove('active');
   document.getElementById('pg-setup').classList.remove('active');
   var hdr=document.getElementById('mainHdr'); if(hdr) hdr.style.display='flex';
@@ -8208,7 +8303,11 @@ function checkBudgetAlerts(){
 // ══════════════════════════════════════════════
 // INITIALISATION
 // ══════════════════════════════════════════════
+// v5.144 : #pg-onboard est "active" par défaut dans le HTML (pour s'afficher sans flash au tout
+// premier chargement) — dès qu'une session est déjà connectée, ce n'est jamais le bon écran, donc
+// on le désactive inconditionnellement avant toute autre décision d'affichage.
 if(isLoggedIn()){
+  var _obInit=document.getElementById('pg-onboard'); if(_obInit) _obInit.classList.remove('active');
   if((S.key&&S.key.length>10)||localStorage.getItem('cf_setup_done')==='1'){ startApp(); }
   else if(location.protocol!=='file:'){
     // v5.144 : meme correctif que dans afterAuth() — session deja active (rechargement de
@@ -8222,9 +8321,13 @@ if(isLoggedIn()){
     var _hdrInit=document.getElementById('mainHdr'); if(_hdrInit) _hdrInit.style.display='flex';
   }
 } else {
-  // Non connecté : afficher la page de login
-  document.getElementById('pg-login').classList.add('active');
-  checkNoAccountWarning();
+  // Non connecté : afficher l'onboarding (une seule fois) puis la page de login
+  if(localStorage.getItem('cf_onboard_seen')==='1'){
+    document.getElementById('pg-onboard').classList.remove('active');
+    document.getElementById('pg-login').classList.add('active');
+    checkNoAccountWarning();
+  }
+  // sinon : #pg-onboard est déjà "active" par défaut dans le HTML — rien à faire ici.
 }
 </script>
 
