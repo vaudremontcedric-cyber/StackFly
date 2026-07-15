@@ -234,11 +234,28 @@ footer a{color:var(--accent);font-weight:600}
   if(!track) return;
   var dots=document.querySelectorAll('#storyDots .story-dot');
   var N=3;
+  var idx=0;
   window.storyGoTo=function(i){
-    i=Math.max(0,Math.min(N-1,i));
-    track.style.transform='translateX(-'+(i*(100/N))+'%)';
-    dots.forEach(function(d,j){ d.classList.toggle('on', j===i); });
+    idx=Math.max(0,Math.min(N-1,i));
+    track.style.transform='translateX(-'+(idx*(100/N))+'%)';
+    dots.forEach(function(d,j){ d.classList.toggle('on', j===idx); });
   };
+  // v5.148 : swipe tactile (même logique que sur l'app) en complément des dots cliquables.
+  var touchStartX=0, touchEndX=0;
+  var viewport=document.querySelector('.story-viewport');
+  if(!viewport) return;
+  viewport.addEventListener('touchstart', function(e){
+    touchStartX=e.changedTouches[0].screenX;
+  }, {passive:true});
+  viewport.addEventListener('touchend', function(e){
+    touchEndX=e.changedTouches[0].screenX;
+    var threshold=50;
+    if(touchStartX-touchEndX>threshold){
+      if(idx<N-1) storyGoTo(idx+1); // swipe vers la gauche → suivant
+    } else if(touchEndX-touchStartX>threshold){
+      if(idx>0) storyGoTo(idx-1); // swipe vers la droite → précédent
+    }
+  }, {passive:true});
 })();
 </script>
 </body>

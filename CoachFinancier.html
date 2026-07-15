@@ -1251,7 +1251,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.147';
+window.APP_VERSION = '5.148';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -2880,6 +2880,26 @@ function launchApp(){
   document.getElementById('pg-login').classList.add('active');
   checkNoAccountWarning();
 }
+// v5.148 : swipe tactile demandé par l'utilisateur pour une expérience mobile complète, façon
+// Plum — vient s'ajouter aux boutons/dots existants (goToSlide/nextSlide inchangées, seul un
+// geste de balayage sur la zone des slides appelle les mêmes fonctions).
+(function(){
+  var onboardTouchStartX = 0, onboardTouchEndX = 0;
+  var viewport = document.querySelector('#pg-onboard .plum-slider-viewport');
+  if(!viewport) return;
+  viewport.addEventListener('touchstart', function(e){
+    onboardTouchStartX = e.changedTouches[0].screenX;
+  }, {passive:true});
+  viewport.addEventListener('touchend', function(e){
+    onboardTouchEndX = e.changedTouches[0].screenX;
+    var threshold = 50; // seuil de glissement en pixels
+    if(onboardTouchStartX - onboardTouchEndX > threshold){
+      nextSlide(); // swipe vers la gauche → suivant
+    } else if(onboardTouchEndX - onboardTouchStartX > threshold){
+      if(onboardIdx > 0) goToSlide(onboardIdx-1); // swipe vers la droite → précédent
+    }
+  }, {passive:true});
+})();
 
 // ══════════════════════════════════════════════
 // AUTHENTIFICATION LOCALE
