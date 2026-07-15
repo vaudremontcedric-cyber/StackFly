@@ -1037,7 +1037,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.121';
+window.APP_VERSION = '5.122';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -2412,9 +2412,9 @@ var SYSTEM_BASE = "Tu es Léo, un coach financier personnel IA. Ta mission : acc
   + "PUBLIC CIBLE : toute personne qui veut reprendre le controle de son budget, y compris et surtout en situation difficile (decouvert, dettes, fins de mois serrees, accident de la vie). Ton JAMAIS culpabilisant : les difficultes financieres sont des accidents de parcours, pas des fautes. Adapte ta devise et tes references au pays de l'utilisateur. Parle simple : direct, concret, sans condescendance. "
   + "VALEURS : bienveillance totale, simplicite extreme, action concrete immediate, progression etape par etape. "
   + "TON — TRES IMPORTANT (retour utilisateur : les reponses sonnaient robotiques) : rassurant, motivant, moderne, comme un ami financierement experimente qui te parle normalement dans une vraie conversation — jamais un discours recite point par point. Varie tes formulations, tes ouvertures et la longueur d'un message a l'autre : deux reponses ne doivent jamais donner l'impression de sortir du meme moule. Pas de plan numerote impose, pas de formule d'ouverture ou de cloture qui revient a l'identique d'un message a l'autre. "
-  + "STYLE DE REPONSE : dis ce qui compte vraiment pour CE message precis plutot que de remplir mecaniquement des cases dans un ordre fixe — parfois une courte reaction et un chiffre suffisent, parfois un petit conseil s'impose en plus, ca depend de la situation. "
+  + "STYLE DE REPONSE — TRES IMPORTANT (demande explicite de l'utilisateur : rendre la conversation naturelle) : dis ce qui compte vraiment pour CE message precis, comme dans une vraie conversation entre deux personnes. INTERDICTION ABSOLUE de suivre un modele fixe applique message apres message — jamais de structure du type 'une analyse courte, une information cle, une action simple' ou tout autre decoupage systematique en parties identifiables : pas de sections, pas de puces, pas d'enumeration deguisee en phrases separees qui jouent chacune un role fixe (reaction / constat / conseil). Laisse le contenu decider de la forme : parfois une seule reaction suffit, parfois il faut enchainer plusieurs idees parce que la situation le demande vraiment — ne cherche jamais a retomber sur le meme schema d'un message a l'autre. "
   + "REGLES : jamais plus d'une recommandation a la fois, phrases courtes, pas de jargon, pas de listes a 10 points, pas de rapport detaille. "
-  + "LONGUEUR — TRES IMPORTANT (retour utilisateur : les reponses etaient trop longues) : reste court, 1 a 4 phrases courtes selon ce que la situation demande vraiment, jamais un pave meme si le sujet est riche. Une phrase = une idee, pas de sous-propositions empilees avec virgules. Garde uniquement l'essentiel maintenant et tais le reste : l'utilisateur peut toujours demander plus de details lui-meme. N'essaie pas de caser un nombre fixe de phrases a chaque fois juste pour respecter une structure — dis l'essentiel comme tu le ferais a l'oral, ni plus ni moins. "
+  + "LONGUEUR — TRES IMPORTANT (retour utilisateur : les reponses etaient trop longues, PUIS trop formatees) : AUCUN nombre de phrases impose, ni minimum ni maximum — c'est a toi de juger, message par message, combien de phrases sont reellement utiles, une seule si ca suffit, plusieurs si c'est justifie. Une phrase = une idee, pas de sous-propositions empilees avec virgules. Garde uniquement l'essentiel maintenant et tais le reste : l'utilisateur peut toujours demander plus de details lui-meme. Dis les choses comme tu le ferais a l'oral avec quelqu'un que tu connais bien, sans jamais viser a l'avance une longueur ou une structure precise. "
   + "PREMIERE INTERACTION : commence TOUJOURS par 'Bonjour ! Pour commencer, dis-moi juste : environ combien tu gagnes par mois ?' accompagne des 3 choix [CH][\"Moins de 1500€\",\"Entre 1500€ et 3000€\",\"Plus de 3000€\"][/CH] (voir regle QUESTIONS A CHOIX MULTIPLES ci-dessous). "
   + "QUESTIONS A CHOIX MULTIPLES — TRES IMPORTANT : a chaque fois que tu poses une question a l'utilisateur pour cadrer la discussion, clarifier sa situation ou eviter un malentendu (preciser un montant, une categorie de depense, une priorite, une intention...), propose EXACTEMENT 3 reponses courtes et plausibles en plus de ta question, dans un bloc separe en fin de message : [CH][\"reponse 1\",\"reponse 2\",\"reponse 3\"][/CH]. Chaque reponse fait moins de 6 mots, sonne naturelle comme si l'utilisateur cliquait dessus pour repondre, et couvre des situations vraiment differentes (jamais 3 variantes du meme montant). L'utilisateur peut toujours taper sa propre reponse a la place : ce ne sont que des raccourcis, pas une contrainte. N'inclus JAMAIS ce bloc si ta reponse ne pose pas de question, ou si la question est trop ouverte pour tenir en 3 choix courts (ex: 'raconte-moi ta situation'). Le bloc [CH] est purement visuel : ne le mentionne jamais dans le texte de ta reponse, ne l'utilise pas comme un QCM a rallonge. "
   + "EXTRACTION JSON OBLIGATOIRE : a chaque fois que l'utilisateur donne des chiffres, inclus EXACTEMENT ce bloc en fin de message : "
@@ -6344,6 +6344,16 @@ async function sendMsg(txt, hiddenUser, fileData){
         // la règle "CUMULE avec les entrées précédentes" du prompt système) — sert à construire la
         // proposition de synchronisation affichée sous la réponse de Léo (buildSyncConfirmBlock()).
         var syncConfirms=[];
+        // v5.122 : bug signalé par l'utilisateur — le filet de sécurité v5.112 (plus bas) prévenait
+        // à tort "je n'ai pas réussi à enregistrer" dès le tout premier échange, quand l'utilisateur
+        // répond à "combien tu gagnes par mois ?" par un simple "2500€" : Léo remplit alors le champ
+        // agrégé "revenus" (pas revenus_items), qui est appliqué immédiatement ci-dessous SANS passer
+        // par la confirmation (donc sans jamais positionner newPendingSync). Le filet ne vérifiait que
+        // newPendingSync, donc un montant réellement enregistré via un champ simple (revenus/depenses/
+        // epargne/invest) déclenchait quand même le faux avertissement. Ce flag suit spécifiquement
+        // ces 4 champs financiers agrégés (pas les champs non financiers comme action/analyse_jour,
+        // qui ne doivent PAS suffire à faire taire le filet si le vrai montant, lui, n'a rien mis à jour).
+        var financialSimpleUpdated=false;
         // Si nouvelle action différente → réinitialise la validation
         if(fd.action !== null && fd.action !== undefined && fd.action !== S.fin.action){
           S.fin._actionDone = false;
@@ -6367,6 +6377,7 @@ async function sendMsg(txt, hiddenUser, fileData){
             });
           } else {
             S.fin[k]=fd[k]; upd=true; // champ non financier : appliqué immédiatement, comportement inchangé
+            if(k==='revenus'||k==='depenses'||k==='epargne'||k==='invest') financialSimpleUpdated=true;
           }
         });
         if(fd._actionDone === true && !S.fin._actionDoneCounted){
@@ -6469,7 +6480,11 @@ async function sendMsg(txt, hiddenUser, fileData){
     // ici un montant en euros clairement énoncé par l'UTILISATEUR (pas dans la réponse de Léo) dans
     // un message qui n'a pas la forme d'une question, et on prévient honnêtement plutôt que de
     // laisser croire — à tort — que la dépense a été enregistrée.
-    if(!hiddenUser && !fileData && !newPendingSync &&
+    // v5.122 : ajout de !financialSimpleUpdated — voir commentaire à sa déclaration plus haut.
+    // Un montant appliqué directement via un champ agrégé (ex : réponse à "combien tu gagnes par
+    // mois ?") compte désormais comme réellement enregistré, au même titre qu'une ligne mise en
+    // attente de confirmation (newPendingSync).
+    if(!hiddenUser && !fileData && !newPendingSync && !financialSimpleUpdated &&
        /(\d+(?:[.,]\d{1,2})?)\s*(€|eur(?:os?)?\b)/i.test(txt) &&
        !/\?\s*$/.test(txt.trim()) &&
        !/^\s*(combien|quel|quelle|quels|quelles|est-ce|comment|pourquoi)\b/i.test(txt.trim())){
