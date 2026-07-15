@@ -373,13 +373,25 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 .rav-card.o .rav-status{background:rgba(245,158,11,.2);color:var(--orange)}
 .rav-card.r .rav-status{background:rgba(249,115,22,.2);color:#f97316}
 .rav-msg{font-size:13px;color:var(--text2);margin-top:10px;line-height:1.5;text-align:center}
-/* v5.151 : ligne "Reste à vivre prévisionnel" (enveloppes) — width:100% pour que le flex
-   justify-content:space-between de son contenu s'appuie bien sur toute la largeur de la carte
+/* v5.152 : "écran de contrôle" enveloppes (YNAB + Bankin', voir HTML) — width:100% pour que le
+   flex justify-content:space-between de son contenu s'appuie bien sur toute la largeur de la carte
    (.rav-card est en column/align-items:center, donc un enfant sans width explicite ne prend que
    la largeur de son contenu). */
 .rav-prev{width:100%;margin-top:12px;padding-top:12px;border-top:1px solid rgba(148,163,184,.25);
   font-size:12.5px;color:var(--text2)}
-#ravPrevVal{font-weight:800}
+.rav-flow-arrow{text-align:center;font-size:13px;color:var(--text3);opacity:.55;margin:2px 0;line-height:1}
+.rav-prev-row{display:flex;align-items:center;justify-content:space-between}
+#ravEnvVal{font-weight:800;color:var(--orange)}
+.rav-env-bar-track{height:6px;border-radius:3px;background:rgba(148,163,184,.2);margin:6px 0 2px;overflow:hidden}
+.rav-env-bar-fill{height:100%;border-radius:3px;background:var(--orange);width:0%;transition:width .6s cubic-bezier(.22,.9,.34,1)}
+.rav-theo-row{display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:700;color:var(--text)}
+#ravPrevVal{font-weight:900;font-size:17px}
+/* Orange pastel volontairement doux (pas rouge) même en cas de dépassement — voir renderBudget() :
+   c'est une simulation prévisionnelle, pas une alerte d'urgence comme le RAV réel négatif.
+   var(--orange)/var(--orange2) plutôt qu'une couleur fixe : s'adapte correctement au thème clair
+   ET sombre (contrairement à un hexa figé, qui manquerait de contraste dans l'un des deux). */
+.rav-theo-msg{font-size:12px;color:var(--orange);background:var(--orange2);border:1px solid rgba(245,158,11,.3);
+  border-radius:10px;padding:8px 10px;margin-top:8px;line-height:1.45}
 .rav-row{display:flex;gap:10px;margin-top:14px;width:100%}
 .rav-mini{flex:1;background:var(--bg2);border-radius:10px;padding:10px 12px}
 .rav-period-sel{background:var(--card2);border:1px solid var(--border);border-radius:8px;
@@ -1258,7 +1270,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.151';
+window.APP_VERSION = '5.152';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1764,15 +1776,28 @@ window.APP_VERSION = '5.151';
            <div class="rav-val" id="ravVal">-- &#8364;</div>
            <div class="rav-status" id="ravStatus">-- &#9679;</div>
            <div class="rav-msg" id="ravMsg"></div>
-           <!-- v5.151 : ligne prévisionnelle demandée par l'utilisateur — n'apparaît que s'il
-                existe au moins une enveloppe budget, et seulement en vue mensuelle (voir
-                renderBudget()). Réserve le budget d'enveloppe pas encore dépensé, en plus des
-                dépenses d'enveloppe déjà réellement déduites du RAV ci-dessus. -->
+           <!-- v5.152 : "écran de contrôle" inspiré de YNAB (donner un rôle à chaque euro) et
+                Bankin' (reste à dépenser anticipé), demandé par l'utilisateur en évolution de la
+                ligne v5.151. N'apparaît que s'il existe au moins une enveloppe avec un budget non
+                nul, et seulement en vue mensuelle (voir renderBudget()) — un solde d'enveloppe est
+                un concept propre au mois en cours, pas une projection annuelle. Le flux visuel :
+                Solde réel (RAV ci-dessus) → moins ce qui reste à dépenser dans les enveloppes →
+                Reste à vivre théorique. On soustrait le RESTANT (pas le budget total de
+                l'enveloppe) pour ne jamais compter deux fois l'argent déjà dépensé : ce qui est déjà
+                dépensé dans une enveloppe est déjà déduit du Solde réel via calcRAV(). -->
            <div class="rav-prev" id="ravPrevWrap" style="display:none">
-             <div style="display:flex;align-items:center;justify-content:space-between">
-               <span style="display:flex;align-items:center;gap:5px">&#128203; Prévisionnel (enveloppes)<button class="info-btn" onclick="event.stopPropagation();showInfoTip(this,'ravPrev')" title="En savoir plus">i</button></span>
+             <div class="rav-flow-arrow">&#8595;</div>
+             <div class="rav-prev-row">
+               <span style="display:flex;align-items:center;gap:5px">&#128230; Mes enveloppes (restant &#224; d&#233;penser)<button class="info-btn" onclick="event.stopPropagation();showInfoTip(this,'ravPrev')" title="En savoir plus">i</button></span>
+               <span id="ravEnvVal">-- &#8364;</span>
+             </div>
+             <div class="rav-env-bar-track"><div class="rav-env-bar-fill" id="ravEnvBarFill"></div></div>
+             <div class="rav-flow-arrow">&#8595;</div>
+             <div class="rav-theo-row">
+               <span>&#127775; Reste &#224; vivre th&#233;orique</span>
                <span id="ravPrevVal">-- &#8364;</span>
              </div>
+             <div class="rav-theo-msg" id="ravTheoMsg" style="display:none"></div>
            </div>
         </div>
       </div>
@@ -2528,6 +2553,7 @@ window.APP_VERSION = '5.151';
           <div class="tuto-step"><div class="tuto-step-num">1</div><div>Dans <b>Où va mon argent ?</b>, ouvre la section <b>Mes enveloppes</b> et touche <b>+ Créer une enveloppe</b> : donne-lui un nom (ex: Alimentation, Loisirs), un emoji, un budget mensuel, et coche une ou plusieurs <b>catégories liées</b> (ex: Courses + Resto pour Alimentation).</div></div>
           <div class="tuto-step"><div class="tuto-step-num">2</div><div>Grâce aux catégories liées, chaque dépense reconnue dans cette catégorie vient réduire le montant restant <b>automatiquement et de façon fiable</b> — que ce soit une Saisie rapide, un ticket scanné ou une dépense dite à Léo en conversation. Tu peux aussi rattacher une ligne toi-même à tout moment depuis sa fenêtre de modification.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">3</div><div>Ce qu'il reste en fin de mois se <b>reporte en bonus</b> le mois suivant ; un dépassement se reporte aussi, en déficit à rattraper.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">4</div><div>Dès qu'une enveloppe existe, la carte <b>Reste à vivre</b> en haut de la page affiche aussi ton <b>🌟 Reste à vivre théorique</b> : ton Solde réel une fois le budget encore à dépenser dans tes enveloppes mis de côté — le montant qu'il te reste vraiment en toute liberté, une fois toutes tes enveloppes utilisées jusqu'au bout.</div></div>
           <div class="tuto-tip">💡 Léo peut te <b>proposer</b> de créer une enveloppe s'il remarque une dépense récurrente, mais ne la crée jamais tout seul : un bouton apparaît sous son message, c'est toujours toi qui valides.</div>
         </div></div>
       </div>
@@ -3518,7 +3544,7 @@ var _infoTips = {
   'enveloppes': { title:'✉️ Mes enveloppes',      body:'La méthode des enveloppes est une technique de budgétisation éprouvée : on alloue à l\'avance un montant précis à chaque poste de dépense (alimentation, loisirs...), et une fois l\'enveloppe vide, on ajuste ou on attend le mois suivant plutôt que de piocher ailleurs sans y penser. Elle rend visible, en temps réel, ce qu\'il reste à dépenser dans chaque catégorie — un des moyens les plus efficaces pour reprendre le contrôle d\'un budget qui déborde toujours au même endroit.' },
   'leo':     { title:'💡 Léo recommande',        body:'La gestion de budget n\'est pas qu\'une question de calcul : c\'est surtout une question d\'habitudes. La finance comportementale montre qu\'un petit ajustement régulier tenu dans la durée pèse plus qu\'une grande résolution ponctuelle vite abandonnée. Les conseils de Léo suivent ce principe : une action simple à la fois, adaptée à ta situation du moment, plutôt qu\'un plan figé impossible à tenir sur la durée.' },
   'rav':     { title:'✅ Reste à vivre',          body:'Le reste à vivre se calcule ainsi : Revenus − Dépenses (besoins + envies) − Épargne − Investissements du mois. C\'est la somme qui te reste réellement disponible pour l\'imprévu ou le plaisir, sans piocher ailleurs. En finances personnelles, mieux vaut un reste à vivre modeste mais stable qu\'un solde flatteur qui masque des charges fixes trop lourdes. Un reste à vivre négatif de façon répétée est un signal à ne pas ignorer : c\'est le moment de revoir tes charges fixes et abonnements avant que le déséquilibre ne s\'installe.' },
-  'ravPrev': { title:'📋 Reste à vivre prévisionnel', body:'Les dépenses déjà faites dans tes enveloppes sont déjà déduites du reste à vivre ci-dessus. Ce prévisionnel va plus loin : il réserve aussi le budget d\'enveloppe pas encore dépensé, celui que tu prévois de dépenser d\'ici la fin du mois (ex : il te reste 120€ à dépenser sur ton enveloppe Alimentation). C\'est une vision plus prudente de ce qu\'il te restera vraiment une fois toutes tes enveloppes utilisées jusqu\'au bout — utile pour ne pas te faire surprendre en fin de mois.' }
+  'ravPrev': { title:'🌟 Reste à vivre théorique', body:'Deux idées combinées ici. Comme dans Bankin\', on anticipe : les dépenses déjà faites dans tes enveloppes sont déjà déduites du reste à vivre ci-dessus (Solde réel), mais ce qu\'il reste à dépenser dans chaque enveloppe — pas encore sorti du compte, mais déjà prévu — est lui aussi réservé ici, comme un prélèvement à venir. Comme dans YNAB, chaque euro a un rôle : une fois toutes tes enveloppes remplies jusqu\'au bout, ce reste à vivre théorique montre ce qu\'il te reste vraiment en liberté totale, sans aucune contrainte. S\'il devient négatif, ce n\'est pas une alerte de découvert (contrairement au Solde réel) : c\'est juste le signe que tes enveloppes prévoient plus que ce que tu as réellement — ajuste-les tranquillement.' }
 };
 // v5.102 : corrige un défaut d'affichage signalé par l'utilisateur — sur une section compacte
 // (peu de place en dessous), la bulle se retournait au-dessus du bouton en supposant une
@@ -6485,18 +6511,48 @@ function renderBudget(){
   // v5.95 : mini-cartes Revenus/Dépenses/Épargne (miniRev/miniDep/miniEp) retirées — code mort,
   // ces id n'existent plus dans le HTML depuis la refonte de "Où va mon argent" (v5.63).
 
-  // v5.151 : ligne "Reste à vivre prévisionnel" — n'a de sens qu'en vue mensuelle (c'est un
-  // reliquat d'enveloppe à consommer d'ici la fin du mois EN COURS, pas une projection annuelle),
-  // et seulement si l'utilisateur a créé au moins une enveloppe. Voir calcEnvReserveRestante().
+  // v5.152 : "écran de contrôle" enveloppes, inspiré de YNAB ("donner un rôle à chaque euro") et
+  // Bankin' ("reste à dépenser" anticipé), demandé par l'utilisateur en évolution de la ligne
+  // v5.151. N'a de sens qu'en vue mensuelle (un budget d'enveloppe est un concept propre au mois
+  // EN COURS, pas une projection annuelle), et seulement si l'utilisateur a créé au moins une
+  // enveloppe avec un budget non nul. Le "Reste à vivre théorique" = Solde réel (RAV réel
+  // ci-dessus, qui a déjà déduit tout ce qui a été réellement dépensé, y compris dans les
+  // enveloppes) moins ce qu'il RESTE à dépenser dans les enveloppes (calcEnvReserveRestante()) —
+  // volontairement PAS le budget total de chaque enveloppe, pour ne jamais compter deux fois
+  // l'argent déjà dépensé (déjà retranché une première fois dans le Solde réel).
   var ravPrevWrap = document.getElementById('ravPrevWrap');
   if(ravPrevWrap){
-    var envReserve = (!isAnnual && typeof calcEnvReserveRestante==='function') ? calcEnvReserveRestante() : 0;
-    if(!isAnnual && envReserve > 0){
-      var ravPrev = _ravComputed - envReserve;
+    var envs = (f.enveloppes||[]);
+    var envBudgetTotal = 0, envSpentTotal = 0;
+    if(!isAnnual && envs.length && typeof getEnvDispo==='function'){
+      if(typeof rolloverEnveloppes==='function') rolloverEnveloppes();
+      var mk = curMonthKey();
+      envs.forEach(function(env){
+        envBudgetTotal += getEnvDispo(env);
+        envSpentTotal  += getEnvSpentInMonth(env.id, mk);
+      });
+    }
+    if(!isAnnual && envBudgetTotal > 0){
+      var envRemaining = typeof calcEnvReserveRestante==='function' ? calcEnvReserveRestante() : 0;
+      var ravTheo = _ravComputed - envRemaining;
+      var pctUsed = Math.max(0, Math.min(100, Math.round(envSpentTotal/envBudgetTotal*100)));
       ravPrevWrap.style.display = 'block';
-      var ravPrevEl = document.getElementById('ravPrevVal');
-      ravPrevEl.textContent = euro(ravPrev);
-      ravPrevEl.style.color = ravPrev < 0 ? '#f97316' : 'var(--text)';
+      document.getElementById('ravEnvVal').textContent = euro(-envRemaining);
+      var fillEl = document.getElementById('ravEnvBarFill');
+      if(fillEl) fillEl.style.width = pctUsed+'%';
+      var theoEl = document.getElementById('ravPrevVal');
+      theoEl.textContent = euro(ravTheo);
+      theoEl.style.color = ravTheo < 0 ? 'var(--orange)' : 'var(--green)';
+      var msgEl = document.getElementById('ravTheoMsg');
+      if(ravTheo < 0){
+        // v5.152 : message doux (pas alarmiste) demandé par l'utilisateur — un dépassement du
+        // prévisionnel n'est qu'une simulation ("si je dépense tout ce que j'ai prévu"), pas un
+        // vrai découvert comme le RAV réel négatif (voir le message rouge/orange plus haut).
+        msgEl.style.display = 'block';
+        msgEl.textContent = '💡 Vos enveloppes dépassent votre solde de '+euro(Math.abs(ravTheo))+'. C\'est une excellente simulation ! Réduisez légèrement une enveloppe pour équilibrer votre mois.';
+      } else {
+        msgEl.style.display = 'none';
+      }
     } else {
       ravPrevWrap.style.display = 'none';
     }
