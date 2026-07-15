@@ -1056,7 +1056,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.136';
+window.APP_VERSION = '5.137';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1073,6 +1073,83 @@ window.APP_VERSION = '5.136';
   navigator.serviceWorker.register('./sw.js?v='+window.APP_VERSION, {scope:'./'})
     .then(function(reg){ console.log('[SW] inscrit',reg.scope); })
     .catch(function(err){ console.warn('[SW] echec inscription',err.message); });
+})();
+</script>
+<script>
+// ══ INSTALLATION PWA (v5.137, demande explicite de l'utilisateur) ══
+// Propose d'installer l'app sur l'écran d'accueil du téléphone : une bannière discrète et
+// fermable sur la page de connexion (#installBanner) + un raccourci permanent dans Profil >
+// Paramètres (#installRow). Deux chemins bien distincts car les navigateurs ne se comportent
+// pas pareil :
+// - Android/Chrome/Edge : évènement natif "beforeinstallprompt", déclenche un vrai prompt
+//   d'installation via installApp().
+// - iOS Safari : cet évènement n'existe pas du tout (jamais déclenché) — impossible de
+//   déclencher un prompt par code, on affiche donc des instructions manuelles (Partager > Sur
+//   l'écran d'accueil).
+// Dans tous les cas : rien ne s'affiche si l'app tourne déjà en mode installé (standalone).
+(function(){
+  var _deferredPrompt = null;
+
+  function isStandalone(){
+    return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  }
+  function isIOS(){
+    return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+  }
+
+  function showInstallUI(subText){
+    var row = document.getElementById('installRow');
+    if(row) row.style.display = 'flex';
+    if(row && subText){ var s=document.getElementById('installRowSub'); if(s) s.textContent = subText; }
+    if(!localStorage.getItem('cf_install_banner_dismissed')){
+      var banner = document.getElementById('installBanner');
+      if(banner){
+        banner.style.display = 'flex';
+        if(subText){ var bs=document.getElementById('installBannerSub'); if(bs) bs.textContent = subText; }
+      }
+    }
+  }
+  function hideInstallUI(){
+    var row = document.getElementById('installRow'); if(row) row.style.display = 'none';
+    var banner = document.getElementById('installBanner'); if(banner) banner.style.display = 'none';
+  }
+
+  window.dismissInstallBanner = function(){
+    var banner = document.getElementById('installBanner');
+    if(banner) banner.style.display = 'none';
+    try{ localStorage.setItem('cf_install_banner_dismissed','1'); }catch(e){}
+  };
+
+  window.installApp = function(){
+    if(_deferredPrompt){
+      _deferredPrompt.prompt();
+      _deferredPrompt.userChoice.then(function(){ _deferredPrompt = null; hideInstallUI(); }).catch(function(){});
+      return;
+    }
+    if(isIOS()){
+      alert('Pour installer RescueBudget sur ton iPhone :\n\n1. Appuie sur le bouton Partager (le carré avec la flèche vers le haut) en bas de Safari.\n2. Fais défiler et choisis "Sur l\'écran d\'accueil".\n3. Confirme en appuyant sur "Ajouter".');
+      return;
+    }
+    alert('Ton navigateur ne propose pas l\'installation automatique ici. Cherche "Ajouter à l\'écran d\'accueil" ou "Installer l\'application" dans son menu.');
+  };
+
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault();
+    _deferredPrompt = e;
+    if(!isStandalone()) showInstallUI('Accès plus rapide depuis ton écran d\'accueil, sans passer par le navigateur.');
+  });
+
+  window.addEventListener('appinstalled', function(){
+    _deferredPrompt = null;
+    hideInstallUI();
+  });
+
+  document.addEventListener('DOMContentLoaded', function(){
+    if(isStandalone()) return; // déjà installé : rien à proposer
+    if(isIOS()) showInstallUI('Appuie sur Partager puis "Sur l\'écran d\'accueil" dans Safari.');
+    // Sinon (Android/desktop) : on attend l'évènement beforeinstallprompt ci-dessus, qui ne se
+    // déclenche que si le navigateur juge l'app réellement installable à cet instant.
+  });
 })();
 </script>
 <script>
@@ -1232,6 +1309,19 @@ window.APP_VERSION = '5.136';
         </div>
         <div class="login-sub" style="margin-top:6px">On ne juge pas. On t'aide à avancer.</div>
         <div style="font-size:10.5px;color:var(--text3);margin-top:8px;text-align:center;line-height:1.5">Outil pédagogique de gestion budgétaire.<br>Ne fournit aucun conseil en investissement.</div>
+      </div>
+
+      <!-- v5.137 : bannière d'installation PWA — masquée par défaut, affichée par JS
+           (voir initInstallUI) uniquement si l'installation est réellement possible et pas déjà
+           faite, et si l'utilisateur ne l'a pas déjà fermée (cf_install_banner_dismissed). -->
+      <div id="installBanner" style="display:none;background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:16px;align-items:center;gap:10px">
+        <span style="font-size:22px;flex-shrink:0">📲</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12.5px;font-weight:700;color:var(--text)">Installe l'application</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:1px" id="installBannerSub">Accès plus rapide depuis ton écran d'accueil, sans passer par le navigateur.</div>
+        </div>
+        <button onclick="installApp()" style="flex-shrink:0;background:var(--accent2);color:#fff;border:none;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer">Installer</button>
+        <button onclick="dismissInstallBanner()" title="Fermer" style="flex-shrink:0;background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:0 2px">✕</button>
       </div>
 
       <!-- Formulaire connexion -->
@@ -1715,6 +1805,15 @@ window.APP_VERSION = '5.136';
       <div class="s-row-left">
         <span class="s-row-ico">📖</span>
         <div><div class="s-row-lbl">Guide d'utilisation</div><div class="s-row-sub">Comment utiliser RescueBudget</div></div>
+      </div>
+      <span class="s-row-arr">&#8250;</span>
+    </div>
+    <!-- v5.137 : masqué par défaut, affiché par JS (initInstallUI) uniquement si l'installation
+         est réellement possible et pas déjà faite (voir commentaire sur #installBanner). -->
+    <div class="setting-row" id="installRow" onclick="installApp()" style="display:none">
+      <div class="s-row-left">
+        <span class="s-row-ico">📲</span>
+        <div><div class="s-row-lbl">Installer l'application</div><div class="s-row-sub" id="installRowSub">Accès plus rapide depuis ton écran d'accueil</div></div>
       </div>
       <span class="s-row-arr">&#8250;</span>
     </div>
