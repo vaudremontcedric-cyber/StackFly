@@ -1041,7 +1041,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.128';
+window.APP_VERSION = '5.129';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1237,8 +1237,13 @@ window.APP_VERSION = '5.128';
   <section id="pg-login" class="page active">
     <div class="login-box">
       <div class="login-hero">
-        <img src="icons/logo-full.png" alt="RescueBudget — On ne juge pas. On t'aide à avancer." class="login-logo-img"/>
-        <div style="font-size:10.5px;color:var(--text3);margin-top:14px;text-align:center;line-height:1.5">Outil pédagogique de gestion budgétaire.<br>Ne fournit aucun conseil en investissement.</div>
+        <img src="icons/logo-full.png" alt="RescueBudget" class="login-logo-img"/>
+        <div class="rb-logo-text" style="justify-content:center;margin-top:10px">
+          <div class="rb-logo-rescue">Rescue</div>
+          <div class="rb-logo-budget">Budget</div>
+        </div>
+        <div class="login-sub" style="margin-top:6px">On ne juge pas. On t'aide à avancer.</div>
+        <div style="font-size:10.5px;color:var(--text3);margin-top:8px;text-align:center;line-height:1.5">Outil pédagogique de gestion budgétaire.<br>Ne fournit aucun conseil en investissement.</div>
       </div>
 
       <!-- Formulaire connexion -->
