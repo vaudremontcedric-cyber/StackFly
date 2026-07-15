@@ -1251,7 +1251,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.149';
+window.APP_VERSION = '5.150';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1605,6 +1605,17 @@ window.APP_VERSION = '5.149';
           <button class="ltab sel" id="ltab-login"    onclick="showLoginForm()">Connexion</button>
           <button class="ltab"     id="ltab-register" onclick="showRegister()">Créer un compte</button>
           <button class="ltab"     id="ltab-forgot"   onclick="showForgotForm()">Mot de passe oublié</button>
+        </div>
+        <!-- v5.150 : lien de restauration toujours visible sur la page de connexion, même
+             quand un compte est détecté localement (contrairement à #noAccountWarn ci-dessus qui
+             ne s'affiche que si aucun compte n'est trouvé). Répond au cas d'un utilisateur qui a
+             bien un compte mais n'arrive pas à se connecter (mauvais appareil, stockage corrompu,
+             etc.) et n'a donc aucun moyen de restaurer sans ce lien. -->
+        <div style="text-align:center;margin-top:14px">
+          <label style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text3);cursor:pointer;padding:6px 10px;border-radius:10px">
+            <span>📂</span><span style="text-decoration:underline">Restaurer une sauvegarde (.json)</span>
+            <input type="file" accept=".json" style="display:none" onchange="importBackup(event)"/>
+          </label>
         </div>
       </div>
 
@@ -2962,7 +2973,12 @@ function afterAuth(){
 }
 async function doLogin(){
   var user=document.getElementById('loginUser').value.trim();
-  var pass=document.getElementById('loginPass').value;
+  // v5.150 : bug signalé — connexion refusée malgré un identifiant/mot de passe corrects.
+  // Cause probable : un espace involontaire en début/fin (clavier mobile, correction
+  // automatique, copier-coller) faisait échouer la comparaison de hash, alors que
+  // l'identifiant, lui, était déjà nettoyé avec .trim(). Le mot de passe suit désormais la
+  // même règle, ici et à l'inscription/réinitialisation (voir doRegister/verifyResetCode).
+  var pass=document.getElementById('loginPass').value.trim();
   if(!user||!pass){ toast('Remplis tous les champs','#ef4444'); return; }
   var auth=getStoredAuth();
   if(!auth){ toast('Aucun compte. Crée un compte d\'abord.','#ef4444'); showRegister(); return; }
@@ -3079,8 +3095,9 @@ async function requestResetCode(){
 async function verifyResetCode(){
   if(!_resetState){ toast('Redemande un code','#ef4444'); backToForgotStepUser(); return; }
   var code = document.getElementById('forgotCode').value.trim();
-  var newPass = document.getElementById('forgotNewPass').value;
-  var confPass = document.getElementById('forgotConfPass').value;
+  // v5.150 : meme regle que doLogin/doRegister — mot de passe nettoye des espaces de debut/fin
+  var newPass = document.getElementById('forgotNewPass').value.trim();
+  var confPass = document.getElementById('forgotConfPass').value.trim();
   if(!/^[0-9]{6}$/.test(code)){ toast('Code à 6 chiffres requis','#ef4444'); return; }
   if(!newPass || !confPass){ toast('Remplis le nouveau mot de passe','#ef4444'); return; }
   if(newPass !== confPass){ toast('Les mots de passe ne correspondent pas ❌','#ef4444'); return; }
@@ -3150,8 +3167,11 @@ function isValidEmail(e){
 async function doRegister(){
   var user=document.getElementById('regUser').value.trim();
   var email=(document.getElementById('regEmail')||{}).value.trim();
-  var pass=document.getElementById('regPass').value;
-  var pass2=document.getElementById('regPass2').value;
+  // v5.150 : mot de passe nettoyé des espaces de début/fin, comme à la connexion (voir doLogin)
+  // — évite qu'un compte soit créé avec un espace parasite invisible que l'utilisateur ne tapera
+  // plus jamais de la même façon ensuite.
+  var pass=document.getElementById('regPass').value.trim();
+  var pass2=document.getElementById('regPass2').value.trim();
   if(!user||!email||!pass||!pass2){ toast('Remplis tous les champs','#ef4444'); return; }
   if(!isValidEmail(email)){ toast('Adresse email invalide','#ef4444'); return; }
   if(pass!==pass2){ toast('Les mots de passe ne correspondent pas ❌','#ef4444'); return; }
