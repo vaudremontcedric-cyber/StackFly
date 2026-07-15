@@ -12,8 +12,8 @@
      (icône + splash + pas de barre d'adresse). Sans lui, seul iOS Safari proposait un
      vrai ajout à l'écran d'accueil via les balises apple-* ci-dessous. -->
 <link rel="manifest" href="manifest.json"/>
-<link rel="apple-touch-icon" href="icons/rb-icon-512.png"/>
-<link rel="icon" type="image/png" sizes="192x192" href="icons/rb-icon-192.png"/>
+<link rel="apple-touch-icon" href="icons/rb-icon-512-v2.png"/>
+<link rel="icon" type="image/png" sizes="192x192" href="icons/rb-icon-192-v2.png"/>
 <script>
 // Hauteur de viewport réelle (v5.99) — corrige un défaut d'affichage signalé : après un
 // reload() déclenché par le pull-to-refresh (v5.98), la nav du bas se retrouvait masquée
@@ -122,7 +122,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 .rb-logo-cross::after{content:'';position:absolute;top:50%;left:50%;
   transform:translate(-50%,-50%);width:16%;height:60%;background:#fff;border-radius:2px}
 /* v5.131 : logo illustré (bouée) utilisé partout où l'ancienne croix CSS rb-cross/rb-logo-cross
-   servait de repère visuel — même image que la page de connexion (icons/rb-badge.png),
+   servait de repère visuel — même image que la page de connexion (icons/rb-badge-v2.png),
    simplement redimensionnée selon le contexte. Le texte RescueBudget reste rendu en HTML/CSS
    (rb-logo-text) pour préserver le contraste sur le thème sombre par défaut, inchangé. */
 .rb-logo-img-hdr{width:15px;height:15px;object-fit:contain;vertical-align:-2px;border-radius:3px;flex-shrink:0}
@@ -1047,7 +1047,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.132';
+window.APP_VERSION = '5.133';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1220,7 +1220,7 @@ window.APP_VERSION = '5.132';
         </svg>
       </div>
       <div onclick="openAboutModal()" style="cursor:pointer">
-        <div class="hdr-title" id="hdrTitle"><img src="icons/rb-badge.png" alt="" class="rb-logo-img-hdr" aria-hidden="true"/>Rescue<span class="rb-red">Budget</span></div>
+        <div class="hdr-title" id="hdrTitle"><img src="icons/rb-badge-v2.png" alt="" class="rb-logo-img-hdr" aria-hidden="true"/>Rescue<span class="rb-red">Budget</span></div>
         <div class="hdr-sub" id="hdrSub"></div>
       </div>
     </div>
@@ -1243,7 +1243,7 @@ window.APP_VERSION = '5.132';
   <section id="pg-login" class="page active">
     <div class="login-box">
       <div class="login-hero">
-        <img src="icons/rb-badge.png" alt="RescueBudget" class="login-logo-img"/>
+        <img src="icons/rb-badge-v2.png" alt="RescueBudget" class="login-logo-img"/>
         <div class="rb-logo-text" style="justify-content:center;margin-top:10px">
           <div class="rb-logo-rescue">Rescue</div>
           <div class="rb-logo-budget">Budget</div>
@@ -1374,7 +1374,7 @@ window.APP_VERSION = '5.132';
     <div class="setup-box">
       <div class="s-hero">
         <div class="rb-logo-block" style="margin-bottom:8px">
-          <img src="icons/rb-badge.png" alt="RescueBudget" class="rb-logo-img-md"/>
+          <img src="icons/rb-badge-v2.png" alt="RescueBudget" class="rb-logo-img-md"/>
           <div class="rb-logo-text">
             <div class="rb-logo-rescue">Rescue</div>
             <div class="rb-logo-budget">Budget</div>
@@ -2333,7 +2333,7 @@ window.APP_VERSION = '5.132';
   <div class="modal" style="max-height:85vh;overflow-y:auto;border-radius:24px 24px 0 0;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))">
     <div class="modal-drag"></div>
     <div class="rb-logo-block" style="margin-bottom:10px">
-      <img src="icons/rb-badge.png" alt="RescueBudget" class="rb-logo-img-md"/>
+      <img src="icons/rb-badge-v2.png" alt="RescueBudget" class="rb-logo-img-md"/>
       <div class="rb-logo-text">
         <div class="rb-logo-rescue">Rescue</div>
         <div class="rb-logo-budget">Budget</div>
@@ -4521,14 +4521,14 @@ function getMonthRavTrend(n){
 // ══════════════════════════════════════════════
 // NAVIGATION
 // ══════════════════════════════════════════════
-var TITLES = {budget:'<img src="icons/rb-badge.png" alt="" class="rb-logo-img-hdr" aria-hidden="true"/>Rescue<span class="rb-red">Budget</span>',chat:'Léo - Mon Coach',obj:'Mes Objectifs',profil:'Mon Profil'};
+var TITLES = {budget:'<img src="icons/rb-badge-v2.png" alt="" class="rb-logo-img-hdr" aria-hidden="true"/>Rescue<span class="rb-red">Budget</span>',chat:'Léo - Mon Coach',obj:'Mes Objectifs',profil:'Mon Profil'};
 function go(name){
   document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
   document.querySelectorAll('.ni').forEach(function(n){ n.classList.remove('active'); });
   document.getElementById('pg-'+name).classList.add('active');
   var ni = document.getElementById('ni-'+name);
   if(ni) ni.classList.add('active');
-  document.getElementById('hdrTitle').innerHTML = TITLES[name]||'<img src="icons/rb-badge.png" alt="" class="rb-logo-img-hdr" aria-hidden="true"/>Rescue<span class="rb-red">Budget</span>';
+  document.getElementById('hdrTitle').innerHTML = TITLES[name]||'<img src="icons/rb-badge-v2.png" alt="" class="rb-logo-img-hdr" aria-hidden="true"/>Rescue<span class="rb-red">Budget</span>';
   if(name==='budget'){ renderBudget(); renderTriCards(); renderSynthTable(); }
   if(name==='chat')  { miloFirstGreeting(); scrollChat(); }
   if(name==='obj')   { renderGoals(); }
