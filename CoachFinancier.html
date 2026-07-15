@@ -1251,7 +1251,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.148';
+window.APP_VERSION = '5.149';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -4944,6 +4944,61 @@ function go(name){
   if(name==='obj')   { renderGoals(); }
   if(name==='profil'){ renderProfil(); }
 }
+
+// v5.149 : swipe horizontal demandé par l'utilisateur pour naviguer entre les pages principales
+// en plus de la barre de navigation du bas — gauche = page suivante, droite = page précédente,
+// dans l'ordre visuel de #bnav (Budget, Coach, Objectifs). "Guide" n'est pas inclus : ce n'est
+// pas une page mais une modale (openTutoModal()). Même précautions que le pull-to-refresh
+// (voir ptrOnTouchStart plus haut) : rien ne se déclenche par-dessus une modale ouverte
+// (.ov.open), et le geste ignore les bandes à défilement horizontal déjà existantes
+// (.suggestions dans le chat, .preset-cat-tabs dans les modales de catégories) pour ne jamais
+// leur voler leur propre scroll. La direction du geste (horizontale vs verticale) est
+// déterminée dès les premiers pixels de mouvement puis "verrouillée" pour tout le geste, afin
+// de ne jamais interrompre un scroll vertical normal en cours de route.
+(function(){
+  var SWIPE_PAGES = ['budget','chat','obj'];
+  var _psStartX=0, _psStartY=0, _psTracking=false, _psLocked=null; // _psLocked: null|'h'|'v'
+  var PS_THRESHOLD = 70;
+  function pageSwipeActiveName(){
+    var el = document.querySelector('.page.active');
+    if(!el || !el.id) return null;
+    return el.id.indexOf('pg-')===0 ? el.id.slice(3) : null;
+  }
+  function pageSwipeOnTouchStart(e){
+    if(e.touches.length!==1) return;
+    if(document.querySelector('.ov.open')) return; // pas par-dessus une modale ouverte
+    var bnav = document.getElementById('bnav');
+    if(!bnav || bnav.style.display!=='flex') return; // app pas encore démarrée (login/onboarding/setup)
+    if(SWIPE_PAGES.indexOf(pageSwipeActiveName())===-1) return;
+    if(e.target.closest('.suggestions, .preset-cat-tabs')) return; // laisser ces bandes défiler normalement
+    _psStartX = e.touches[0].clientX; _psStartY = e.touches[0].clientY;
+    _psTracking = true; _psLocked = null;
+  }
+  function pageSwipeOnTouchMove(e){
+    if(!_psTracking) return;
+    var dx = e.touches[0].clientX - _psStartX, dy = e.touches[0].clientY - _psStartY;
+    if(_psLocked===null && (Math.abs(dx)>12 || Math.abs(dy)>12)){
+      _psLocked = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+    }
+    if(_psLocked==='h') e.preventDefault(); // empêche un scroll horizontal parasite pendant le geste
+  }
+  function pageSwipeOnTouchEnd(e){
+    if(!_psTracking) return;
+    _psTracking = false;
+    if(_psLocked!=='h') return;
+    var dx = e.changedTouches[0].clientX - _psStartX;
+    if(Math.abs(dx) < PS_THRESHOLD) return;
+    var i = SWIPE_PAGES.indexOf(pageSwipeActiveName());
+    if(i===-1) return;
+    if(dx < 0 && i < SWIPE_PAGES.length-1) go(SWIPE_PAGES[i+1]); // swipe gauche → page suivante
+    else if(dx > 0 && i > 0) go(SWIPE_PAGES[i-1]); // swipe droite → page précédente
+  }
+  function pageSwipeCancel(){ _psTracking=false; _psLocked=null; }
+  document.addEventListener('touchstart', pageSwipeOnTouchStart, {passive:true});
+  document.addEventListener('touchmove', pageSwipeOnTouchMove, {passive:false});
+  document.addEventListener('touchend', pageSwipeOnTouchEnd, {passive:true});
+  document.addEventListener('touchcancel', pageSwipeCancel, {passive:true});
+})();
 
 // ══════════════════════════════════════════════
 // BUDGET SCREEN
