@@ -1106,7 +1106,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.143';
+window.APP_VERSION = '5.144';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1531,7 +1531,6 @@ window.APP_VERSION = '5.143';
         2. Connecte-toi avec ton compte Google<br>
         3. Clique sur <strong>"Create API Key"</strong><br>
         4. Copie-colle la cle ici
-        <br><br><strong>💡 Version en ligne :</strong> si RescueBudget est hébergé avec une clé serveur, tu peux <strong>passer cette étape</strong> — Léo fonctionne déjà sans rien configurer.
       </div>
       <button class="s-btn" onclick="saveKey()">Parler à Léo →</button>
       <button onclick="skipSetup()" style="width:100%;padding:12px;background:transparent;border:1.5px solid var(--border);border-radius:14px;color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;margin-top:10px">Passer cette étape (sans IA) →</button>
@@ -2710,8 +2709,22 @@ function checkNoAccountWarning(){
 function afterAuth(){
   document.getElementById('pg-login').classList.remove('active');
   var hdr=document.getElementById('mainHdr'); if(hdr) hdr.style.display='flex';
-  if((S.key&&S.key.length>10)||localStorage.getItem('cf_setup_done')==='1'){ startApp(); }
-  else{ document.getElementById('pg-setup').classList.add('active'); }
+  if((S.key&&S.key.length>10)||localStorage.getItem('cf_setup_done')==='1'){ startApp(); return; }
+  // v5.144 : bug trouvé en testant l'app comme un nouvel utilisateur — sur un déploiement
+  // hébergé (useProxy true, ex. rescuebudget.fr), le serveur a déjà sa propre clé Gemini
+  // configurée (GEMINI_API_KEY sur Render). Forcer quand même chaque nouvel inscrit à choisir
+  // entre coller une clé API personnelle ou cliquer "sans IA" est une friction inutile et
+  // trompeuse : le chat fonctionne en réalité très bien sans clé perso (voir useProxy dans
+  // callGemini()), donc le bouton "sans IA" désactivait l'IA pour rien. On saute #pg-setup
+  // et on démarre directement, avec le même message d'accueil que saveKey() envoyait.
+  var useProxy = location.protocol !== 'file:';
+  if(useProxy){
+    localStorage.setItem('cf_setup_done','1');
+    startApp();
+    setTimeout(function(){ sendMsg('Bonjour Léo ! Je débute. Pose-moi les questions pour établir mon bilan financier.'); },400);
+    return;
+  }
+  document.getElementById('pg-setup').classList.add('active');
 }
 async function doLogin(){
   var user=document.getElementById('loginUser').value.trim();
@@ -7487,7 +7500,11 @@ async function handleReceiptCapture(event){
   var file = event.target.files[0];
   event.target.value = '';
   if(!file) return;
-  if(!S.key||S.key.length<10){ toast('Configure ta clé API Gemini d\'abord','#f59e0b'); return; }
+  // v5.144 : ce garde ne doit bloquer que l'usage local sans proxy (file://, sans clé perso) —
+  // il bloquait aussi par erreur tout utilisateur hébergé (rescuebudget.fr) avant même que la
+  // vérification correcte plus bas (useProxy) ait pu s'exécuter, alors que le scan fonctionne
+  // très bien via le proxy serveur sans clé perso, exactement comme le chat texte.
+  if(location.protocol==='file:' && (!S.key||S.key.length<10)){ toast('Configure ta clé API Gemini d\'abord','#f59e0b'); return; }
 
   var fileType = detectFileType(file);
   var labels   = getFileLabel(fileType);
@@ -8193,6 +8210,12 @@ function checkBudgetAlerts(){
 // ══════════════════════════════════════════════
 if(isLoggedIn()){
   if((S.key&&S.key.length>10)||localStorage.getItem('cf_setup_done')==='1'){ startApp(); }
+  else if(location.protocol!=='file:'){
+    // v5.144 : meme correctif que dans afterAuth() — session deja active (rechargement de
+    // page) sur un deploiement heberge : sauter #pg-setup, le proxy serveur fonctionne deja.
+    localStorage.setItem('cf_setup_done','1');
+    startApp();
+  }
   else{
     document.getElementById('pg-login').classList.remove('active');
     document.getElementById('pg-setup').classList.add('active');
