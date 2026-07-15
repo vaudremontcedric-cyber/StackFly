@@ -1037,7 +1037,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.123';
+window.APP_VERSION = '5.124';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1893,12 +1893,18 @@ window.APP_VERSION = '5.123';
         <span style="font-size:17px;font-weight:700;color:var(--text)">&#9749; Faire un don</span>
         <button onclick="closeDonationModal()" style="background:none;border:none;font-size:22px;color:var(--sub);cursor:pointer">&#10005;</button>
       </div>
-      <div style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.5">RescueBudget est gratuit et le restera, surtout pour ceux qui traversent une p&#233;riode difficile. Si l'app t'a aid&#233; &#224; reprendre pied, ton soutien permet de garder la bou&#233;e lanc&#233;e pour ceux qui sont encore dans la temp&#234;te. Jamais obligatoire &#8212; juste donner au suivant, si tu peux.</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
-        <button onclick="donate(2)" style="padding:16px 8px;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:16px;font-weight:700;cursor:pointer">2 &#8364;</button>
+      <!-- v5.124 : cadrage "parrain/bienfaiteur" + transparence sur le cout reel (IA), a la demande
+           explicite de l'utilisateur. Le paiement reste ponctuel via paypal.me (pas d'abonnement
+           recurrent PayPal Subscriptions pour l'instant — decision explicite, voir echange avec
+           l'utilisateur) : la legende sous les boutons le precise pour rester honnete sur ce que
+           ce geste engage reellement. -->
+      <div style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.5">RescueBudget est 100&nbsp;% gratuit, surtout pour celles et ceux qui traversent une p&#233;riode difficile &#8212; &#231;a ne changera pas. Si l'app t'a aid&#233; &#224; reprendre pied, tu peux aujourd'hui <strong style="color:var(--text)">parrainer un utilisateur en difficult&#233;</strong> : ton don finance directement les co&#251;ts d'IA de L&#233;o pour quelqu'un qui compte chaque centime. 3&#8364;, c'est le prix d'un caf&#233; &#8212; et &#231;a change vraiment la donne pour une personne encore dans la temp&#234;te. Jamais obligatoire.</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px">
+        <button onclick="donate(3)" style="padding:16px 8px;background:var(--card);border:2px solid var(--accent2);border-radius:12px;color:var(--text);font-size:16px;font-weight:700;cursor:pointer">3 &#8364;</button>
         <button onclick="donate(5)" style="padding:16px 8px;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:16px;font-weight:700;cursor:pointer">5 &#8364;</button>
         <button onclick="donate(10)" style="padding:16px 8px;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:16px;font-weight:700;cursor:pointer">10 &#8364;</button>
       </div>
+      <div style="font-size:11px;color:var(--sub);text-align:center;margin-bottom:14px">Paiement unique via PayPal &#8212; pas d'abonnement, pas d'engagement.</div>
       <button onclick="donate()" style="width:100%;padding:12px;background:none;border:1px solid var(--border);border-radius:12px;color:var(--text2);font-size:14px;font-weight:600;cursor:pointer">Autre montant &#8594;</button>
     </div>
   </div>
