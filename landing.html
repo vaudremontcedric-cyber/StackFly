@@ -70,33 +70,32 @@ h1,h2,h3{letter-spacing:-.3px}
 .cta-band h2{font-size:clamp(22px,3.6vw,30px);margin:0 0 10px}
 .cta-band p{color:rgba(255,255,255,.8);margin:0 0 26px}
 
-/* ═══ STORYTELLING "Calm Cocoon" (3 slides, v5.144/v5.146) — même structure et même redesign
-   que le carrousel d'onboarding de l'application (fond doux, grandes illustrations colorées,
-   transition fluide, navigation pilule), pour une cohérence visuelle dès le premier contact. ═══ */
-.story-wrap{position:relative;border-radius:var(--r);overflow:hidden;background:var(--card2);padding:8px}
-.story-wrap::before{content:'';position:absolute;inset:-20%;pointer-events:none;z-index:0;
+/* ═══ STORYTELLING (3 slides, v5.144→v5.147) — même carte blanche "haut de gamme" que le
+   carrousel d'onboarding de l'application (CSS fournie telle quelle par l'utilisateur, reprise
+   ici à l'identique pour la cohérence visuelle dès le premier contact avec le site). ═══ */
+.story-halo{position:relative;border-radius:var(--r);overflow:hidden;padding:8px 8px 34px}
+.story-halo::before{content:'';position:absolute;inset:-20%;pointer-events:none;z-index:0;
   background:radial-gradient(circle at 25% 20%, rgba(74,222,128,.16), transparent 45%),
              radial-gradient(circle at 78% 30%, rgba(192,132,252,.15), transparent 45%),
              radial-gradient(circle at 50% 85%, rgba(96,165,250,.14), transparent 45%);
   filter:blur(40px)}
-.story-viewport{position:relative;z-index:1;overflow:hidden}
-.story-track{display:flex;width:300%;transition:transform .45s cubic-bezier(.4,0,.2,1)}
-.story-slide{flex:0 0 calc(100% / 3);padding:56px 32px;text-align:center;box-sizing:border-box;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:280px}
-.story-ico{width:120px;height:120px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:56px;margin:0 auto 24px;line-height:1}
-.story-ico.color-green{background:radial-gradient(circle at 35% 30%,rgba(74,222,128,.4),rgba(74,222,128,.06) 70%);
-  box-shadow:0 0 60px -14px rgba(74,222,128,.5)}
-.story-ico.color-purple{background:radial-gradient(circle at 35% 30%,rgba(192,132,252,.4),rgba(192,132,252,.06) 70%);
-  box-shadow:0 0 60px -14px rgba(192,132,252,.5)}
-.story-ico.color-blue{background:radial-gradient(circle at 35% 30%,rgba(96,165,250,.4),rgba(96,165,250,.06) 70%);
-  box-shadow:0 0 60px -14px rgba(96,165,250,.5)}
-.story-slide h3{font-size:21px;margin:0 0 12px;max-width:440px;font-weight:800;letter-spacing:-.3px;color:var(--text)}
-.story-slide p{font-size:14.5px;color:var(--text2);max-width:440px;margin:0;line-height:1.65}
-.story-dots{position:relative;z-index:1;display:flex;justify-content:center;align-items:center;gap:7px;
-  margin:0 auto 18px;width:fit-content;background:var(--surface);border-radius:999px;padding:9px 14px}
-.story-dot{width:7px;height:7px;border-radius:50%;background:rgba(148,163,184,.4);cursor:pointer;transition:all .25s ease;border:none;padding:0}
-.story-dot.on{width:20px;border-radius:4px;background:var(--accent)}
+.story-wrap{position:relative;z-index:1;max-width:420px;margin:0 auto;background:#ffffff;
+  border-radius:28px;box-shadow:0 20px 40px rgba(0,0,0,.08);padding:30px;
+  font-family:'Inter',system-ui,-apple-system,sans-serif}
+.story-viewport{overflow:hidden}
+.story-track{display:flex;width:300%;transition:transform .45s cubic-bezier(.25,1,.5,1)}
+.story-slide{width:100%;box-sizing:border-box;padding:10px 15px;text-align:center}
+.story-ico{width:100px;height:100px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:45px;margin:20px auto 30px}
+.story-ico.color-green{background-color:#e8f5e9}
+.story-ico.color-purple{background-color:#f3e5f5}
+.story-ico.color-blue{background-color:#e3f2fd}
+.story-slide h3{font-size:22px;font-weight:800;color:#1c1c1e;margin:0 0 14px;letter-spacing:-.4px}
+.story-slide p{font-size:14.5px;line-height:1.6;color:#636366;margin:0;padding:0 6px}
+.story-dots{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:24px}
+.story-dot{width:8px;height:8px;border-radius:50%;background-color:#e5e5ea;cursor:pointer;
+  transition:all .3s cubic-bezier(.25,1,.5,1);border:none;padding:0}
+.story-dot.on{width:24px;border-radius:4px;background-color:#1c1c1e}
 
 footer{padding:32px 24px 48px;text-align:center;font-size:12.5px;color:var(--text3)}
 footer a{color:var(--accent);font-weight:600}
@@ -131,31 +130,33 @@ footer a{color:var(--accent);font-weight:600}
       <h2>RescueBudget n'est pas une simple application de comptes</h2>
       <p style="color:var(--text2)">C'est un accompagnement pensé pour celles et ceux qui sentent que leur budget leur échappe — découvert, dettes, fins de mois serrées, accident de la vie. Pas de jugement, pas de jargon financier : juste un état des lieux honnête et un coach IA qui t'aide à reprendre pied, un mois à la fois.</p>
     </div>
-    <div class="story-wrap">
-      <div class="story-viewport">
-        <div class="story-track" id="storyTrack">
-          <div class="story-slide">
-            <div class="story-ico color-green" aria-hidden="true">🌱</div>
-            <h3>Reprenez votre souffle</h3>
-            <p>Un espace bienveillant, chaleureux et entièrement gratuit pour faire le point sur vos finances, sans aucune pression.</p>
-          </div>
-          <div class="story-slide">
-            <div class="story-ico color-purple" aria-hidden="true">💬</div>
-            <h3>Un Coach IA à votre écoute</h3>
-            <p>Discutez naturellement avec un guide conçu pour vous épauler, trouver des solutions et vous redonner confiance.</p>
-          </div>
-          <div class="story-slide">
-            <div class="story-ico color-blue" aria-hidden="true">🔒</div>
-            <h3>Vos données restent chez vous</h3>
-            <p>Un compte local léger, sans base de données centrale : vos chiffres restent stockés sur votre appareil, jamais revendus.</p>
+    <div class="story-halo">
+      <div class="story-wrap">
+        <div class="story-viewport">
+          <div class="story-track" id="storyTrack">
+            <div class="story-slide">
+              <div class="story-ico color-green" aria-hidden="true">🌱</div>
+              <h3>Reprenez votre souffle</h3>
+              <p>Un espace bienveillant, chaleureux et entièrement gratuit pour faire le point sur vos finances, sans aucune pression.</p>
+            </div>
+            <div class="story-slide">
+              <div class="story-ico color-purple" aria-hidden="true">💬</div>
+              <h3>Un Coach IA à votre écoute</h3>
+              <p>Discutez naturellement avec un guide conçu pour vous épauler, trouver des solutions et vous redonner confiance.</p>
+            </div>
+            <div class="story-slide">
+              <div class="story-ico color-blue" aria-hidden="true">🔒</div>
+              <h3>Vos données restent chez vous</h3>
+              <p>Un compte local léger, sans base de données centrale : vos chiffres restent stockés sur votre appareil, jamais revendus.</p>
+            </div>
           </div>
         </div>
+        <div class="story-dots" id="storyDots">
+          <button class="story-dot on" onclick="storyGoTo(0)" aria-label="Slide 1"></button>
+          <button class="story-dot" onclick="storyGoTo(1)" aria-label="Slide 2"></button>
+          <button class="story-dot" onclick="storyGoTo(2)" aria-label="Slide 3"></button>
+        </div>
       </div>
-    </div>
-    <div class="story-dots" id="storyDots" style="margin-top:18px">
-      <button class="story-dot on" onclick="storyGoTo(0)" aria-label="Slide 1"></button>
-      <button class="story-dot" onclick="storyGoTo(1)" aria-label="Slide 2"></button>
-      <button class="story-dot" onclick="storyGoTo(2)" aria-label="Slide 3"></button>
     </div>
   </section>
 

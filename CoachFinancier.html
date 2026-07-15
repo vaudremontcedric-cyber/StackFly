@@ -174,54 +174,150 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
 #pg-setup{align-items:center;padding:28px 24px;background:var(--bg);overflow-y:auto}
 .setup-box{width:100%;max-width:380px;margin:auto 0}
 
-/* ONBOARDING — carrousel 3 slides "Calm Cocoon" façon Plum (v5.144/v5.146), affiché une
-   seule fois avant le login (voir cf_onboard_seen dans le JS d'init) : storytelling Objectif /
-   Fonctionnalité / Promesse, demandé explicitement par l'utilisateur en s'inspirant de l'app
-   Plum. v5.146 : redesign demandé par l'utilisateur — fond doux et épuré, grandes illustrations
-   colorées, transition fluide gauche/droite (texte + visuel ensemble), navigation "pilule". */
-#pg-onboard{align-items:center;padding:0;background:var(--bg);position:relative;overflow:hidden}
-/* Halo doux et flouté, fixe (pas de couleur agressive par slide) — l'ambiance "cocon". */
+/* ONBOARDING — carrousel 3 slides façon Plum (v5.144→v5.147), affiché une seule fois avant le
+   login (voir cf_onboard_seen dans le JS d'init). v5.147 : redesign "carte mobile haut de gamme"
+   fourni tel quel par l'utilisateur (carte blanche flottante, illustrations rondes pastel,
+   pilule noire, bouton pilule) — CSS ci-dessous recopié fidèlement depuis sa spécification.
+   Seule la règle hôte #pg-onboard (qui n'appartient pas à sa spec, c'est le conteneur de page de
+   l'appli) a été adaptée : centrage vertical de la carte à taille fixe + repli overflow-y:auto
+   pour ne jamais couper le haut de la carte sur un écran bas (même bug de classe que celui déjà
+   documenté plus haut pour #pg-setup/#pg-login — v5.134). */
+#pg-onboard{align-items:center;padding:20px;background:var(--bg);position:relative;overflow-y:auto}
+/* Halo doux et flouté derrière la carte blanche — l'ambiance "cocon" reste visible autour d'elle. */
 #pg-onboard::before{content:'';position:absolute;inset:-10%;pointer-events:none;z-index:0;
   background:radial-gradient(circle at 30% 25%, rgba(74,222,128,.14), transparent 45%),
              radial-gradient(circle at 75% 30%, rgba(192,132,252,.13), transparent 45%),
              radial-gradient(circle at 50% 80%, rgba(96,165,250,.12), transparent 45%);
   filter:blur(40px)}
-.plum-onboarding-card{position:relative;z-index:1;width:100%;max-width:440px;height:100%;
-  display:flex;flex-direction:column;
-  padding:calc(14px + env(safe-area-inset-top,0px)) 26px calc(22px + env(safe-area-inset-bottom,0px))}
-.skip-btn{align-self:flex-end;background:none;border:none;color:var(--text3);
-  font-size:13px;font-weight:600;cursor:pointer;padding:8px 6px}
-.plum-slider-viewport{flex:1;overflow:hidden;min-height:0}
-.plum-slides-container{display:flex;width:300%;height:100%;
-  transition:transform .45s cubic-bezier(.4,0,.2,1)}
-.plum-slide{flex:0 0 calc(100% / 3);display:flex;flex-direction:column;
-  align-items:center;justify-content:center;text-align:center;padding:12px 18px;box-sizing:border-box}
-.slide-illustration{width:168px;height:168px;border-radius:50%;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;font-size:72px;
-  margin:0 auto 30px;line-height:1}
-.slide-illustration.color-green{background:radial-gradient(circle at 35% 30%,rgba(74,222,128,.4),rgba(74,222,128,.06) 70%);
-  box-shadow:0 0 70px -14px rgba(74,222,128,.55)}
-.slide-illustration.color-purple{background:radial-gradient(circle at 35% 30%,rgba(192,132,252,.4),rgba(192,132,252,.06) 70%);
-  box-shadow:0 0 70px -14px rgba(192,132,252,.55)}
-.slide-illustration.color-blue{background:radial-gradient(circle at 35% 30%,rgba(96,165,250,.4),rgba(96,165,250,.06) 70%);
-  box-shadow:0 0 70px -14px rgba(96,165,250,.55)}
-.plum-slide h2{font-size:22px;font-weight:800;letter-spacing:-.3px;margin:0 0 12px}
-.plum-slide p{font-size:14.5px;color:var(--text2);line-height:1.65;margin:0;max-width:320px}
-.plum-navigation-bar{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:18px;padding-top:18px}
-/* Navigation "pilule" : piste ovale douce contenant les points, façon indicateur d'app mobile. */
-.plum-dots{display:flex;align-items:center;gap:7px;background:var(--card2);
-  border-radius:999px;padding:9px 14px}
-/* v5.146bis : bug trouvé en testant en direct — var(--border) et var(--card2) valent EXACTEMENT
-   la même couleur en thème sombre (#1e1e38), ce qui rendait les points inactifs invisibles sur
-   leur propre fond de pilule. Couleur fixe semi-transparente à la place, garantie visible sur
-   fond clair ET sombre. */
-.plum-dot{width:7px;height:7px;border-radius:50%;background:rgba(148,163,184,.4);
-  transition:all .25s ease;cursor:pointer;border:none;padding:0}
-.plum-dot.active{width:20px;border-radius:4px;background:var(--accent)}
-.plum-btn-primary{width:100%;padding:15px;border:none;border-radius:14px;
-  background:linear-gradient(135deg,var(--accent),var(--accent3));color:#fff;
-  font-size:15px;font-weight:700;cursor:pointer}
-.plum-btn-primary.hidden{display:none}
+/* Conteneur principal façon carte mobile haut de gamme */
+.plum-onboarding-card {
+  width: 100%;
+  max-width: 420px;
+  min-height: 550px;
+  background: #ffffff;
+  border-radius: 28px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  z-index: 1;
+  margin: auto 0;
+  overflow: hidden;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+/* Bouton passer */
+.skip-btn {
+  position: absolute;
+  top: 25px;
+  right: 25px;
+  background: none;
+  border: none;
+  color: #8e8e93;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  z-index: 10;
+  transition: color 0.2s;
+}
+.skip-btn:hover {
+  color: #1c1c1e;
+}
+/* Fenêtre de visualisation des slides */
+.plum-slider-viewport {
+  width: 100%;
+  overflow: hidden;
+  margin-top: 20px;
+}
+.plum-slides-container {
+  display: flex;
+  width: 300%; /* 3 slides */
+  transition: transform 0.45s cubic-bezier(0.25, 1, 0.5, 1); /* Animation ultra-fluide "smooth spring" */
+}
+/* Design individuel de chaque slide */
+.plum-slide {
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  padding: 10px 15px;
+}
+/* Illustrations stylisées rondes façon Plum */
+.slide-illustration {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  margin: 20px auto 30px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 45px;
+  transition: transform 0.5s ease;
+}
+/* Palettes de couleurs douces et pastel */
+.color-green { background-color: #e8f5e9; }
+.color-purple { background-color: #f3e5f5; }
+.color-blue { background-color: #e3f2fd; }
+.plum-slide h2 {
+  font-size: 24px;
+  font-weight: 800;
+  color: #1c1c1e;
+  margin-bottom: 15px;
+  letter-spacing: -0.5px;
+}
+.plum-slide p {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #636366;
+  margin: 0;
+  padding: 0 10px;
+}
+/* Zone de navigation en bas */
+.plum-navigation-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 25px;
+  margin-top: 20px;
+}
+/* Les indicateurs (dots) */
+.plum-dots {
+  display: flex;
+  gap: 8px;
+}
+.plum-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #e5e5ea;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.plum-dot.active {
+  background-color: #1c1c1e; /* Noir profond pour un look moderne et épuré */
+  width: 24px; /* Transformation en pilule étirée */
+  border-radius: 4px;
+}
+/* Bouton principal style Plum (large, bords très arrondis, ombre douce) */
+.plum-btn-primary {
+  width: 100%;
+  background-color: #1c1c1e;
+  color: #ffffff;
+  border: none;
+  padding: 16px;
+  border-radius: 100px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+  transition: transform 0.1s ease, background-color 0.2s;
+}
+.plum-btn-primary:active {
+  transform: scale(0.98); /* Effet de clic physique */
+}
+.hidden {
+  display: none !important;
+}
 .s-hero{text-align:center;margin-bottom:36px}
 .s-ico{margin-bottom:18px;display:flex;justify-content:center}
 .s-title{font-size:28px;font-weight:800;letter-spacing:-.5px;margin-bottom:12px}
@@ -1155,7 +1251,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.146';
+window.APP_VERSION = '5.147';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
