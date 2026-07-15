@@ -755,23 +755,29 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
   color:#fff;font-weight:200;box-shadow:0 4px 20px rgba(13,148,136,.5)}
 
 /* ══════════════════════════════════════
-   BOUTON FLOTTANT FEEDBACK (v5.141) — demande explicite de l'utilisateur : un petit
-   bouton flottant "Donner mon avis / Signaler un bug", toujours accessible. Fixé au
-   bord droit, centré verticalement (pas en bas) pour ne jamais chevaucher la nav du
-   bas, le FAB central "+", ni la barre de saisie du chat sur la page Coach — ces
-   trois éléments varient en hauteur selon la page, alors que le centre vertical de
-   l'écran reste stable partout. Masqué par défaut comme .bnav/#profilBtn, affiché
-   par startApp() une fois connecté (jamais sur les pages connexion/inscription).
-   Réutilise directement la modale "Nous contacter" existante (v5.120, envoi par
-   email via /api/contact) : aucun nouveau formulaire, aucun changement serveur.
+   BOUTON FLOTTANT FEEDBACK (v5.141, repositionné en v5.155) — demande explicite de
+   l'utilisateur : un petit bouton flottant "Donner mon avis / Signaler un bug",
+   toujours accessible. v5.141 le centrait verticalement sur le bord droit en pensant
+   que le centre de l'écran serait une zone stable et vide — a l'usage (tests en
+   conditions réelles), ce centre est au contraire là où vit le contenu normal des
+   pages (carte Reste à vivre, barre des enveloppes, bulles de chat, cartes objectif),
+   et le bouton les chevauchait en permanence. v5.155 le remonte donc juste au-dessus
+   de la nav du bas (toujours à la même hauteur, quelle que soit la page), avec un
+   dégagement supplémentaire sur la page Coach via la classe .chat-page (ajoutée/
+   retirée par go()) pour aussi passer au-dessus de la barre de saisie du chat.
+   Masqué par défaut comme .bnav/#profilBtn, affiché par startApp() une fois connecté
+   (jamais sur les pages connexion/inscription). Réutilise directement la modale
+   "Nous contacter" existante (v5.120, envoi par email via /api/contact) : aucun
+   nouveau formulaire, aucun changement serveur.
 ══════════════════════════════════════ */
-.feedback-fab{display:none;position:fixed;right:14px;top:50%;transform:translateY(-50%);
-  z-index:120;align-items:center;gap:6px;
+.feedback-fab{display:none;position:fixed;right:14px;bottom:calc(72px + var(--sb));
+  z-index:90;align-items:center;gap:6px;
   background:var(--card);border:1px solid var(--border);border-radius:24px;
   padding:10px 14px 10px 12px;box-shadow:0 4px 16px rgba(0,0,0,.18);
   cursor:pointer;color:var(--text2);font-size:12px;font-weight:700;
-  -webkit-tap-highlight-color:transparent}
-.feedback-fab:active{transform:translateY(-50%) scale(.94)}
+  -webkit-tap-highlight-color:transparent;transition:bottom .2s ease}
+.feedback-fab.chat-page{bottom:calc(150px + var(--sb))}
+.feedback-fab:active{transform:scale(.94)}
 .feedback-fab-ico{font-size:16px}
 
 /* ══════════════════════════════════════
@@ -1275,7 +1281,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.154';
+window.APP_VERSION = '5.155';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -5033,6 +5039,10 @@ function go(name){
   if(name==='chat')  { renderChatHistory(); miloFirstGreeting(); scrollChat(); }
   if(name==='obj')   { renderGoals(); }
   if(name==='profil'){ renderProfil(); }
+  // v5.155 : bulle "Avis" remontee au-dessus de la nav du bas — sur la page Coach,
+  // il faut un degagement supplementaire pour aussi passer au-dessus de la barre de saisie.
+  var fbFabNav=document.getElementById('feedbackFab');
+  if(fbFabNav) fbFabNav.classList.toggle('chat-page', name==='chat');
 }
 
 // v5.149 : swipe horizontal demandé par l'utilisateur pour naviguer entre les pages principales
