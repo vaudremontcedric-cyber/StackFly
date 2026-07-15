@@ -1037,7 +1037,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.124';
+window.APP_VERSION = '5.125';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -4262,15 +4262,23 @@ function renderBadges(){
   }).join('');
 }
 // ══════════════════════════════════════════════
-// JALONS DE REUSSITE (v5.123)
+// JALONS DE REUSSITE (v5.123, message v5.125)
 // ══════════════════════════════════════════════
 // À la demande explicite de l'utilisateur (vision "donner au suivant" / pay it forward) : quand
 // l'utilisateur franchit une étape critique de son parcours, Léo doit le célébrer dans le chat au
 // lieu de laisser ce moment passer inaperçu — "il faut lui faire prendre conscience du chemin
-// parcouru". Détection 100% déterministe côté client, même philosophie que checkBadges() : jamais
+// parcouru". DÉTECTION 100% déterministe côté client, même philosophie que checkBadges() : jamais
 // laissé à l'appréciation du LLM (qui ne "voit" pas l'historique complet des mois précédents).
 // Chaque jalon n'est célébré qu'une seule fois (S.milestones mémorise les id déjà atteints).
-var DONATION_NUDGE = '\n\nSi RescueBudget t\'a aidé à en arriver là, tu peux **donner au suivant** et soutenir l\'appli pour ceux qui sont encore dans la tempête — juste dans Profil → Faire un don. Jamais obligatoire, juste si le cœur t\'en dit 💛';
+//
+// v5.125 : le MESSAGE, lui, n'est plus un texte figé — l'utilisateur a fourni un brief détaillé
+// ("instructions pour Léo") définissant le contexte, l'objectif conversationnel (célébrer avec des
+// faits précis, valider la transition secours→stabilisation, ouvrir la porte à la solidarité sans
+// jamais être intrusif) et le ton attendu. Ce brief est envoyé à Léo (Gemini) comme un message
+// utilisateur MASQUÉ (sendMsg(txt, true), même mécanisme déjà utilisé par addGoal()/validateReceipt()
+// pour déclencher une réponse scriptée sans l'afficher comme si l'utilisateur l'avait tapée), avec
+// les CHIFFRES RÉELS de l'utilisateur injectés dans le prompt pour que Léo ne puisse pas en inventer
+// — seule la formulation est laissée à l'IA, jamais les faits.
 function monthsSinceStart(){
   var start=new Date(S.startDate||Date.now());
   var now=new Date();
@@ -4279,41 +4287,83 @@ function monthsSinceStart(){
   if(months===1) return 'il y a 1 mois';
   return 'il y a '+months+' mois';
 }
+// Socle commun du brief (repris quasi mot pour mot des instructions fournies par l'utilisateur) —
+// factorisé pour ne pas le dupliquer dans les 3 jalons ; seuls le CONTEXTE et les DONNÉES varient.
+function _milestoneBrief(contexte, donnees){
+  return '[Coach — instruction interne, ne pas afficher ce message tel quel] '+contexte+' '
+    + 'DONNÉES RÉELLES À UTILISER (n\'invente aucun autre chiffre) : '+donnees+' '
+    + 'OBJECTIF DE TA RÉPONSE : (1) Célèbre l\'utilisateur chaleureusement et appuie-toi sur ces chiffres précis pour valider son effort. '
+    + '(2) Explique-lui que son rôle change : il n\'est plus en mode "secours", mais en mode "stabilisation et projets". '
+    + '(3) Ouvre subtilement la porte à la solidarité : présente la philosophie de RescueBudget (ceux qui s\'en sortent peuvent parrainer, via un don libre comme 2€, les serveurs IA de ceux qui arrivent). Ne demande jamais d\'argent de manière intrusive — propose ça comme un acte de fierté et de solidarité, jamais une obligation. '
+    + 'TON : empathique, fier, encourageant, sans aucune condescendance. Utilise des métaphores positives ("sortir de la tempête", "reprendre les commandes"). Reste concis (maximum 3 petits paragraphes).';
+}
 var ALL_MILESTONES=[
   {id:'m1', name:'RAV positif 3 mois consécutifs',
    check:function(){
      var t=getMonthRavTrend(3);
      return t.length>=3 && t.every(function(m){return m.v>0;});
    },
-   msg:function(){
-     return '🎉 **Félicitations !** Regarde d\'où tu es parti '+monthsSinceStart()+' : ton reste à vivre est repassé au vert, et il y est resté 3 mois d\'affilée. Tu as officiellement validé l\'étape de secours ! On continue ensemble pour optimiser la suite ?'+DONATION_NUDGE;
+   prompt:function(){
+     var t=getMonthRavTrend(3);
+     var detail=t.map(function(x){ return x.k+' : '+euro(x.v); }).join(', ');
+     return _milestoneBrief(
+       'L\'utilisateur vient de valider une étape majeure : son reste à vivre est stable ou positif depuis plusieurs mois, et il commence à sortir de la zone d\'urgence financière.',
+       'reste à vivre sur les 3 derniers mois — '+detail+' (positif '+t.length+' mois d\'affilée, compte suivi '+monthsSinceStart()+').'
+     );
    }},
   {id:'m2', name:'Épargne de précaution 500€',
    check:function(){
      return (S.goals||[]).some(function(g){ return g.type==='urgence' && (g.current||0)>=500; });
    },
-   msg:function(){
-     return '🛟 **Bravo !** Tu as constitué 500€ d\'épargne de précaution '+monthsSinceStart()+'. C\'est ton filet de sécurité en cas de coup dur — une vraie victoire, et une base solide pour la suite. Une nouvelle étape à viser ?'+DONATION_NUDGE;
+   prompt:function(){
+     var g=(S.goals||[]).filter(function(x){ return x.type==='urgence' && (x.current||0)>=500; })[0]||{};
+     return _milestoneBrief(
+       'L\'utilisateur vient de valider une étape majeure : il a constitué une épargne de précaution, son premier filet de sécurité, et il commence à sortir de la zone d\'urgence financière.',
+       'objectif "'+(g.name||'épargne de précaution')+'" : '+euro(g.current||0)+' épargnés (compte suivi '+monthsSinceStart()+').'
+     );
    }},
   {id:'m3', name:'Dette remboursée',
    check:function(){
      return (S.goals||[]).some(function(g){ return g.type==='dette' && g.target>0 && (g.current||0)>=g.target; });
    },
-   msg:function(){
-     return '💳 **C\'est fait !** Ta dette est totalement remboursée '+monthsSinceStart()+'. Tu as officiellement tourné la page — félicitations pour cette victoire, elle n\'a rien d\'évident. On regarde ce qu\'on fait de cette marge retrouvée ?'+DONATION_NUDGE;
+   prompt:function(){
+     var g=(S.goals||[]).filter(function(x){ return x.type==='dette' && x.target>0 && (x.current||0)>=x.target; })[0]||{};
+     return _milestoneBrief(
+       'L\'utilisateur vient de valider une étape majeure : il a fini de rembourser une dette de crédit, et il commence à sortir de la zone d\'urgence financière.',
+       'dette "'+(g.name||'dette de crédit')+'" totalement remboursée : '+euro(g.target||0)+' au total (compte suivi '+monthsSinceStart()+').'
+     );
    }}
 ];
+// File d'attente + garde anti-collision : checkMilestones() est aussi appelé DEPUIS sendMsg() elle-
+// même (après traitement du [FD] de Léo, voir plus bas) — à ce moment précis S.busy vaut encore
+// true (on est en plein milieu d'un appel sendMsg en cours), donc un appel direct et synchrone à
+// sendMsg() pour la célébration serait ignoré silencieusement (sendMsg() retourne immédiatement si
+// S.busy). On patiente donc que S.busy repasse à false avant d'envoyer le brief, et on traite les
+// jalons un par un pour ne jamais chevaucher deux appels sendMsg().
+var _celebrationQueue=[];
 function checkMilestones(){
   if(!S.milestones) S.milestones=[];
+  var newlyAchieved=[];
   ALL_MILESTONES.forEach(function(m){
     if(S.milestones.indexOf(m.id)<0 && m.check()){
       S.milestones.push(m.id);
-      var txt=m.msg();
-      if(typeof addMsg==='function') addMsg('bot', txt);
-      if(S.hist) S.hist.push({role:'assistant', content: txt});
-      save();
+      newlyAchieved.push(m);
     }
   });
+  if(newlyAchieved.length){
+    save();
+    newlyAchieved.forEach(function(m){ _celebrationQueue.push(m); });
+    _drainCelebrationQueue();
+  }
+}
+function _drainCelebrationQueue(){
+  if(!_celebrationQueue.length) return;
+  if(S.busy){ setTimeout(_drainCelebrationQueue, 1500); return; }
+  var m=_celebrationQueue.shift();
+  go('chat');
+  setTimeout(function(){
+    sendMsg(m.prompt(), true).then(function(){ _drainCelebrationQueue(); });
+  }, 400);
 }
 function renderStreak(){
   var el=document.getElementById('streakBanner'); if(!el) return;
