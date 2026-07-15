@@ -2,7 +2,11 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<!-- v5.157 : zoom deux doigts (pinch-to-zoom) desactive, demande explicite de l'utilisateur —
+     maximum-scale=1 + user-scalable=no bloquent le zoom sur la plupart des navigateurs
+     (fonctionne bien sous Chrome/Android). Complete par touch-action en CSS et un filet de
+     securite JS (gesturestart) plus bas pour Safari/iOS, qui ignore parfois ces attributs seuls. -->
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
 <meta name="theme-color" content="#0a0a16"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -30,6 +34,15 @@
   window.addEventListener('pageshow', setAppVh);
   document.addEventListener('DOMContentLoaded', setAppVh);
 })();
+
+// v5.157 : zoom deux doigts (pinch-to-zoom) desactive, demande explicite de l'utilisateur —
+// filet de securite pour Safari/iOS, qui declenche ses propres evenements "gesture*" pour le
+// pincement et peut les honorer meme quand maximum-scale/user-scalable (meta viewport) et
+// touch-action (CSS, voir html,body plus bas) disent le contraire. Sans effet sur les autres
+// navigateurs (evenements non standard, jamais declenches ailleurs que sous WebKit/iOS).
+['gesturestart','gesturechange','gestureend'].forEach(function(evt){
+  document.addEventListener(evt, function(e){ e.preventDefault(); }, {passive:false});
+});
 </script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -73,7 +86,10 @@ body.light{
 }
 html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(--text);
   font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  /* v5.157 : pan-x pan-y autorise le defilement/swipe a un doigt mais exclut le pinch-zoom
+     (contrairement a "manipulation", qui l'autorise) — demande explicite de l'utilisateur. */
+  touch-action:pan-x pan-y;}
 ::-webkit-scrollbar{display:none}*{scrollbar-width:none}
 /* Hauteur d'app fiable sur mobile (v5.99) — 100dvh seul peut rester bloqué sur une valeur
    trop grande juste après un reload() déclenché en JS (voir pull-to-refresh), ce qui pousse
@@ -1281,7 +1297,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.156';
+window.APP_VERSION = '5.157';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
