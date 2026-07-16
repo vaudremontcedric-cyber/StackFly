@@ -1327,7 +1327,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.160';
+window.APP_VERSION = '5.161';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1933,6 +1933,24 @@ window.APP_VERSION = '5.160';
                 </select>
               </div>
               <div id="synthTable"></div>
+              <!-- v5.161 : sous-section "Suivi Prévu / Réel", ajoutée à la demande de l'utilisateur
+                   (modèle utilisé pour coacher des personnes en difficulté financière — voir tableau
+                   de référence fourni). 3 styles visuels proposés (tableau façon papier, cartes avec
+                   barre de progression, tableau compact avec colonne Écart) — l'utilisateur a choisi
+                   les cartes avec barre de progression, qui reprennent le style déjà utilisé pour les
+                   enveloppes. Construit uniquement à partir des données déjà suivies par l'app, sans
+                   nouveau champ à saisir : Prévu = Réel pour les charges fixes et l'épargne/
+                   investissement (une seule valeur existe pour ces lignes), et pour les dépenses
+                   variables rattachées à une enveloppe, Prévu = budget de l'enveloppe (+ report) et
+                   Réel = dépensé ce mois-ci — seule partie où prévu et réel sont vraiment distincts
+                   (voir getEnvDispo()/getEnvSpentInMonth()). Voir renderPrevuReelTable(). -->
+              <div id="prevuReelWrap" style="margin-top:18px;padding-top:16px;border-top:1.5px dashed var(--border)">
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+                  <span style="font-size:13px;font-weight:800;color:var(--text)">📋 Suivi Prévu / Réel</span>
+                  <button class="info-btn" onclick="event.stopPropagation();showInfoTip(this,'prevuReel')" title="En savoir plus">i</button>
+                </div>
+                <div id="prevuReelTable"></div>
+              </div>
               <!-- v5.79 : export du bilan (CSV / PDF) intégré directement dans Synthèse budget, à la
                    demande de l'utilisateur — déplacé du bas de la page Budget (une barre générique
                    hors accordéon, redondante avec cette section) vers ici. Mêmes fonctions
@@ -2501,6 +2519,7 @@ window.APP_VERSION = '5.160';
           <div class="tuto-step"><div class="tuto-step-num">2</div><div>Parle à <b>Léo</b> pour qu'il remplisse automatiquement tes revenus et dépenses, ou entre-les manuellement via le bouton <b>+</b>.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">3</div><div>Consulte ton <b>Reste à vivre</b> : argent disponible après toutes les dépenses. Le menu déroulant à côté bascule entre affichage mensuel et annuel.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">4</div><div>La section <b>Où va mon argent ?</b> juste en dessous liste tout ce qui rentre et sort ce mois-ci.</div></div>
+          <div class="tuto-step"><div class="tuto-step-num">5</div><div>Dans <b>Synthèse budget</b>, le tableau <b>Suivi Prévu / Réel</b> (v5.161) reprend le format classique utilisé en accompagnement budgétaire : Charges fixes, Dépenses variables, Épargne & investissements, chacun avec Prévu et Réel. Crée des enveloppes (section <b>Mes enveloppes</b>) pour voir un vrai écart prévu/réel sur tes dépenses variables.</div></div>
           <div class="tuto-tip">💡 Ton score de santé financière (sur 100) est calculé automatiquement selon tes données — tu le retrouves dans le bilan PDF téléchargeable depuis la section <b>Synthèse budget</b> (bouton <b>🖨 PDF</b>).</div>
         </div></div>
       </div>
@@ -3603,7 +3622,8 @@ var _infoTips = {
   'enveloppes': { title:'✉️ Mes enveloppes',      body:'La méthode des enveloppes est une technique de budgétisation éprouvée : on alloue à l\'avance un montant précis à chaque poste de dépense (alimentation, loisirs...), et une fois l\'enveloppe vide, on ajuste ou on attend le mois suivant plutôt que de piocher ailleurs sans y penser. Elle rend visible, en temps réel, ce qu\'il reste à dépenser dans chaque catégorie — un des moyens les plus efficaces pour reprendre le contrôle d\'un budget qui déborde toujours au même endroit.' },
   'leo':     { title:'💡 Léo recommande',        body:'La gestion de budget n\'est pas qu\'une question de calcul : c\'est surtout une question d\'habitudes. La finance comportementale montre qu\'un petit ajustement régulier tenu dans la durée pèse plus qu\'une grande résolution ponctuelle vite abandonnée. Les conseils de Léo suivent ce principe : une action simple à la fois, adaptée à ta situation du moment, plutôt qu\'un plan figé impossible à tenir sur la durée.' },
   'rav':     { title:'✅ Reste à vivre',          body:'Le reste à vivre se calcule ainsi : Revenus − Dépenses (besoins + envies) − Épargne − Investissements du mois. C\'est la somme qui te reste réellement disponible pour l\'imprévu ou le plaisir, sans piocher ailleurs. En finances personnelles, mieux vaut un reste à vivre modeste mais stable qu\'un solde flatteur qui masque des charges fixes trop lourdes. Un reste à vivre négatif de façon répétée est un signal à ne pas ignorer : c\'est le moment de revoir tes charges fixes et abonnements avant que le déséquilibre ne s\'installe.' },
-  'ravPrev': { title:'🌟 Reste à vivre théorique', body:'Deux idées combinées ici. D\'abord, on anticipe : les dépenses déjà faites dans tes enveloppes sont déjà déduites du reste à vivre ci-dessus (Solde réel), mais ce qu\'il reste à dépenser dans chaque enveloppe — pas encore sorti du compte, mais déjà prévu — est lui aussi réservé ici, comme un prélèvement à venir. Ensuite, chaque euro a un rôle : une fois toutes tes enveloppes remplies jusqu\'au bout, ce reste à vivre théorique montre ce qu\'il te reste vraiment en liberté totale, sans aucune contrainte. S\'il devient négatif, ce n\'est pas une alerte de découvert (contrairement au Solde réel) : c\'est juste le signe que tes enveloppes prévoient plus que ce que tu as réellement — ajuste-les tranquillement.' }
+  'ravPrev': { title:'🌟 Reste à vivre théorique', body:'Deux idées combinées ici. D\'abord, on anticipe : les dépenses déjà faites dans tes enveloppes sont déjà déduites du reste à vivre ci-dessus (Solde réel), mais ce qu\'il reste à dépenser dans chaque enveloppe — pas encore sorti du compte, mais déjà prévu — est lui aussi réservé ici, comme un prélèvement à venir. Ensuite, chaque euro a un rôle : une fois toutes tes enveloppes remplies jusqu\'au bout, ce reste à vivre théorique montre ce qu\'il te reste vraiment en liberté totale, sans aucune contrainte. S\'il devient négatif, ce n\'est pas une alerte de découvert (contrairement au Solde réel) : c\'est juste le signe que tes enveloppes prévoient plus que ce que tu as réellement — ajuste-les tranquillement.' },
+  'prevuReel': { title:'📋 Suivi Prévu / Réel', body:'Une méthode classique en accompagnement budgétaire : face à chaque poste, on note ce qui était prévu et ce qui a vraiment été dépensé — l\'écart entre les deux dit tout de suite où resserrer. Ici, ce suivi est rempli automatiquement avec ce que RescueBudget connaît déjà de toi. Pour les charges fixes et l\'épargne, Prévu et Réel sont identiques : ce sont des montants fixés à l\'avance, sans surprise. Pour les dépenses variables suivies via une enveloppe, la différence devient intéressante : Prévu, c\'est le budget que tu t\'es fixé (plus le report du mois précédent) ; Réel, c\'est ce que tu as réellement dépensé ce mois-ci dans cette enveloppe. Crée des enveloppes pour tes postes variables (alimentation, loisirs...) si tu veux voir apparaître ici un vrai suivi prévu vs réel, pas seulement une valeur déclarée.' }
 };
 // v5.102 : corrige un défaut d'affichage signalé par l'utilisateur — sur une section compacte
 // (peu de place en dessous), la bulle se retournait au-dessus du bouton en supposant une
@@ -5214,6 +5234,129 @@ function renderSynthTable(){
       +'</div>'
     : '')
   + buildMonthTrendHtml();
+  renderPrevuReelTable(); // v5.161 : tableau Suivi Prévu/Réel, mis à jour avec Synthèse budget
+}
+
+// ══════════════════════════════════════════════
+// SUIVI PRÉVU / RÉEL (v5.161) — cartes avec barre de progression, à la demande de
+// l'utilisateur (modèle de suivi qu'elle utilise pour coacher des personnes en difficulté
+// financière — voir tableau papier fourni). Reprend volontairement le style déjà utilisé pour
+// les enveloppes (carte + barre de progression + badge d'écart) plutôt qu'un tableau à colonnes :
+// après avoir proposé 3 styles visuels (tableau façon papier, cartes+barre, tableau compact avec
+// colonne Écart), l'utilisateur a choisi les cartes+barre. Reconstruit entièrement à partir de
+// données déjà suivies par RescueBudget (charges fixes, enveloppes, épargne/investissement) :
+// aucun nouveau champ "Prévu" à saisir ligne par ligne. Seule la section "Dépenses variables"
+// distingue vraiment Prévu et Réel, via les enveloppes existantes (Prévu = getEnvDispo(env),
+// Réel = getEnvSpentInMonth()) — d'où la barre de progression réservée à cette section (et à son
+// sous-total) ; les charges fixes et l'épargne/investissement n'ont qu'une seule valeur connue
+// (Prévu = Réel toujours), donc affichées en simple liste, sans barre qui serait toujours pleine
+// et n'apporterait aucune information.
+function prrSectionLabel(label){
+  return '<p style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;'
+    +'margin:14px 0 8px;font-weight:700">'+label+'</p>';
+}
+function prrSimpleRow(label, val, bold){
+  return '<div style="display:flex;justify-content:space-between;align-items:center;padding:'+(bold?'10px 12px':'8px 12px')+';'
+    +'background:var(--card2);border-radius:10px;margin-bottom:6px;font-size:13px">'
+    +'<span style="color:'+(bold?'var(--text)':'var(--text2)')+';font-weight:'+(bold?'800':'600')+'">'+label+'</span>'
+    +'<span style="font-weight:'+(bold?'800':'700')+';color:var(--text)">'+euro(val)+'</span>'
+    +'</div>';
+}
+// Carte avec barre de progression Réel / Prévu, utilisée pour la section Dépenses variables
+// (enveloppes) et pour son sous-total, seul endroit où Prévu et Réel diffèrent vraiment.
+function prrCard(label, prevu, reel, bold){
+  var pct = prevu>0 ? Math.min(100, Math.round(reel/prevu*100)) : (reel>0?100:0);
+  var over = reel>prevu;
+  var diff = reel-prevu;
+  var barCol = over ? 'var(--orange)' : 'var(--green)';
+  var badge = Math.abs(diff)>=1
+    ? '<span style="background:'+(over?'var(--orange2)':'var(--green2)')+';color:'+(over?'var(--orange)':'var(--green)')+';'
+      +'font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px;margin-left:6px;white-space:nowrap">'
+      +(over?'+':'')+euro(diff)+'</span>'
+    : '';
+  return '<div style="background:var(--card2);border-radius:10px;padding:'+(bold?'11px 12px':'10px 12px')+';margin-bottom:8px">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:6px">'
+    +'<span style="color:'+(bold?'var(--text)':'var(--text2)')+';font-weight:'+(bold?'800':'600')+'">'+label+'</span>'
+    +'<span style="display:flex;align-items:center">'
+    +'<span style="color:var(--text2);font-size:12px;white-space:nowrap">'+euro(reel)+' / '+euro(prevu)+'</span>'
+    +badge
+    +'</span></div>'
+    +'<div style="height:6px;border-radius:4px;background:var(--border);overflow:hidden">'
+    +'<div style="width:'+pct+'%;height:100%;background:'+barCol+'"></div>'
+    +'</div></div>';
+}
+function renderPrevuReelTable(){
+  var el = document.getElementById('prevuReelTable');
+  if(!el) return;
+  rolloverEnveloppes(); // s'assure que le report des enveloppes est à jour avant lecture
+  var f = S.fin || {};
+  if(!f.revenus && !f.depenses){
+    el.innerHTML = '<div style="color:var(--text3);font-size:13px;text-align:center;padding:10px 0">Parle à Léo pour construire ton budget</div>';
+    return;
+  }
+  var monthKey = curMonthKey();
+  var html = '';
+
+  // 1. Charges fixes — une seule valeur connue, Prévu = Réel : simple liste, pas de barre
+  var fixedRows = getFixedVariableSplit().fixed;
+  html += prrSectionLabel('🏠 Charges fixes');
+  if(!fixedRows.length){
+    html += '<div style="color:var(--text3);font-size:12px;text-align:center;padding:6px 0">Aucune charge fixe enregistrée</div>';
+  } else {
+    fixedRows.forEach(function(r){ html += prrSimpleRow(r.n||'—', r.v); });
+  }
+  var fixedTotal = sumRows(fixedRows);
+  html += prrSimpleRow('Sous-total', fixedTotal, true);
+
+  // 2. Dépenses variables — les enveloppes distinguent vraiment Prévu (budget+report) et Réel
+  //    (dépensé ce mois-ci) : carte + barre de progression pour chacune. Le reste (non rattaché à
+  //    une enveloppe) est groupé en une simple ligne, faute de budget cible individuel.
+  html += prrSectionLabel('🛒 Dépenses variables');
+  var envs = Array.isArray(f.enveloppes) ? f.enveloppes : [];
+  var envIds = {};
+  envs.forEach(function(e){ envIds[e.id] = true; });
+  var varPrevu = 0, varReel = 0;
+  if(!envs.length){
+    html += '<div style="color:var(--text3);font-size:12px;text-align:center;padding:6px 0">Crée une enveloppe (ci-dessus) pour distinguer prévu et réel sur tes dépenses variables</div>';
+  } else {
+    envs.forEach(function(env){
+      var prevu = getEnvDispo(env);
+      var reel = getEnvSpentInMonth(env.id, monthKey);
+      varPrevu += prevu; varReel += reel;
+      html += prrCard((env.emoji?env.emoji+' ':'')+(env.nom||'Enveloppe'), prevu, reel);
+    });
+  }
+  var eligibleRows = getEnvEligibleRows();
+  var unlinked = eligibleRows.filter(function(r){ return !r.env || !envIds[r.env]; });
+  var unlinkedTotal = sumRows(unlinked);
+  if(unlinkedTotal > 0){
+    html += prrSimpleRow('Autres dépenses (sans enveloppe)', unlinkedTotal);
+    varPrevu += unlinkedTotal; varReel += unlinkedTotal;
+  }
+  if(envs.length || unlinkedTotal>0) html += prrCard('Sous-total', varPrevu, varReel, true);
+
+  // 3. Épargne & investissements — une seule valeur connue, Prévu = Réel : simple liste
+  html += prrSectionLabel('🏦 Épargne & investissements');
+  var epRows = getEpargneInvestRows();
+  if(!epRows.length){
+    html += '<div style="color:var(--text3);font-size:12px;text-align:center;padding:6px 0">Aucune épargne/investissement enregistré</div>';
+  } else {
+    epRows.forEach(function(r){ html += prrSimpleRow(r.n||'—', r.v); });
+  }
+  var epTotal = sumRows(epRows);
+  html += prrSimpleRow('Sous-total', epTotal, true);
+
+  // Total général
+  var totalPrevu = fixedTotal + varPrevu + epTotal;
+  var totalReel  = fixedTotal + varReel  + epTotal;
+  html += '<div style="margin-top:10px;padding:10px 12px;background:var(--green2);'
+    +'border-radius:10px;border:1px solid var(--green2);display:flex;align-items:center">'
+    +'<div style="flex:1;font-size:12.5px;font-weight:800;color:var(--accent2);text-transform:uppercase;letter-spacing:.3px">Total</div>'
+    +'<div style="min-width:70px;text-align:right;font-size:13.5px;font-weight:900;color:var(--accent2)">'+euro(totalPrevu)+'</div>'
+    +'<div style="min-width:70px;text-align:right;font-size:13.5px;font-weight:900;color:var(--accent2)">'+euro(totalReel)+'</div>'
+    +'</div>';
+
+  el.innerHTML = html;
 }
 
 // ══════════════════════════════════════════════
