@@ -43,6 +43,25 @@
 ['gesturestart','gesturechange','gestureend'].forEach(function(evt){
   document.addEventListener(evt, function(e){ e.preventDefault(); }, {passive:false});
 });
+
+// v5.159 : bug trouve en testant l'app — la bulle "Avis" (position fixe, voir .feedback-fab
+// plus bas) peut tomber pile sur une carte de la liste qui defile sous elle (ex: le texte
+// "restant" d'une enveloppe), meme repositionnee au-dessus de la nav en v5.155. Solution :
+// elle se masque des qu'un defilement est detecte n'importe ou dans la page, et reapparait
+// 500ms apres son arret. {capture:true} est necessaire car "scroll" ne remonte pas (bubbles:
+// false) : chaque page (#pg-budget, #pg-obj, .chat-msgs...) defile dans son propre conteneur
+// interne, jamais sur document lui-meme — la phase de capture est le seul moyen de detecter
+// un defilement quel que soit le conteneur qui l'a declenche, sans avoir a lister chacun.
+(function(){
+  var fabScrollTimer = null;
+  document.addEventListener('scroll', function(){
+    var fab = document.getElementById('feedbackFab');
+    if(!fab || getComputedStyle(fab).display==='none') return;
+    fab.classList.add('fab-hidden');
+    clearTimeout(fabScrollTimer);
+    fabScrollTimer = setTimeout(function(){ fab.classList.remove('fab-hidden'); }, 500);
+  }, {capture:true, passive:true});
+})();
 </script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -785,14 +804,25 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
    (jamais sur les pages connexion/inscription). Réutilise directement la modale
    "Nous contacter" existante (v5.120, envoi par email via /api/contact) : aucun
    nouveau formulaire, aucun changement serveur.
+   v5.159 : bug trouvé en testant l'app — au-dessus de la nav, la bulle ne chevauche
+   plus la carte Reste à vivre, mais elle peut encore tomber pile sur une carte plus
+   basse dans une liste qui défile (ex: la carte d'une enveloppe, son texte "restant").
+   Un bouton fixe superposé au contenu qui défile sous lui est un problème inhérent à
+   toute position fixe, quel que soit le coin choisi — pas quelque chose qu'un simple
+   déplacement résout. Ajout donc d'un comportement "disparaît pendant le défilement,
+   réapparaît à l'arrêt" (voir écouteur "scroll" plus bas dans le script), le même
+   principe que la plupart des FAB des grandes apps (Gmail, Twitter/X...) : la bulle
+   ne gêne jamais la lecture, et reste accessible dès qu'on arrête de faire défiler.
 ══════════════════════════════════════ */
 .feedback-fab{display:none;position:fixed;right:14px;bottom:calc(72px + var(--sb));
   z-index:90;align-items:center;gap:6px;
   background:var(--card);border:1px solid var(--border);border-radius:24px;
   padding:10px 14px 10px 12px;box-shadow:0 4px 16px rgba(0,0,0,.18);
   cursor:pointer;color:var(--text2);font-size:12px;font-weight:700;
-  -webkit-tap-highlight-color:transparent;transition:bottom .2s ease}
+  -webkit-tap-highlight-color:transparent;
+  transition:bottom .2s ease,opacity .25s ease,transform .25s ease}
 .feedback-fab.chat-page{bottom:calc(150px + var(--sb))}
+.feedback-fab.fab-hidden{opacity:0;transform:translateY(10px);pointer-events:none}
 .feedback-fab:active{transform:scale(.94)}
 .feedback-fab-ico{font-size:16px}
 
@@ -1297,7 +1327,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.158';
+window.APP_VERSION = '5.159';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -2471,7 +2501,7 @@ window.APP_VERSION = '5.158';
           <div class="tuto-step"><div class="tuto-step-num">2</div><div>Parle à <b>Léo</b> pour qu'il remplisse automatiquement tes revenus et dépenses, ou entre-les manuellement via le bouton <b>+</b>.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">3</div><div>Consulte ton <b>Reste à vivre</b> : argent disponible après toutes les dépenses. Le menu déroulant à côté bascule entre affichage mensuel et annuel.</div></div>
           <div class="tuto-step"><div class="tuto-step-num">4</div><div>La section <b>Où va mon argent ?</b> juste en dessous liste tout ce qui rentre et sort ce mois-ci.</div></div>
-          <div class="tuto-tip">💡 Le score de santé financière se met à jour automatiquement selon tes données.</div>
+          <div class="tuto-tip">💡 Ton score de santé financière (sur 100) est calculé automatiquement selon tes données — tu le retrouves dans le bilan PDF téléchargeable depuis la section <b>Synthèse budget</b> (bouton <b>🖨 PDF</b>).</div>
         </div></div>
       </div>
 
