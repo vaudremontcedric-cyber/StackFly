@@ -1327,7 +1327,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.159';
+window.APP_VERSION = '5.160';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -6989,7 +6989,12 @@ function renderChatHistory(){
   if(!msgs) return;
   if(msgs.children && msgs.children.length > 0) return; // déjà peuplé (par cette fonction ou par la conversation en cours)
   if(!S.hist || !S.hist.length) return;
-  S.hist.forEach(function(m){
+  // v5.160 : demande de l'utilisateur — rejouer jusqu'à 60 messages (30 échanges) à chaque retour
+  // sur l'onglet Coach rendait l'écran chargé. Limité ici à l'AFFICHAGE seulement (15 derniers
+  // messages) : ça ne touche ni la mémoire réelle de Léo (sendMsg() envoie toujours S.hist.slice(-30)
+  // comme contexte à Gemini, inchangé), ni ce qui est conservé dans localStorage (cf_hist, toujours
+  // jusqu'à 60, voir save()) — seul le nombre de bulles rejouées à l'écran est réduit.
+  S.hist.slice(-15).forEach(function(m){
     if(!m || !m.content) return;
     addMsg(m.role==='assistant' ? 'bot' : 'user', m.content);
   });
