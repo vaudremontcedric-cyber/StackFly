@@ -48,12 +48,28 @@ h1,h2,h3{letter-spacing:-.3px}
 
 /* ═══ HERO ═══ */
 .hero{background:linear-gradient(120deg,#16324f 0%,#0a1930 100%);color:#fff;padding:56px 24px 88px;text-align:center;position:relative;overflow:hidden}
+/* v5.174 : correctifs suite aux retours de l'utilisateur en test reel ("interface fade", "bouee ne
+   correspond pas au logo", "badge mal place") :
+   1) le fond navy plat recoit des taches de lumiere douces (memes couleurs de marque que le reste
+      du site, meme technique que .story-halo plus bas) pour lui donner de la profondeur sans
+      casser le calme voulu — jamais de gradient criard, juste un flou tres doux en arriere-plan.
+   2) .hero-lockup et .hero-trust passent de inline-flex a flex (pleine largeur, contenu centre) :
+      sur un ecran large, les deux tenaient auparavant cote a cote sur la meme ligne au lieu d'etre
+      empiles, ce qui rendait le badge de confiance illisible/tasse contre le logo.
+   3) l'illustration passe d'un dessin SVG abstrait a la vraie bouee du logo (photo detouree en
+      cercle), pour une fidelite exacte demandee plusieurs fois par l'utilisateur. */
+.hero::before{content:'';position:absolute;inset:-15%;pointer-events:none;z-index:0;
+  background:radial-gradient(circle at 18% 12%, rgba(74,222,128,.16), transparent 42%),
+             radial-gradient(circle at 88% 18%, rgba(245,148,92,.18), transparent 45%),
+             radial-gradient(circle at 50% 95%, rgba(45,212,191,.14), transparent 50%);
+  filter:blur(50px)}
+.hero>*{position:relative;z-index:1}
 /* v5.167 : refonte du hero inspiree des pratiques fintech 2026 (signal de confiance AVANT le
    titre, logo en petit lockup avec le nom plutot qu'en gros pictogramme isole, aperçu du produit
    reel plutot qu'une illustration abstraite) — voir maquette validee par l'utilisateur. La bouee
    du logo (bleu/blanc/rouge) reste bien visible, juste integree en lockup au lieu d'etre plaquee
    seule comme une pastille d'icone d'application. */
-.hero-lockup{display:inline-flex;align-items:center;gap:9px;margin-bottom:16px}
+.hero-lockup{display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:18px}
 .hero-lockup img{width:32px;height:32px;border-radius:50%;object-fit:cover}
 .hero-lockup span{font-weight:800;font-size:16px;color:#fff}
 .hero h1{font-family:var(--font-accent);font-size:clamp(26px,4.6vw,40px);font-weight:700;max-width:600px;margin:0 auto 16px;line-height:1.3}
@@ -61,8 +77,10 @@ h1,h2,h3{letter-spacing:-.3px}
 .hero-ctas{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
 /* v5.166 : badge de confiance, a la demande de l'utilisateur — un visiteur qui hesite a confier
    ses finances doit voir ce signal des l'arrivee. v5.167 : remonte AVANT le titre (pas seulement
-   sous les CTA), conformement aux pratiques fintech qui font passer la confiance avant la valeur. */
-.hero-trust{display:inline-flex;align-items:center;gap:7px;margin-bottom:22px;padding:7px 14px;background:rgba(93,202,165,.15);border:1px solid rgba(93,202,165,.3);border-radius:20px;font-size:12.5px;font-weight:600;color:#9fe1cb}
+   sous les CTA), conformement aux pratiques fintech qui font passer la confiance avant la valeur.
+   v5.174 : passe en flex pleine largeur (voir note ci-dessus) pour toujours s'afficher sur sa
+   propre ligne, quelle que soit la largeur d'ecran. */
+.hero-trust{display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:26px;padding:7px 14px;background:rgba(93,202,165,.15);border:1px solid rgba(93,202,165,.3);border-radius:20px;font-size:12.5px;font-weight:600;color:#9fe1cb;width:fit-content;margin-left:auto;margin-right:auto}
 .hero-trust svg{flex-shrink:0}
 /* v5.167 : aperçu du produit reel (extrait de conversation avec Leo) sous les CTA, plutot qu'une
    illustration abstraite — les meilleures pages fintech montrent le produit des le hero. */
@@ -81,8 +99,15 @@ h1,h2,h3{letter-spacing:-.3px}
    mais SANS le personnage robot de cette maquette, pour rester coherent avec l'identite existante
    (Leo est un coach en texte, jamais represente visuellement). La bouee laisse passer la lumiere
    chaleureuse par son centre, une pousse verte y grandit (clin d'oeil espoir/logo), et une
-   silhouette calme leve la main vers elle — une posture d'espoir, pas de detresse ni de noyade.*/
-.hero-illustration{width:100%;max-width:230px;margin:0 auto 20px}
+   silhouette calme leve la main vers elle — une posture d'espoir, pas de detresse ni de noyade.
+   v5.174 : le dessin SVG (interpretation) est remplace par la VRAIE bouee du logo (icons/logo
+   rescuebudget.png), detouree en cercle par script (crop centre sur l'anneau + masque circulaire,
+   texte "RescueBudget" du badge d'origine exclu) — fidelite exacte demandee par l'utilisateur,
+   qui trouvait le dessin SVG non conforme au logo reel. */
+.hero-illustration{position:relative;width:100%;max-width:210px;margin:0 auto 22px}
+.hero-illustration::before{content:'';position:absolute;inset:-25%;z-index:-1;
+  background:radial-gradient(circle, rgba(253,186,140,.4), transparent 65%);filter:blur(18px)}
+.hero-illustration img{width:100%;display:block;filter:drop-shadow(0 10px 26px rgba(0,0,0,.35))}
 
 /* v5.168 : animation a intention, a la demande de l'utilisateur — inspiree des pratiques 2026
    (recherche web a l'appui) : entrees echelonnees qui guident l'oeil dans l'ordre de lecture,
@@ -233,36 +258,7 @@ footer a{color:var(--accent);font-weight:600}
   </div>
 
   <div class="hero-illustration" aria-hidden="true">
-    <svg viewBox="0 0 300 220" width="100%">
-      <defs>
-        <radialGradient id="rbGlow2" cx="50%" cy="37%" r="42%">
-          <stop offset="0%" stop-color="#fdba8c" stop-opacity=".95"/>
-          <stop offset="60%" stop-color="#f5945c" stop-opacity=".3"/>
-          <stop offset="100%" stop-color="#f5945c" stop-opacity="0"/>
-        </radialGradient>
-      </defs>
-      <ellipse cx="150" cy="80" rx="90" ry="90" fill="url(#rbGlow2)"/>
-      <g stroke="#fdba8c" stroke-opacity=".45" stroke-width="2" stroke-linecap="round">
-        <line x1="150" y1="80" x2="150" y2="14"/>
-        <line x1="150" y1="80" x2="197" y2="33"/>
-        <line x1="150" y1="80" x2="103" y2="33"/>
-        <line x1="150" y1="80" x2="212" y2="80"/>
-        <line x1="150" y1="80" x2="88" y2="80"/>
-      </g>
-      <circle cx="150" cy="80" r="49" fill="none" stroke="#16324f" stroke-width="3"/>
-      <circle cx="150" cy="80" r="40" fill="none" stroke="#ffffff" stroke-width="18"/>
-      <circle cx="150" cy="80" r="40" fill="none" stroke="#dc2626" stroke-width="18" stroke-dasharray="31.4 31.4" transform="rotate(-45 150 80)"/>
-      <circle cx="150" cy="80" r="31" fill="none" stroke="#16324f" stroke-width="3"/>
-      <path d="M150 98C150 88 148 82 144 79C148 78 150 74 150 68" stroke="#5dcaa5" stroke-width="3" stroke-linecap="round" fill="none"/>
-      <path d="M150 76C146 72 140 71 135 73" stroke="#5dcaa5" stroke-width="3" stroke-linecap="round" fill="none"/>
-      <path d="M150 84C155 81 161 82 165 86" stroke="#5dcaa5" stroke-width="3" stroke-linecap="round" fill="none"/>
-      <path d="M90 207Q120 200 150 207T210 207" stroke="#ffffff" stroke-opacity=".15" stroke-width="2" fill="none"/>
-      <circle cx="150" cy="148" r="9" fill="#243b52"/>
-      <path d="M150 157C160 157 167 165 168 180L169 205H131L132 180C133 165 140 157 150 157Z" fill="#243b52"/>
-      <path d="M158 162C165 155 172 148 178 138" stroke="#243b52" stroke-width="6" stroke-linecap="round" fill="none"/>
-      <path d="M138 165C132 170 128 178 127 188" stroke="#243b52" stroke-width="6" stroke-linecap="round" fill="none"/>
-      <circle cx="178" cy="136" r="3.5" fill="#fdba8c"/>
-    </svg>
+    <img src="icons/hero-buoy-final.png" alt="" width="596" height="596"/>
   </div>
 
   <h1>Enfin un coach qui te comprend vraiment.</h1>
