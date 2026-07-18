@@ -75,7 +75,13 @@ h1,h2,h3{letter-spacing:-.3px}
 /* v5.170 : illustration "sortie de tunnel vers la lumiere", a la demande de l'utilisateur pour
    incarner visuellement "une personne qui reprend son souffle" — illustration SVG originale
    (aucune photo/video disponible, decision prise avec l'utilisateur), tons de la marque + touche
-   d'orange chaleureux pour la lumiere. */
+   d'orange chaleureux pour la lumiere.
+   v5.171 : remplacee par une illustration reprenant la vraie bouee du logo (bleu/blanc/rouge),
+   a la demande de l'utilisateur, inspiree d'une maquette "Echelle et Impact" qu'il a partagee —
+   mais SANS le personnage robot de cette maquette, pour rester coherent avec l'identite existante
+   (Leo est un coach en texte, jamais represente visuellement). La bouee laisse passer la lumiere
+   chaleureuse par son centre, une pousse verte y grandit (clin d'oeil espoir/logo), et une
+   silhouette calme leve la main vers elle — une posture d'espoir, pas de detresse ni de noyade.*/
 .hero-illustration{width:100%;max-width:230px;margin:0 auto 20px}
 
 /* v5.168 : animation a intention, a la demande de l'utilisateur — inspiree des pratiques 2026
@@ -221,28 +227,35 @@ footer a{color:var(--accent);font-weight:600}
   </div>
 
   <div class="hero-illustration" aria-hidden="true">
-    <svg viewBox="0 0 300 200" width="100%">
+    <svg viewBox="0 0 300 220" width="100%">
       <defs>
-        <radialGradient id="rbGlow" cx="50%" cy="46%" r="55%">
-          <stop offset="0%" stop-color="#fdba8c" stop-opacity=".9"/>
-          <stop offset="55%" stop-color="#f5945c" stop-opacity=".35"/>
+        <radialGradient id="rbGlow2" cx="50%" cy="37%" r="42%">
+          <stop offset="0%" stop-color="#fdba8c" stop-opacity=".95"/>
+          <stop offset="60%" stop-color="#f5945c" stop-opacity=".3"/>
           <stop offset="100%" stop-color="#f5945c" stop-opacity="0"/>
         </radialGradient>
-        <linearGradient id="rbArch1" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#2a4a6b"/>
-          <stop offset="100%" stop-color="#16324f"/>
-        </linearGradient>
       </defs>
-      <ellipse cx="150" cy="118" rx="140" ry="90" fill="url(#rbArch1)"/>
-      <ellipse cx="150" cy="122" rx="105" ry="68" fill="#0f2038"/>
-      <ellipse cx="150" cy="126" rx="70" ry="46" fill="url(#rbGlow)"/>
-      <path d="M138 172C138 150 142 132 150 132C158 132 162 150 162 172Z" fill="#0f2038"/>
-      <circle cx="150" cy="100" r="9" fill="#243b52"/>
-      <path d="M150 109C161 109 169 118 170 135L172 172H128L130 135C131 118 139 109 150 109Z" fill="#243b52"/>
-      <path d="M130 130C124 133 118 140 115 150" stroke="#243b52" stroke-width="6" stroke-linecap="round" fill="none"/>
-      <path d="M170 130C176 133 182 140 185 150" stroke="#243b52" stroke-width="6" stroke-linecap="round" fill="none"/>
-      <path d="M118 176C122 166 126 162 132 162" stroke="#5dcaa5" stroke-width="3" stroke-linecap="round" fill="none"/>
-      <circle cx="117" cy="176" r="3" fill="#5dcaa5"/>
+      <ellipse cx="150" cy="80" rx="90" ry="90" fill="url(#rbGlow2)"/>
+      <g stroke="#fdba8c" stroke-opacity=".45" stroke-width="2" stroke-linecap="round">
+        <line x1="150" y1="80" x2="150" y2="14"/>
+        <line x1="150" y1="80" x2="197" y2="33"/>
+        <line x1="150" y1="80" x2="103" y2="33"/>
+        <line x1="150" y1="80" x2="212" y2="80"/>
+        <line x1="150" y1="80" x2="88" y2="80"/>
+      </g>
+      <circle cx="150" cy="80" r="49" fill="none" stroke="#16324f" stroke-width="3"/>
+      <circle cx="150" cy="80" r="40" fill="none" stroke="#ffffff" stroke-width="18"/>
+      <circle cx="150" cy="80" r="40" fill="none" stroke="#dc2626" stroke-width="18" stroke-dasharray="31.4 31.4" transform="rotate(-45 150 80)"/>
+      <circle cx="150" cy="80" r="31" fill="none" stroke="#16324f" stroke-width="3"/>
+      <path d="M150 98C150 88 148 82 144 79C148 78 150 74 150 68" stroke="#5dcaa5" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <path d="M150 76C146 72 140 71 135 73" stroke="#5dcaa5" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <path d="M150 84C155 81 161 82 165 86" stroke="#5dcaa5" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <path d="M90 207Q120 200 150 207T210 207" stroke="#ffffff" stroke-opacity=".15" stroke-width="2" fill="none"/>
+      <circle cx="150" cy="148" r="9" fill="#243b52"/>
+      <path d="M150 157C160 157 167 165 168 180L169 205H131L132 180C133 165 140 157 150 157Z" fill="#243b52"/>
+      <path d="M158 162C165 155 172 148 178 138" stroke="#243b52" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <path d="M138 165C132 170 128 178 127 188" stroke="#243b52" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <circle cx="178" cy="136" r="3.5" fill="#fdba8c"/>
     </svg>
   </div>
 
