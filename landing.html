@@ -174,9 +174,21 @@ h1,h2,h3{letter-spacing:-.3px}
    contenu (icone/label/barre ou bulle exemple), rendant ce dernier illisible. La bulle passe en
    flux normal (colonne, sous le contenu) au lieu d'un overlay absolu, pour ne plus jamais recouvrir
    quoi que ce soit, quelle que soit la longueur du texte affiche. */
+/* v5.181 : correction d'un vrai defaut de mise en page trouve en mesurant en direct sur la
+   production (a la demande de l'utilisateur : "les bulles animees decalent l'ecran a chaque fois
+   qu'une ligne s'inscrit"). Mesures prises via javascript_exec sur https://www.rescuebudget.fr/ :
+   .tuto-screen grandissait de 210px a vide jusqu'a 266px une fois le texte de l'etape Coach entierement
+   tape (delta de 40px, le plus visible des 3 etapes), car ni .tuto-content (92px pour Budget/Objectifs
+   contre 140px pour Coach) ni .tuto-bubble (34px vide contre jusqu'a 74-79px une fois les 3 lignes de
+   texte affichees) n'avaient de hauteur fixe : le conteneur flex grandissait donc lettre apres lettre
+   pendant la frappe, et re-grandissait encore en changeant d'onglet. Fixe desormais : .tuto-content
+   reserve toujours 140px (hauteur mesuree de l'etape la plus haute, Coach) et est centre verticalement
+   dedans, .tuto-bubble reserve toujours 84px (hauteur mesuree la plus haute + marge de securite, pour
+   les textes Budget/Coach qui font 3 lignes). Plus aucune variation de hauteur possible, ni pendant la
+   frappe ni en changeant d'etape - .tuto-screen ne bouge plus jamais. */
 .tuto-screen{position:relative;background:var(--bg);border-radius:15px;min-height:210px;padding:22px 16px 16px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
-.tuto-content{display:none;width:100%;text-align:center}
-.tuto-content.show{display:block}
+.tuto-content{display:none;width:100%;min-height:140px;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.tuto-content.show{display:flex}
 .tuto-content .tc-ico{font-size:28px;margin-bottom:8px}
 .tuto-content .tc-lbl{font-size:13px;font-weight:700;color:var(--text)}
 .tuto-bar{background:var(--card2);border-radius:8px;height:8px;margin:10px auto 0;max-width:150px;overflow:hidden}
@@ -192,7 +204,7 @@ h1,h2,h3{letter-spacing:-.3px}
 .tuto-cursor svg{filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
 .tuto-cursor.clicked svg{transform:scale(.82)}
 .tuto-cursor svg{transition:transform .15s ease}
-.tuto-bubble{position:relative;width:88%;max-width:250px;margin-top:14px;background:var(--text);color:var(--bg);border-radius:12px;padding:10px 12px;font-size:12px;line-height:1.5;text-align:left;opacity:0;transition:opacity .3s;min-height:34px}
+.tuto-bubble{position:relative;width:88%;max-width:250px;margin-top:14px;background:var(--text);color:var(--bg);border-radius:12px;padding:10px 12px;font-size:12px;line-height:1.5;text-align:left;opacity:0;transition:opacity .3s;height:84px;box-sizing:border-box}
 .tuto-bubble.show{opacity:1}
 .tuto-bubble::after{content:'';position:absolute;left:50%;bottom:-5px;transform:translateX(-50%);width:10px;height:10px;background:var(--text);clip-path:polygon(0 0,100% 0,50% 100%)}
 .tuto-replay{display:block;margin:12px auto 0;background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer;text-decoration:underline}
