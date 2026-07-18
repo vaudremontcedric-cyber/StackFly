@@ -43,7 +43,7 @@ h1,h2,h3{letter-spacing:-.3px}
    faisait doublon avec le lockup logo/nom deja present dans le hero juste en dessous, et le bouton
    "Se connecter" fait lui-meme doublon avec le CTA "J'ai deja un compte" du hero. Le lockup du hero
    devient donc le seul repere de marque en haut de page ; sa taille est augmentee pour bien jouer
-   ce role (voir .hero-lockup plus bas, agrandi de 32px a 44px).
+   ce role (voir .hero-lockup plus bas, agrandi de 32px a 44px). */
 .hero{background:linear-gradient(120deg,#16324f 0%,#0a1930 100%);color:#fff;padding:56px 24px 88px;text-align:center;position:relative;overflow:hidden}
 /* v5.174 : correctifs suite aux retours de l'utilisateur en test reel ("interface fade", "bouee ne
    correspond pas au logo", "badge mal place") :
@@ -104,7 +104,7 @@ h1,h2,h3{letter-spacing:-.3px}
 .hero-illustration{position:relative;width:100%;max-width:210px;margin:0 auto 22px}
 .hero-illustration::before{content:'';position:absolute;inset:-25%;z-index:-1;
   background:radial-gradient(circle, rgba(253,186,140,.4), transparent 65%);filter:blur(18px)}
-.hero-illustration img{width:100%;display:block;filter:drop-shadow(0 10px 26px rgba(0,0,0,.35))}
+.hero-illustration img{width:100%;height:auto;display:block;filter:drop-shadow(0 10px 26px rgba(0,0,0,.35))}
 
 /* v5.168 : animation a intention, a la demande de l'utilisateur — inspiree des pratiques 2026
    (recherche web a l'appui) : entrees echelonnees qui guident l'oeil dans l'ordre de lecture,
