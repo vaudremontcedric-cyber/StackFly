@@ -1274,7 +1274,8 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 .login-tabs{display:flex;gap:0;margin-top:16px;background:var(--card);border-radius:14px;padding:4px;border:1px solid var(--border)}
 .ltab{flex:1;padding:9px 4px;border:none;background:none;color:var(--text2);font-size:11px;font-weight:700;border-radius:10px;cursor:pointer;transition:.2s;text-align:center;white-space:nowrap}
 .ltab.sel{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(13,148,136,.4)}
-.login-safe{text-align:center;margin-top:14px;font-size:12px;color:var(--text3)}
+.login-safe{display:flex;align-items:flex-start;gap:7px;text-align:left;margin-top:14px;padding:10px 12px;background:rgba(13,148,136,.08);border:1px solid rgba(13,148,136,.2);border-radius:12px;font-size:12px;color:var(--text2)}
+.login-safe svg{flex-shrink:0;margin-top:1px;color:var(--accent2)}
 
 .rep-detail-btn{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:700;
   color:var(--accent2);background:rgba(45,212,191,0.12);border:1px solid rgba(45,212,191,0.3);border-radius:20px;
@@ -1332,7 +1333,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.165';
+window.APP_VERSION = '5.166';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -1783,7 +1784,7 @@ window.APP_VERSION = '5.165';
         </div>
       </div>
 
-      <div class="login-safe">🔒 Tes données financières restent sur ton appareil. Seul ton email transite : un email de confirmation à la création du compte, puis un code de réinitialisation si tu le demandes.</div>
+      <div class="login-safe"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L5 6V11C5 15.5 8 19.5 12 21C16 19.5 19 15.5 19 11V6L12 3Z"/><path d="M9 12L11 14L15 10"/></svg><span>Tes données financières restent sur ton appareil. Seul ton email transite : un email de confirmation à la création du compte, puis un code de réinitialisation si tu le demandes.</span></div>
     </div>
   </section>
 
@@ -2216,7 +2217,7 @@ window.APP_VERSION = '5.165';
     <div class="setting-row" onclick="exportBackup()">
       <div class="s-row-left">
         <span class="s-row-ico">&#128190;</span>
-        <div><div class="s-row-lbl">Exporter mes donn&#233;es</div><div class="s-row-sub">T&#233;l&#233;charge un fichier .json de sauvegarde</div></div>
+        <div><div class="s-row-lbl">Exporter mes donn&#233;es</div><div class="s-row-sub">T&#233;l&#233;charge un fichier .json prot&#233;g&#233; par mot de passe</div></div>
       </div>
       <span class="s-row-arr">&#8250;</span>
     </div>
@@ -2713,6 +2714,26 @@ window.APP_VERSION = '5.165';
     <div class="m-btns">
       <button class="mb s" onclick="closeEnvModal()">Annuler</button>
       <button class="mb p" id="envModalSaveBtn" onclick="saveEnv()">Cr&#233;er l'enveloppe</button>
+    </div>
+  </div>
+</div>
+
+<!-- v5.166 : mot de passe de chiffrement/dechiffrement de la sauvegarde (voir exportBackup()/
+     importBackup() plus bas) — meme modale reutilisee pour les deux sens, seul le texte change. -->
+<div class="ov" id="ovBackupPass" onclick="if(event.target===this)closeBackupPassModal()">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <div class="modal-title" id="backupPassTitle">Prot&#233;ger la sauvegarde</div>
+    <div class="m-lbl" id="backupPassSub" style="color:var(--text2);font-size:12.5px;margin-top:-6px;margin-bottom:12px;line-height:1.5"></div>
+    <div class="m-lbl">Mot de passe</div>
+    <input class="m-in" id="backupPassInput" type="password" placeholder="Min. 6 caract&#232;res" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();var w=document.getElementById('backupPassConfirmWrap');if(w.style.display!=='none'){document.getElementById('backupPassInput2').focus();}else{confirmBackupPass();}}"/>
+    <div id="backupPassConfirmWrap" style="display:none">
+      <div class="m-lbl">Confirme le mot de passe</div>
+      <input class="m-in" id="backupPassInput2" type="password" placeholder="Retape le m&#234;me mot de passe" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();confirmBackupPass();}"/>
+    </div>
+    <div class="m-btns">
+      <button class="mb s" onclick="closeBackupPassModal()">Annuler</button>
+      <button class="mb p" id="backupPassBtn" onclick="confirmBackupPass()">Continuer</button>
     </div>
   </div>
 </div>
@@ -8431,7 +8452,56 @@ function validateReceipt(){
 // ═══════════════════════════════════════════════════
 // EXPORT CSV / PDF
 // ═══════════════════════════════════════════════════
-function exportBackup(){
+// v5.166 : la sauvegarde .json contient TOUTES les données financières de l'utilisateur en clair
+// — si le fichier est perdu, partagé par erreur ou retrouvé sur un cloud/clé USB, n'importe qui
+// peut l'ouvrir et tout lire. Chiffrement demandé par l'utilisateur : mot de passe choisi par lui
+// (jamais transmis ni stocké nulle part, connu de lui seul), via l'API Web Crypto standard du
+// navigateur — PBKDF2 (100000 itérations, sel aléatoire) pour dériver une clé depuis le mot de
+// passe, puis AES-GCM (vecteur d'initialisation aléatoire) pour chiffrer le contenu. Les anciennes
+// sauvegardes non chiffrées (exportées avant v5.166) restent lisibles à la restauration : détectées
+// par l'absence du champ _encrypted, elles sont traitées comme avant, sans mot de passe.
+function _b64FromBuf(buf){
+  var bytes = new Uint8Array(buf), bin = '';
+  for(var i=0;i<bytes.length;i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+function _bufFromB64(b64){
+  var bin = atob(b64), bytes = new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+  return bytes.buffer;
+}
+function _deriveBackupKey(pass, saltBuf){
+  var enc = new TextEncoder();
+  return crypto.subtle.importKey('raw', enc.encode(pass), 'PBKDF2', false, ['deriveKey']).then(function(baseKey){
+    return crypto.subtle.deriveKey(
+      {name:'PBKDF2', salt:saltBuf, iterations:100000, hash:'SHA-256'},
+      baseKey, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']
+    );
+  });
+}
+function encryptBackupJSON(plainObj, pass){
+  var salt = crypto.getRandomValues(new Uint8Array(16));
+  var iv = crypto.getRandomValues(new Uint8Array(12));
+  return _deriveBackupKey(pass, salt).then(function(key){
+    var enc = new TextEncoder();
+    return crypto.subtle.encrypt({name:'AES-GCM', iv:iv}, key, enc.encode(JSON.stringify(plainObj))).then(function(cipherBuf){
+      return {
+        _encrypted:true, _version:'1', _exported:new Date().toISOString(),
+        salt:_b64FromBuf(salt), iv:_b64FromBuf(iv), data:_b64FromBuf(cipherBuf)
+      };
+    });
+  });
+}
+function decryptBackupJSON(encObj, pass){
+  var salt = new Uint8Array(_bufFromB64(encObj.salt));
+  var iv = new Uint8Array(_bufFromB64(encObj.iv));
+  return _deriveBackupKey(pass, salt).then(function(key){
+    return crypto.subtle.decrypt({name:'AES-GCM', iv:iv}, key, _bufFromB64(encObj.data)).then(function(plainBuf){
+      return JSON.parse(new TextDecoder().decode(plainBuf));
+    });
+  });
+}
+function _collectBackupObj(){
   var backup = {};
   var keys = ['cf_auth','cf_fin','cf_subs','cf_txns','cf_incomes','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile','cf_badges','cf_streak','cf_actions','cf_start','cf_greet','cf_anal','cf_hist','cf_monthRates'];
   keys.forEach(function(k){
@@ -8440,16 +8510,57 @@ function exportBackup(){
   });
   backup['_exported'] = new Date().toISOString();
   backup['_version'] = '1';
-  var blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+  return backup;
+}
+function _downloadBackupBlob(obj){
+  var blob = new Blob([JSON.stringify(obj, null, 2)], {type:'application/json'});
   var a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   var d = new Date().toLocaleDateString('fr-FR').replace(/\//g,'-');
   a.download = 'RescueBudget_sauvegarde_' + d + '.json';
   a.click();
   localStorage.setItem('cf_backup_dl', String(Date.now()));
-  toast('💾 Sauvegarde téléchargée !','#10b981');
 }
-
+function exportBackup(){
+  if(!(window.crypto && window.crypto.subtle)){
+    // Contexte non sécurisé (ex: fichier ouvert en file:// sans serveur) — le chiffrement est
+    // indisponible ; on exporte en clair plutôt que de bloquer complètement la sauvegarde.
+    _downloadBackupBlob(_collectBackupObj());
+    toast('💾 Sauvegarde téléchargée (non chiffrée, indisponible ici)','#f59e0b');
+    return;
+  }
+  openBackupPassModal('export');
+}
+function doExportBackupEncrypted(pass){
+  encryptBackupJSON(_collectBackupObj(), pass).then(function(enc){
+    _downloadBackupBlob(enc);
+    toast('🔒 Sauvegarde chiffrée téléchargée !','#10b981');
+  }).catch(function(e){
+    console.error('[exportBackup] échec du chiffrement :', e);
+    toast('Erreur de chiffrement : '+(e&&e.message||'inconnue'),'#ef4444');
+  });
+}
+function _restoreBackupObj(backup){
+  if(!backup['cf_auth'] && !backup['cf_fin']){
+    toast('Fichier invalide ou vide','#ef4444'); return;
+  }
+  showConfirm('Restaurer cette sauvegarde ? Tes données actuelles seront remplacées.', function(){
+    var keys = ['cf_auth','cf_fin','cf_subs','cf_txns','cf_incomes','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile','cf_badges','cf_streak','cf_actions','cf_start','cf_greet','cf_anal','cf_hist','cf_monthRates'];
+    keys.forEach(function(k){
+      if(backup[k] !== undefined) localStorage.setItem(k, backup[k]);
+    });
+    toast('✅ Données restaurées ! Reconnecte-toi.','#10b981');
+    setTimeout(function(){ location.reload(); }, 1800);
+  }, 'Restaurer');
+}
+function doImportBackupDecrypt(encObj, pass){
+  decryptBackupJSON(encObj, pass).then(function(plain){
+    _restoreBackupObj(plain);
+  }).catch(function(e){
+    console.error('[importBackup] échec du déchiffrement :', e);
+    toast('Mot de passe incorrect ou fichier corrompu.','#ef4444');
+  });
+}
 function importBackup(event){
   var file = event.target.files[0];
   if(!file){ return; }
@@ -8457,22 +8568,68 @@ function importBackup(event){
   reader.onload = function(e){
     try{
       var backup = JSON.parse(e.target.result);
-      if(!backup['cf_auth'] && !backup['cf_fin']){
-        toast('Fichier invalide ou vide','#ef4444'); return;
+      if(backup && backup._encrypted){
+        if(!(window.crypto && window.crypto.subtle)){
+          toast('Ce fichier chiffré ne peut pas être ouvert dans ce contexte.','#ef4444');
+          return;
+        }
+        _pendingImportEnc = backup;
+        openBackupPassModal('import');
+        return;
       }
-      showConfirm('Restaurer cette sauvegarde ? Tes données actuelles seront remplacées.', function(){
-        var keys = ['cf_auth','cf_fin','cf_subs','cf_txns','cf_incomes','cf_goals','cf_actifs','cf_snaps','cf_key','cf_theme','cf_profile','cf_badges','cf_streak','cf_actions','cf_start','cf_greet','cf_anal','cf_hist','cf_monthRates'];
-        keys.forEach(function(k){
-          if(backup[k] !== undefined) localStorage.setItem(k, backup[k]);
-        });
-        toast('✅ Données restaurées ! Reconnecte-toi.','#10b981');
-        setTimeout(function(){ location.reload(); }, 1800);
-      }, 'Restaurer');
+      _restoreBackupObj(backup);
     } catch(err){
       toast('Erreur lecture fichier : ' + err.message,'#ef4444');
     }
   };
   reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ── Modale de mot de passe de sauvegarde (export = choisit un mot de passe + confirmation,
+//    import = saisit le mot de passe utilisé lors de l'export) ──
+var _backupPassMode = null;
+var _pendingImportEnc = null;
+function openBackupPassModal(mode){
+  _backupPassMode = mode;
+  document.getElementById('backupPassInput').value = '';
+  document.getElementById('backupPassInput2').value = '';
+  var sub = document.getElementById('backupPassSub');
+  var confirmWrap = document.getElementById('backupPassConfirmWrap');
+  var title = document.getElementById('backupPassTitle');
+  var btn = document.getElementById('backupPassBtn');
+  if(mode==='export'){
+    title.textContent = 'Protéger ta sauvegarde';
+    sub.textContent = 'Choisis un mot de passe pour chiffrer le fichier. Sans lui, personne — toi y compris — ne pourra le relire, garde-le précieusement.';
+    confirmWrap.style.display = 'block';
+    btn.textContent = 'Télécharger la sauvegarde';
+  } else {
+    title.textContent = 'Sauvegarde protégée';
+    sub.textContent = 'Ce fichier est chiffré. Entre le mot de passe utilisé lors de l\'export pour le restaurer.';
+    confirmWrap.style.display = 'none';
+    btn.textContent = 'Restaurer';
+  }
+  document.getElementById('ovBackupPass').style.display = 'flex';
+  setTimeout(function(){ var i=document.getElementById('backupPassInput'); if(i) i.focus(); }, 100);
+}
+function closeBackupPassModal(){
+  document.getElementById('ovBackupPass').style.display = 'none';
+  _backupPassMode = null;
+  _pendingImportEnc = null;
+}
+function confirmBackupPass(){
+  var pass = document.getElementById('backupPassInput').value;
+  if(!pass || pass.length<6){ toast('Mot de passe trop court (min. 6 caractères)','#ef4444'); return; }
+  if(_backupPassMode==='export'){
+    var pass2 = document.getElementById('backupPassInput2').value;
+    if(pass!==pass2){ toast('Les mots de passe ne correspondent pas','#ef4444'); return; }
+    closeBackupPassModal();
+    doExportBackupEncrypted(pass);
+  } else if(_backupPassMode==='import'){
+    var encObj = _pendingImportEnc;
+    closeBackupPassModal();
+    doImportBackupDecrypt(encObj, pass);
+  }
 }
 
 function exportCSV(){
