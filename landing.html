@@ -12,15 +12,25 @@
 <meta property="og:image" content="https://www.rescuebudget.fr/icons/rb-icon-512-v2.png"/>
 <meta name="twitter:card" content="summary"/>
 <link rel="icon" href="icons/rb-icon-192-v2.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Quicksand:wght@600;700&amp;display=swap" rel="stylesheet"/>
 <style>
+/* v5.170 : style "emotionnel & humain", a la demande de l'utilisateur — tons doux (bleu
+   profond + vert d'espoir + touches d'orange chaleureux), typo plus ronde et humaine (Inter en
+   police principale + Quicksand, plus douce, en accent sur les moments emotionnels : titre du
+   hero et bandeau final). */
 :root{
   --bg:#f6f8fa;--surface:#ffffff;--card:#ffffff;--card2:#eef2f6;
   --accent:#0d9488;--accent2:#2dd4bf;--accent3:#0f766e;
   --text:#0f172a;--text2:#3f4b5c;--text3:#64748b;
   --border:#e2e8f0;--r:16px;
+  --hope-green:#4ade80;--hope-green-dark:#065f2c;
+  --warm-orange:#f5945c;--warm-orange-soft:#fdba8c;
+  --font-accent:'Quicksand',-apple-system,sans-serif;
 }
 *{box-sizing:border-box}
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+body{margin:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
 img{max-width:100%;display:block}
 .wrap{max-width:960px;margin:0 auto;padding:0 24px}
@@ -46,7 +56,7 @@ h1,h2,h3{letter-spacing:-.3px}
 .hero-lockup{display:inline-flex;align-items:center;gap:9px;margin-bottom:16px}
 .hero-lockup img{width:32px;height:32px;border-radius:50%;object-fit:cover}
 .hero-lockup span{font-weight:800;font-size:16px;color:#fff}
-.hero h1{font-size:clamp(26px,4.6vw,38px);font-weight:800;max-width:600px;margin:0 auto 16px;line-height:1.3}
+.hero h1{font-family:var(--font-accent);font-size:clamp(26px,4.6vw,40px);font-weight:700;max-width:600px;margin:0 auto 16px;line-height:1.3}
 .hero p{font-size:clamp(15px,2vw,17px);color:rgba(255,255,255,.8);max-width:520px;margin:0 auto 30px}
 .hero-ctas{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
 /* v5.166 : badge de confiance, a la demande de l'utilisateur — un visiteur qui hesite a confier
@@ -62,6 +72,12 @@ h1,h2,h3{letter-spacing:-.3px}
 .hero-snippet-who span{font-size:11.5px;font-weight:700;color:#9fe1cb}
 .hero-snippet p{margin:0;font-size:13px;color:rgba(255,255,255,.9);line-height:1.5;max-width:none}
 
+/* v5.170 : illustration "sortie de tunnel vers la lumiere", a la demande de l'utilisateur pour
+   incarner visuellement "une personne qui reprend son souffle" — illustration SVG originale
+   (aucune photo/video disponible, decision prise avec l'utilisateur), tons de la marque + touche
+   d'orange chaleureux pour la lumiere. */
+.hero-illustration{width:100%;max-width:230px;margin:0 auto 20px}
+
 /* v5.168 : animation a intention, a la demande de l'utilisateur — inspiree des pratiques 2026
    (recherche web a l'appui) : entrees echelonnees qui guident l'oeil dans l'ordre de lecture,
    puis une pulsation discrete du CTA (3 cycles seulement, jamais infinie, pour ne pas distraire)
@@ -71,11 +87,12 @@ h1,h2,h3{letter-spacing:-.3px}
 @keyframes ctaPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
 .hero-lockup{animation:riseIn .6s cubic-bezier(.16,1,.3,1) .05s both}
 .hero-trust{animation:riseIn .6s cubic-bezier(.16,1,.3,1) .16s both}
-.hero h1{animation:riseIn .6s cubic-bezier(.16,1,.3,1) .27s both}
-.hero p{animation:riseIn .6s cubic-bezier(.16,1,.3,1) .38s both}
-.hero-ctas{animation:riseIn .6s cubic-bezier(.16,1,.3,1) .49s both}
-.hero .btn-primary{animation:ctaPulse 2.2s ease-in-out 1.3s 3}
-.hero-snippet{animation:riseIn .6s cubic-bezier(.16,1,.3,1) .6s both}
+.hero-illustration{animation:riseIn .6s cubic-bezier(.16,1,.3,1) .27s both}
+.hero h1{animation:riseIn .6s cubic-bezier(.16,1,.3,1) .38s both}
+.hero p{animation:riseIn .6s cubic-bezier(.16,1,.3,1) .49s both}
+.hero-ctas{animation:riseIn .6s cubic-bezier(.16,1,.3,1) .6s both}
+.hero .btn-primary{animation:ctaPulse 2.2s ease-in-out 1.4s 3}
+.hero-snippet{animation:riseIn .6s cubic-bezier(.16,1,.3,1) .71s both}
 
 /* Reveal au scroll pour le reste de la page (voir l'IntersectionObserver en bas de fichier) —
    chaque section n'anime qu'une seule fois, a son entree dans le viewport, jamais en boucle. */
@@ -83,12 +100,14 @@ h1,h2,h3{letter-spacing:-.3px}
 .reveal.in{opacity:1;transform:translateY(0)}
 
 @media (prefers-reduced-motion: reduce){
-  .hero-lockup,.hero-trust,.hero h1,.hero p,.hero-ctas,.hero-snippet{animation:none;opacity:1;transform:none}
+  .hero-lockup,.hero-trust,.hero-illustration,.hero h1,.hero p,.hero-ctas,.hero-snippet{animation:none;opacity:1;transform:none}
   .hero .btn-primary{animation:none}
   .reveal{opacity:1;transform:none;transition:none}
 }
 .btn{display:inline-block;padding:14px 26px;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;border:none}
-.btn-primary{background:var(--accent2);color:#04211d}
+/* v5.170 : CTA principal en vert clair bien visible ("vert d'espoir"), a la demande explicite de
+   l'utilisateur — remplace l'ancien teal, plus discret. */
+.btn-primary{background:var(--hope-green);color:var(--hope-green-dark)}
 .btn-ghost{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.35)}
 
 /* ═══ CARDS ═══ */
@@ -145,7 +164,7 @@ h1,h2,h3{letter-spacing:-.3px}
 .disclaimer strong{color:var(--text2)}
 
 .cta-band{background:var(--accent3);color:#fff;text-align:center;padding:56px 24px;border-radius:24px;margin:0 24px}
-.cta-band h2{font-size:clamp(22px,3.6vw,30px);margin:0 0 10px}
+.cta-band h2{font-family:var(--font-accent);font-size:clamp(22px,3.6vw,30px);margin:0 0 10px}
 .cta-band p{color:rgba(255,255,255,.8);margin:0 0 26px}
 
 /* ═══ STORYTELLING (3 slides, v5.144→v5.147) — même carte blanche "haut de gamme" que le
@@ -200,8 +219,35 @@ footer a{color:var(--accent);font-weight:600}
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L5 6V11C5 15.5 8 19.5 12 21C16 19.5 19 15.5 19 11V6L12 3Z"/><path d="M9 12L11 14L15 10"/></svg>
     <span>Tes données restent sur ton appareil</span>
   </div>
-  <h1>Un coach budgétaire pour les moments difficiles</h1>
-  <p>Bienveillant et sans jugement, pour reprendre pied et reconstruire tes projets, pas à pas.</p>
+
+  <div class="hero-illustration" aria-hidden="true">
+    <svg viewBox="0 0 300 200" width="100%">
+      <defs>
+        <radialGradient id="rbGlow" cx="50%" cy="46%" r="55%">
+          <stop offset="0%" stop-color="#fdba8c" stop-opacity=".9"/>
+          <stop offset="55%" stop-color="#f5945c" stop-opacity=".35"/>
+          <stop offset="100%" stop-color="#f5945c" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="rbArch1" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#2a4a6b"/>
+          <stop offset="100%" stop-color="#16324f"/>
+        </linearGradient>
+      </defs>
+      <ellipse cx="150" cy="118" rx="140" ry="90" fill="url(#rbArch1)"/>
+      <ellipse cx="150" cy="122" rx="105" ry="68" fill="#0f2038"/>
+      <ellipse cx="150" cy="126" rx="70" ry="46" fill="url(#rbGlow)"/>
+      <path d="M138 172C138 150 142 132 150 132C158 132 162 150 162 172Z" fill="#0f2038"/>
+      <circle cx="150" cy="100" r="9" fill="#243b52"/>
+      <path d="M150 109C161 109 169 118 170 135L172 172H128L130 135C131 118 139 109 150 109Z" fill="#243b52"/>
+      <path d="M130 130C124 133 118 140 115 150" stroke="#243b52" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <path d="M170 130C176 133 182 140 185 150" stroke="#243b52" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <path d="M118 176C122 166 126 162 132 162" stroke="#5dcaa5" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <circle cx="117" cy="176" r="3" fill="#5dcaa5"/>
+    </svg>
+  </div>
+
+  <h1>Enfin un coach qui te comprend vraiment.</h1>
+  <p>Sans jugement, à ton rythme, pour respirer à nouveau.</p>
   <div class="hero-ctas">
     <a class="btn btn-primary" href="/app">Commencer gratuitement →</a>
     <a class="btn btn-ghost" href="/app">J'ai déjà un compte</a>
