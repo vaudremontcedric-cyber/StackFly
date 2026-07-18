@@ -1327,7 +1327,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.162';
+window.APP_VERSION = '5.163';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -7542,7 +7542,13 @@ async function sendMsg(txt, hiddenUser, fileData){
       // l'utilisateur n'a aucune action possible.
       ? (S.key && S.key.length>10
           ? '⚠️ Quota API dépassé. Ta clé Gemini a atteint sa limite gratuite du jour. Solutions : attendre demain, ou activer la facturation sur aistudio.google.com (très peu cher).'
-          : '⚠️ RescueBudget a atteint son quota IA gratuit du jour (partagé entre tous les utilisateurs). Réessaie demain, ou configure ta propre clé Gemini gratuite dans Profil ⚙️ pour ne plus en dépendre.')
+          // v5.163 : texte adouci, à la demande de l'utilisateur — l'ancien message ("configure ta
+          // propre clé Gemini gratuite dans Profil") exposait du jargon technique (clé API) à un
+          // public qui n'a ni la connaissance ni le besoin d'agir dessus, en plein milieu d'un
+          // moment déjà sensible (parler de ses finances). Aucune action technique n'est réellement
+          // nécessaire — le quota se réinitialise tout seul — donc le message se contente de
+          // rassurer et d'inviter à réessayer, sans mentionner clé, quota ni API.
+          : '😌 Léo discute avec beaucoup de monde en ce moment et a besoin d\'une petite pause. Réessaie dans quelques minutes, ou reviens un peu plus tard — tes données restent bien enregistrées entre-temps.')
       : em.indexOf('429')>-1||em.indexOf('EXHAUSTED')>-1
       ? '⏳ Trop de requêtes. Attends quelques secondes puis réessaie.'
       : em.indexOf('abort')>-1||em.indexOf('timeout')>-1||em.indexOf('Timeout')>-1||em.indexOf('illisible')>-1
