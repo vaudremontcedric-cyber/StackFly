@@ -1327,7 +1327,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.161';
+window.APP_VERSION = '5.162';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -8548,6 +8548,13 @@ function exportPrint(){
   var f=S.fin||{};
   var rev=f.revenus||0, dep=f.depenses||0, ep=f.epargne||0, inv=f.invest||0;
   var rav=calcRAV();
+  // v5.161 : remplace l'ancien logo texte "✚ RescueBudget" par le vrai logo illustré (bouée),
+  // déjà utilisé partout ailleurs dans l'app (en-tête, page de connexion) depuis la v5.131, à la
+  // demande de l'utilisateur. URL absolue (location.origin) obligatoire ici : ce bilan s'ouvre
+  // dans une fenêtre séparée via window.open('','_blank') + document.write(), dont le document
+  // de base est about:blank — un chemin relatif comme "icons/..." ne s'y résoudrait pas
+  // correctement, contrairement au reste de l'app qui reste sur la même page.
+  var logoUrl = location.origin+'/icons/rb-badge-v2.png';
   var mois=new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
   var sc=calcScore(); var si=scoreInfo(sc);
   var tauxEp=pct(ep+inv,rev);
@@ -8734,7 +8741,8 @@ function exportPrint(){
     +'*{box-sizing:border-box;margin:0;padding:0}'
     +'body{font-family:"Segoe UI",Arial,sans-serif;color:#1a1a2e;background:#fff;font-size:13px}'
     +'.hdr{background:linear-gradient(135deg,#0d9488,#10b981);color:#fff;padding:20px 32px;display:flex;justify-content:space-between;align-items:center}'
-    +'.hdr-logo{font-size:22px;font-weight:900;letter-spacing:-.5px}'
+    +'.hdr-logo{font-size:22px;font-weight:900;letter-spacing:-.5px;display:flex;align-items:center;gap:9px}'
+    +'.hdr-logo img{width:30px;height:30px;object-fit:contain;border-radius:7px;flex-shrink:0;vertical-align:middle}'
     +'.hdr-sub{font-size:12px;opacity:.75;margin-top:3px}'
     +'.kpi-row{display:flex;gap:10px;padding:14px 32px;background:#f8fafc;border-bottom:1px solid #e5e7eb}'
     +'.kpi{flex:1;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:11px;text-align:center}'
@@ -8755,7 +8763,7 @@ function exportPrint(){
     +'@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'
     +'</style></head><body>'
     +'<div class="hdr">'
-    +'<div><div class="hdr-logo">✚ RescueBudget</div><div class="hdr-sub">Bilan financier — '+mois+'</div></div>'
+    +'<div><div class="hdr-logo"><img src="'+logoUrl+'" alt=""/>RescueBudget</div><div class="hdr-sub">Bilan financier — '+mois+'</div></div>'
     +'<div style="text-align:center">'+gaugeHtml+'<div style="font-size:11px;opacity:.75;margin-top:2px">'+si.lbl+'</div></div>'
     +'</div>'
     +'<div class="kpi-row">'
