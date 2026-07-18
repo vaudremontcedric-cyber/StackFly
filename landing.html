@@ -104,6 +104,39 @@ h1,h2,h3{letter-spacing:-.3px}
 .step-txt h3{margin:0 0 4px;font-size:15.5px}
 .step-txt p{margin:0;font-size:13.5px;color:var(--text2)}
 
+/* v5.169 : demo animee "tutoriel" (curseur qui se deplace + clique + bulle en defilement de
+   texte), a la demande de l'utilisateur, pour montrer des l'accueil a quel point l'appli est
+   simple a utiliser. Mockup simule, aucune interaction avec la vraie appli — reprend fidelement
+   les 3 onglets et icones du vrai bandeau bas (Budget/Coach/Objectifs). Repli sur les etapes
+   textuelles ci-dessus (deja presentes) si prefers-reduced-motion, voir media query en fin de
+   bloc. */
+.tuto-demo{position:relative;max-width:300px;margin:0 auto 40px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:6px;box-shadow:0 1px 0 rgba(0,0,0,.02)}
+.tuto-screen{position:relative;background:var(--bg);border-radius:15px;min-height:180px;padding:20px 16px;display:flex;align-items:center;justify-content:center}
+.tuto-content{display:none;width:100%;text-align:center}
+.tuto-content.show{display:block}
+.tuto-content .tc-ico{font-size:28px;margin-bottom:8px}
+.tuto-content .tc-lbl{font-size:13px;font-weight:700;color:var(--text)}
+.tuto-bar{background:var(--card2);border-radius:8px;height:8px;margin:10px auto 0;max-width:150px;overflow:hidden}
+.tuto-bar-fill{height:100%;background:var(--accent2);width:0;border-radius:8px;transition:width 1s cubic-bezier(.16,1,.3,1)}
+.tuto-content.show .tuto-bar-fill{width:64%}
+.tuto-chat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 12px;text-align:left;font-size:12px;color:var(--text2);max-width:200px;margin:6px auto 0}
+.tuto-nav{display:flex;gap:6px;padding:10px 6px 4px}
+.tuto-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border-radius:10px;color:var(--text3);font-size:10px;font-weight:700;transition:color .2s,background .2s}
+.tuto-tab .tt-i{font-size:16px}
+.tuto-tab.active{color:var(--accent);background:rgba(13,148,136,.08)}
+.tuto-cursor{position:absolute;width:16px;height:16px;left:0;top:0;transition:left .7s cubic-bezier(.4,0,.2,1),top .7s cubic-bezier(.4,0,.2,1);pointer-events:none;z-index:5;opacity:0}
+.tuto-cursor.show{opacity:1}
+.tuto-cursor svg{filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
+.tuto-cursor.clicked svg{transform:scale(.82)}
+.tuto-cursor svg{transition:transform .15s ease}
+.tuto-bubble{position:absolute;left:50%;bottom:66px;transform:translateX(-50%);width:88%;background:var(--text);color:var(--bg);border-radius:12px;padding:10px 12px;font-size:12px;line-height:1.5;text-align:left;opacity:0;transition:opacity .3s;z-index:4;min-height:34px}
+.tuto-bubble.show{opacity:1}
+.tuto-bubble::after{content:'';position:absolute;left:50%;bottom:-5px;transform:translateX(-50%);width:10px;height:10px;background:var(--text);clip-path:polygon(0 0,100% 0,50% 100%)}
+.tuto-replay{display:block;margin:12px auto 0;background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer;text-decoration:underline}
+@media (prefers-reduced-motion: reduce){
+  .tuto-demo{display:none}
+}
+
 .trust-box{background:rgba(13,148,136,.06);border:1px solid rgba(13,148,136,.25);border-radius:var(--r);padding:20px 22px;margin-bottom:14px}
 .trust-box h3{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:8px}
 .trust-box p{margin:0;font-size:13.5px;color:var(--text2)}
@@ -221,6 +254,37 @@ footer a{color:var(--accent);font-weight:600}
 
   <section class="section" style="padding-top:0">
     <h2 style="text-align:center">Comment ça marche</h2>
+
+    <div class="tuto-demo reveal" id="tutoDemo">
+      <div class="tuto-screen">
+        <div class="tuto-content" id="tuto-c-budget">
+          <div class="tc-ico">🏠</div>
+          <div class="tc-lbl">Ton budget en un coup d'œil</div>
+          <div class="tuto-bar"><div class="tuto-bar-fill"></div></div>
+        </div>
+        <div class="tuto-content" id="tuto-c-chat">
+          <div class="tc-ico">💬</div>
+          <div class="tc-lbl">Léo, ton coach</div>
+          <div class="tuto-chat">Combien te reste-t-il ce mois-ci ?</div>
+        </div>
+        <div class="tuto-content" id="tuto-c-obj">
+          <div class="tc-ico">🎯</div>
+          <div class="tc-lbl">Tes objectifs</div>
+          <div class="tuto-bar"><div class="tuto-bar-fill"></div></div>
+        </div>
+        <div class="tuto-bubble" id="tutoBubble"></div>
+        <div class="tuto-cursor" id="tutoCursor">
+          <svg width="16" height="16" viewBox="0 0 16 16"><path d="M1 1L1 13L4.5 10L6.5 14.5L8.5 13.5L6.5 9L11 9Z" fill="#fff" stroke="#0f172a" stroke-width="1"/></svg>
+        </div>
+      </div>
+      <div class="tuto-nav">
+        <div class="tuto-tab" id="tuto-t-budget"><span class="tt-i">🏠</span>Budget</div>
+        <div class="tuto-tab" id="tuto-t-chat"><span class="tt-i">💬</span>Coach</div>
+        <div class="tuto-tab" id="tuto-t-obj"><span class="tt-i">🎯</span>Objectifs</div>
+      </div>
+    </div>
+    <button class="tuto-replay" id="tutoReplayBtn" onclick="tutoStart()">↻ Rejouer la démo</button>
+
     <div class="steps">
       <div class="step reveal">
         <div class="step-num">1</div>
@@ -318,6 +382,89 @@ footer a{color:var(--accent);font-weight:600}
 })();
 </script>
 
+<!-- v5.169 : moteur de la demo animee "tutoriel" (curseur simule + clic + bulle en defilement de
+     texte) — voir .tuto-demo dans le CSS. Se declenche depuis l'observer de reveal ci-dessous, des
+     que le mockup entre dans le champ de vision, et peut etre rejoue via le bouton "Rejouer". -->
+<script>
+var TUTO_STEPS = [
+  { tab:'budget', text:'Indique tes revenus et tes dépenses fixes, en discutant simplement avec Léo.' },
+  { tab:'chat', text:'Léo analyse ta situation et propose une action concrète, une seule à la fois.' },
+  { tab:'obj', text:'Suis ta progression, mois après mois, à ton rythme.' }
+];
+var _tutoRunId = 0;
+var _tutoTypeIv = null;
+
+function tutoPos(el, container){
+  var r = el.getBoundingClientRect();
+  var c = container.getBoundingClientRect();
+  return { x: r.left - c.left + r.width/2 - 8, y: r.top - c.top + r.height/2 - 8 };
+}
+function tutoSetActiveTab(name){
+  ['budget','chat','obj'].forEach(function(n){
+    var tab = document.getElementById('tuto-t-'+n);
+    var content = document.getElementById('tuto-c-'+n);
+    if(tab) tab.classList.toggle('active', n===name);
+    if(content) content.classList.toggle('show', n===name);
+  });
+}
+function tutoTypeText(text, cb, runId){
+  var bubble = document.getElementById('tutoBubble');
+  if(!bubble) return;
+  bubble.textContent = '';
+  bubble.classList.add('show');
+  var i = 0;
+  clearInterval(_tutoTypeIv);
+  _tutoTypeIv = setInterval(function(){
+    if(runId !== _tutoRunId){ clearInterval(_tutoTypeIv); return; }
+    bubble.textContent += text.charAt(i);
+    i++;
+    if(i >= text.length){
+      clearInterval(_tutoTypeIv);
+      if(cb) cb();
+    }
+  }, 26);
+}
+function tutoRunStep(idx, runId){
+  if(runId !== _tutoRunId) return;
+  var demo = document.getElementById('tutoDemo');
+  var cursor = document.getElementById('tutoCursor');
+  var bubble = document.getElementById('tutoBubble');
+  var step = TUTO_STEPS[idx % TUTO_STEPS.length];
+  var tab = document.getElementById('tuto-t-'+step.tab);
+  if(!demo || !cursor || !tab || !bubble) return;
+  bubble.classList.remove('show');
+  var pos = tutoPos(tab, demo);
+  cursor.classList.add('show');
+  cursor.style.left = pos.x + 'px';
+  cursor.style.top = pos.y + 'px';
+  setTimeout(function(){
+    if(runId !== _tutoRunId) return;
+    cursor.classList.add('clicked');
+    tutoSetActiveTab(step.tab);
+    setTimeout(function(){
+      if(runId !== _tutoRunId) return;
+      cursor.classList.remove('clicked');
+      tutoTypeText(step.text, function(){
+        setTimeout(function(){ tutoRunStep(idx+1, runId); }, 2200);
+      }, runId);
+    }, 150);
+  }, 750);
+}
+function tutoStart(){
+  var demo = document.getElementById('tutoDemo');
+  var cursor = document.getElementById('tutoCursor');
+  if(!demo || !cursor) return;
+  _tutoRunId++;
+  var runId = _tutoRunId;
+  cursor.style.left = '4px';
+  cursor.style.top = '4px';
+  cursor.classList.remove('show');
+  tutoSetActiveTab(null);
+  document.getElementById('tutoBubble').classList.remove('show');
+  setTimeout(function(){ tutoRunStep(0, runId); }, 400);
+}
+</script>
+
 <!-- v5.168 : reveal au defilement pour les sections sous le hero (voir .reveal dans le CSS) —
      chaque element n'anime qu'une seule fois, a son entree reelle dans le viewport, jamais en
      boucle : c'est ce qui fait la difference entre une animation a intention (qui guide l'oeil)
@@ -335,6 +482,8 @@ footer a{color:var(--accent);font-weight:600}
       if(entry.isIntersecting){
         entry.target.classList.add('in');
         io.unobserve(entry.target);
+        // v5.169 : declenche la demo tutoriel des que son mockup entre dans le champ de vision.
+        if(entry.target.id === 'tutoDemo' && typeof tutoStart === 'function') tutoStart();
       }
     });
   }, {threshold:0.15, rootMargin:'0px 0px -40px 0px'});
