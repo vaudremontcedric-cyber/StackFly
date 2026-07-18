@@ -642,6 +642,11 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(
   border-radius:14px;font-size:13px;font-weight:600;color:var(--accent2);
   text-align:left;cursor:pointer;transition:.15s;font-family:inherit}
 .msg-choice-btn:active{background:rgba(13,148,136,.15);transform:scale(.98)}
+/* v5.165 : variante imbriquee DANS la bulle de texte du bot (voir addMsg(), proposition de
+   synchronisation pendingSync) — corrige un retour utilisateur : la demande de confirmation
+   Confirmer/Annuler doit visuellement faire partie de la meme ligne que la question posee par
+   Leo, pas apparaitre comme un bloc separe sous le message (c'est ce que faisait .msg-choices). */
+.msg-choices-inline{display:flex;flex-direction:column;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
 
 /* Barre d'envoi */
 .chat-bar{padding:10px 14px;padding-bottom:calc(10px + var(--sb));
@@ -1327,7 +1332,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.164';
+window.APP_VERSION = '5.165';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -6974,9 +6979,12 @@ function addMsg(role, txt, hidden, choices, envSug, goalSug, pendingSync){
   // [GOALSUG] ci-dessus (qui ouvrent une modale), un clic ici écrit directement — voir
   // confirmPendingSync()/cancelPendingSync() — puisque la donnée est déjà entièrement connue
   // (montant, section, enveloppe), il n'y a rien de plus à saisir dans une modale séparée.
+  // v5.165 : intégrée DANS la bulle de texte de Léo (append à .bbl) plutôt qu'en bloc séparé sous
+  // le message — corrige un retour utilisateur ("la carte de confirmation est détachée de la
+  // bulle, la confirmation doit être posée directement dans sa ligne de texte").
   if(!isU && pendingSync && pendingSync.confirms && pendingSync.confirms.length){
     var pWrap=document.createElement('div');
-    pWrap.className='msg-choices';
+    pWrap.className='msg-choices-inline';
     pWrap.id='pendingSync-'+pendingSync.id;
     var pSummary=document.createElement('div');
     pSummary.style.cssText='width:100%;font-size:12.5px;color:var(--text2);white-space:pre-line;margin-bottom:2px';
@@ -6993,7 +7001,8 @@ function addMsg(role, txt, hidden, choices, envSug, goalSug, pendingSync){
     pNo.textContent='✖️ Annuler';
     pNo.onclick=function(){ cancelPendingSync(pendingSync.id); };
     pWrap.appendChild(pOk); pWrap.appendChild(pNo);
-    msgs.appendChild(pWrap);
+    var pBbl=d.querySelector('.bbl');
+    if(pBbl) pBbl.appendChild(pWrap); else msgs.appendChild(pWrap);
   }
   scrollChat();
 }
