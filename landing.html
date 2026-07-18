@@ -71,8 +71,7 @@ h1,h2,h3{letter-spacing:-.3px}
    visible, tout en haut du hero (au-dessus de la bouee) — .hero-trust est donc supprime (le message
    de confidentialite reste present plus bas dans le paragraphe du hero et dans la section
    Confidentialite) et .hero-lockup joue seul ce role de repere de marque, agrandi en consequence. */
-.hero-lockup{display:flex;align-items:center;justify-content:center;gap:13px;margin-bottom:28px}
-.hero-lockup img{width:52px;height:52px;border-radius:50%;object-fit:cover}
+.hero-lockup{display:flex;align-items:center;justify-content:center;margin-bottom:28px}
 .hero-lockup span{font-weight:800;font-size:30px;color:#fff;letter-spacing:-.3px}
 .hero h1{font-family:var(--font-accent);font-size:clamp(26px,4.6vw,40px);font-weight:700;max-width:600px;margin:0 auto 16px;line-height:1.3}
 .hero p{font-size:clamp(15px,2vw,17px);color:rgba(255,255,255,.8);max-width:520px;margin:0 auto 30px}
@@ -91,11 +90,6 @@ h1,h2,h3{letter-spacing:-.3px}
 @media (min-width:900px){.hero-side{display:block}}
 /* v5.167 : aperçu du produit reel (extrait de conversation avec Leo) sous les CTA, plutot qu'une
    illustration abstraite — les meilleures pages fintech montrent le produit des le hero. */
-.hero-snippet{margin:28px auto 0;max-width:300px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:14px 16px;text-align:left}
-.hero-snippet-who{display:flex;align-items:center;gap:7px;margin-bottom:7px}
-.hero-snippet-who img{width:18px;height:18px;border-radius:50%;object-fit:cover}
-.hero-snippet-who span{font-size:11.5px;font-weight:700;color:#9fe1cb}
-.hero-snippet p{margin:0;font-size:13px;color:rgba(255,255,255,.9);line-height:1.5;max-width:none}
 
 /* v5.170 : illustration "sortie de tunnel vers la lumiere", a la demande de l'utilisateur pour
    incarner visuellement "une personne qui reprend son souffle" — illustration SVG originale
@@ -259,7 +253,6 @@ footer a{color:var(--accent);font-weight:600}
   </div>
 
   <div class="hero-lockup">
-    <img src="icons/rb-badge-v2.png" alt="RescueBudget"/>
     <span>RescueBudget</span>
   </div>
 
@@ -272,13 +265,6 @@ footer a{color:var(--accent);font-weight:600}
   <div class="hero-ctas">
     <a class="btn btn-primary" href="/app">Commencer gratuitement →</a>
     <a class="btn btn-ghost" href="/app">J'ai déjà un compte</a>
-  </div>
-  <div class="hero-snippet">
-    <div class="hero-snippet-who">
-      <img src="icons/rb-badge-v2.png" alt=""/>
-      <span>Léo</span>
-    </div>
-    <p>Pas de panique, on regarde ça ensemble. Combien te reste-t-il ce mois-ci ?</p>
   </div>
 </section>
 
