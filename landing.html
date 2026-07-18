@@ -38,15 +38,12 @@ img{max-width:100%;display:block}
 .section-narrow{max-width:720px;margin:0 auto}
 h1,h2,h3{letter-spacing:-.3px}
 
-/* ═══ NAV ═══ */
-.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
-.nav-in{max-width:960px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
-.nav-logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:18px}
-.nav-logo img{width:32px;height:32px}
-.nav-logo .rb-budget{color:#dc2626}
-.nav-cta{background:var(--accent);color:#fff;padding:9px 18px;border-radius:10px;font-size:14px;font-weight:700;white-space:nowrap}
-
 /* ═══ HERO ═══ */
+/* v5.175 : bandeau du haut (logo + "Se connecter") supprime, a la demande de l'utilisateur — il
+   faisait doublon avec le lockup logo/nom deja present dans le hero juste en dessous, et le bouton
+   "Se connecter" fait lui-meme doublon avec le CTA "J'ai deja un compte" du hero. Le lockup du hero
+   devient donc le seul repere de marque en haut de page ; sa taille est augmentee pour bien jouer
+   ce role (voir .hero-lockup plus bas, agrandi de 32px a 44px).
 .hero{background:linear-gradient(120deg,#16324f 0%,#0a1930 100%);color:#fff;padding:56px 24px 88px;text-align:center;position:relative;overflow:hidden}
 /* v5.174 : correctifs suite aux retours de l'utilisateur en test reel ("interface fade", "bouee ne
    correspond pas au logo", "badge mal place") :
@@ -69,9 +66,9 @@ h1,h2,h3{letter-spacing:-.3px}
    reel plutot qu'une illustration abstraite) — voir maquette validee par l'utilisateur. La bouee
    du logo (bleu/blanc/rouge) reste bien visible, juste integree en lockup au lieu d'etre plaquee
    seule comme une pastille d'icone d'application. */
-.hero-lockup{display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:18px}
-.hero-lockup img{width:32px;height:32px;border-radius:50%;object-fit:cover}
-.hero-lockup span{font-weight:800;font-size:16px;color:#fff}
+.hero-lockup{display:flex;align-items:center;justify-content:center;gap:11px;margin-bottom:20px}
+.hero-lockup img{width:44px;height:44px;border-radius:50%;object-fit:cover}
+.hero-lockup span{font-weight:800;font-size:19px;color:#fff}
 .hero h1{font-family:var(--font-accent);font-size:clamp(26px,4.6vw,40px);font-weight:700;max-width:600px;margin:0 auto 16px;line-height:1.3}
 .hero p{font-size:clamp(15px,2vw,17px);color:rgba(255,255,255,.8);max-width:520px;margin:0 auto 30px}
 .hero-ctas{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
@@ -236,16 +233,6 @@ footer a{color:var(--accent);font-weight:600}
 </style>
 </head>
 <body>
-
-<nav class="nav">
-  <div class="nav-in">
-    <div class="nav-logo">
-      <img src="icons/rb-badge-v2.png" alt="RescueBudget"/>
-      Rescue<span class="rb-budget">Budget</span>
-    </div>
-    <a class="nav-cta" href="/app">Se connecter</a>
-  </div>
-</nav>
 
 <section class="hero">
   <div class="hero-lockup">
