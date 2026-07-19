@@ -1333,7 +1333,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.181';
+window.APP_VERSION = '5.182';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -2871,13 +2871,13 @@ window.APP_VERSION = '5.181';
     <div class="modal-drag"></div>
     <div style="text-align:center;font-size:28px;margin-bottom:6px">🔒</div>
     <div class="modal-title" style="margin-bottom:4px">Politique de confidentialité</div>
-    <div style="font-size:11px;color:var(--text3);text-align:center;margin-bottom:20px">Dernière mise à jour : juin 2026</div>
+    <div style="font-size:11px;color:var(--text3);text-align:center;margin-bottom:20px">Dernière mise à jour : juillet 2026</div>
 
     <div style="font-size:13px;color:var(--text2);line-height:1.7;display:flex;flex-direction:column;gap:16px">
 
       <div style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);border-radius:14px;padding:14px">
         <div style="font-weight:700;color:var(--green);margin-bottom:6px">✅ En résumé</div>
-        <div>RescueBudget ne vend <strong>aucune donnée personnelle</strong> et n'a aucun serveur de collecte. Par défaut, tout reste sur ton appareil. Deux exceptions, uniquement si tu les utilises : tes <strong>messages au coach Léo</strong> sont transmis à l'API Google Gemini pour générer les réponses, et la <strong>synchronisation cloud</strong> (optionnelle, désactivée par défaut) copie tes données vers l'espace Firebase que tu configures toi-même.</div>
+        <div>RescueBudget ne vend <strong>aucune donnée personnelle</strong> et n'a aucun serveur qui les collecte durablement. Par défaut, tout reste sur ton appareil. Trois exceptions : ton <strong>adresse email</strong> transite par notre serveur pour la création de compte et les emails transactionnels (voir plus bas), tes <strong>messages au coach Léo</strong> transitent par notre serveur relais avant d'atteindre l'API Google Gemini qui génère les réponses, et la <strong>synchronisation cloud</strong> (optionnelle, désactivée par défaut) copie tes données vers l'espace Firebase que tu configures toi-même.</div>
       </div>
 
       <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:14px;padding:14px">
@@ -2897,7 +2897,7 @@ window.APP_VERSION = '5.181';
 
       <div>
         <div style="font-weight:700;color:var(--text);margin-bottom:6px">🤖 Coach Léo & Intelligence Artificielle</div>
-        <div>Lorsque tu interagis avec Léo, tes messages sont transmis à l'API Google Gemini via une clé API <strong>qui t'appartient</strong>. RescueBudget ne voit jamais ces échanges. Consulte la <a href="https://policies.google.com/privacy" target="_blank" style="color:var(--accent2)">politique de confidentialité de Google</a> pour les traitements effectués par Gemini.</div>
+        <div>Lorsque tu interagis avec Léo, tes messages transitent par un petit serveur relais (hébergé sur Render) avant d'être transmis à l'API Google Gemini, qui génère la réponse. Si tu as configuré ta propre clé API dans ton profil, c'est elle qui est utilisée ; sinon, une clé partagée par défaut permet à l'application de fonctionner sans rien configurer. Dans les deux cas, le serveur relais ne stocke ni ne journalise le contenu de tes messages : il les transmet et retransmet la réponse, sans en conserver de copie. Consulte la <a href="https://policies.google.com/privacy" target="_blank" style="color:var(--accent2)">politique de confidentialité de Google</a> pour les traitements effectués par Gemini.</div>
       </div>
 
       <div>
@@ -2908,6 +2908,11 @@ window.APP_VERSION = '5.181';
       <div>
         <div style="font-weight:700;color:var(--text);margin-bottom:6px">📊 Fichiers uploadés</div>
         <div>Les fichiers que tu partages avec Léo (Excel, CSV, PDF, images) sont traités directement dans ton navigateur. Seul le contenu extrait est envoyé à Google Gemini pour analyse. Aucun fichier n'est stocké sur nos serveurs.</div>
+      </div>
+
+      <div>
+        <div style="font-weight:700;color:var(--text);margin-bottom:6px">📧 Email & communications</div>
+        <div>Ton adresse email sert uniquement à créer ton compte, t'envoyer un code de réinitialisation de mot de passe, un email de bienvenue à l'inscription, ou transmettre ton message si tu utilises le formulaire "Nous contacter". Ces envois passent par <strong>Brevo</strong>, un prestataire d'emailing transactionnel basé dans l'Union européenne. Ton adresse n'est stockée dans aucune base de données côté serveur : elle est gardée quelques minutes en mémoire, uniquement pour limiter les abus (ex. spam de codes de réinitialisation), puis effacée automatiquement.</div>
       </div>
 
       <div>
