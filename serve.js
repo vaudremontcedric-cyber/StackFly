@@ -13,7 +13,9 @@ const MIME = {
   '.js':   'application/javascript',
   '.json': 'application/json',
   '.png':  'image/png',
-  '.ico':  'image/x-icon'
+  '.ico':  'image/x-icon',
+  '.txt':  'text/plain; charset=utf-8', // robots.txt (v5.183)
+  '.xml':  'application/xml; charset=utf-8' // sitemap.xml (v5.183)
 };
 
 // Evite que le serveur crashe sur une erreur non geree

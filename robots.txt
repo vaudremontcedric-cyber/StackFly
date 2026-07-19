@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /app
+Disallow: /CoachFinancier.html
+Disallow: /api/
+
+Sitemap: https://www.rescuebudget.fr/sitemap.xml

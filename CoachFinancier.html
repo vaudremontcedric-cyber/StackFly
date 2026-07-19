@@ -1333,7 +1333,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.182';
+window.APP_VERSION = '5.183';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -2287,6 +2287,13 @@ window.APP_VERSION = '5.182';
       <div class="s-row-left">
         <span class="s-row-ico">&#128274;</span>
         <div><div class="s-row-lbl">Politique de confidentialité</div><div class="s-row-sub">Données locales — aucune collecte</div></div>
+      </div>
+      <span class="s-row-arr">&#8250;</span>
+    </div>
+    <div class="setting-row" onclick="window.open('/mentions-legales.html','_blank')">
+      <div class="s-row-left">
+        <span class="s-row-ico">&#128220;</span>
+        <div><div class="s-row-lbl">Mentions légales</div><div class="s-row-sub">Éditeur, hébergeur, contact</div></div>
       </div>
       <span class="s-row-arr">&#8250;</span>
     </div>
