@@ -1333,7 +1333,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.183';
+window.APP_VERSION = '5.184';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -7535,6 +7535,29 @@ async function sendMsg(txt, hiddenUser, fileData){
     // une formule figée — jamais deux fois de suite la même (voir _pickSyncConfirmQuestion()).
     if(newPendingSync && clean.indexOf('?')===-1){
       clean = (clean ? clean+' ' : '') + _pickSyncConfirmQuestion();
+    }
+    // v5.184 : filet de sécurité pour le revenu initial — bug confirmé en test live : répondre
+    // "Je gagne 2200 euros par mois" à la toute première question de Léo ("combien tu gagnes par
+    // mois ?") peut produire un texte de confirmation ("Je note tes 2200 euros de revenus") SANS
+    // que le [FD] renvoyé par le LLM contienne réellement la clé "revenus" — le filet v5.112
+    // ci-dessous déclenche alors correctement son avertissement, mais rien n'est jamais enregistré
+    // tant que l'utilisateur ne reformule pas comme suggéré. C'est le pire moment possible pour ce
+    // genre de flakiness LLM : le Reste à vivre reste à 0€ (donc affiché comme fortement négatif,
+    // "Action urgente") malgré le message rassurant de Léo — très mauvais premier contact. Même
+    // philosophie que pour les enveloppes (autoLinkEnveloppes) et la question de confirmation
+    // (v5.110 ci-dessus) : un champ aussi critique pour le tout premier écran ne doit jamais
+    // dépendre uniquement du bon vouloir du LLM. On extrait ici, côté code, un montant en euros
+    // directement depuis le message de l'UTILISATEUR quand aucun revenu n'est encore connu, que le
+    // champ agrégé n'a pas déjà été mis à jour ce tour-ci, et que le message contient clairement du
+    // vocabulaire de revenu (pour éviter de confondre avec une dépense).
+    if(!financialSimpleUpdated && !S.fin.revenus && /\b(gagne|gagn\w*|salaire|revenus?|touche|per[çc]oi\w*|paie|paye)\b/i.test(txt)){
+      var _revM=txt.match(/(\d+(?:[.,]\d{1,3})?)\s*(€|eur(?:os?)?\b)/i);
+      var _revVal=_revM ? parseFloat(_revM[1].replace(',','.')) : 0;
+      if(_revVal>0){
+        S.fin.revenus=_revVal;
+        financialSimpleUpdated=true;
+        syncTotals(); S.fin.rav=calcRAV(); save(); updateAnalyseCards(); renderBudget();
+      }
     }
     // v5.112 : filet de sécurité supplémentaire — bug signalé par l'utilisateur ("j'ai écrit '20€
     // d'essence' à Léo, il a bien compris la dépense mais pas de question posée à la fin"). Le
