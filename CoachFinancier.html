@@ -1333,7 +1333,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.185';
+window.APP_VERSION = '5.186';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -2233,7 +2233,7 @@ window.APP_VERSION = '5.185';
     <div class="setting-row" onclick="confirmResetApp()">
       <div class="s-row-left">
         <span class="s-row-ico">&#128465;&#65039;</span>
-        <div><div class="s-row-lbl" style="color:var(--red)">R&#233;initialiser l'application</div><div class="s-row-sub">Supprime toutes tes donn&#233;es de cet appareil et repart de z&#233;ro</div></div>
+        <div><div class="s-row-lbl" style="color:var(--red)">R&#233;initialiser l'application</div><div class="s-row-sub">Efface ton budget et ta discussion avec L&#233;o &#8212; ton compte (identifiant/mot de passe) est conserv&#233;</div></div>
       </div>
       <span class="s-row-arr">&#8250;</span>
     </div>
@@ -3791,10 +3791,10 @@ function doLogout(){
 // qu'une déconnexion classique — pas de nouvelle modale HTML nécessaire, on réutilise l'existante.
 function confirmResetApp(){
   showConfirm(
-    'Réinitialiser l\'application ? Tout ton budget, tes dépenses, tes revenus, tes objectifs et ton historique de chat avec Léo seront supprimés de cet appareil. Pense à exporter une sauvegarde avant si tu veux la conserver (section Sauvegarde des données ci-dessus).',
+    'Réinitialiser l\'application ? Tout ton budget, tes dépenses, tes revenus, tes objectifs et ton historique de chat avec Léo seront supprimés de cet appareil. Ton identifiant et ton mot de passe restent inchangés, tu pourras te reconnecter normalement avec le même compte. Pense à exporter une sauvegarde avant si tu veux conserver tes données actuelles (section Sauvegarde des données ci-dessus).',
     function(){
       showConfirm(
-        'Dernière vérification : cette suppression est définitive et ne peut pas être annulée. Tout sera perdu.',
+        'Dernière vérification : cette suppression est définitive et ne peut pas être annulée. Seuls ton identifiant et ton mot de passe seront conservés, tout le reste sera perdu.',
         function(){ doResetApp(); },
         'Oui, tout supprimer'
       );
@@ -3802,20 +3802,50 @@ function confirmResetApp(){
     'Continuer'
   );
 }
+// v5.186 : précision apportée par l'utilisateur après le premier jet (v5.185) — le bouton doit
+// réinitialiser l'intégralité des chiffres (budget, dépenses, revenus, objectifs, historique...)
+// ET la discussion avec Léo, MAIS PAS LE COMPTE : l'identifiant et le mot de passe doivent survivre
+// pour que l'utilisateur puisse se reconnecter ensuite avec les mêmes identifiants. La v5.185
+// balayait tout cf_* sans distinction, ce qui supprimait aussi cf_auth : après reset, l'utilisateur
+// se serait retrouvé sans compte du tout et aurait dû se réinscrire — contraire à la demande. On
+// passe donc d'un balayage "tout supprimer" à un balayage "tout supprimer SAUF une liste explicite
+// de clés compte/réglages à préserver" (KEEP_ON_RESET). Ça conserve la même garantie de complétude
+// pour toute donnée future (une nouvelle clé cf_* de données non prévue est quand même effacée par
+// défaut) tout en protégeant explicitement le compte et les préférences qui n'ont rien à voir avec
+// "les chiffres" ou "la discussion avec Léo".
+var KEEP_ON_RESET = [
+  'cf_auth',                      // identifiant + mot de passe (hash) : le compte lui-même
+  'cf_key',                       // clé API Gemini personnelle (réglage, pas une donnée financière)
+  'cf_theme',                     // préférence sombre/clair
+  'cf_avatar',                    // avatar du coach choisi
+  'cf_profile',                   // profil de langage / prénom
+  'cf_setup_done',                // évite de rejouer l'écran de setup + le message auto "Bonjour Léo, je débute"
+  'cf_onboard_seen',              // ne pas réafficher le carrousel d'accueil
+  'cf_install_banner_dismissed',  // préférence UI
+  'cf_analyseCollapsed',          // préférence UI
+  'cf_alertDismiss',              // préférence UI
+  'cf_backup_dl',                 // date du dernier export manuel
+  'cf_fbcfg'                      // config de synchronisation cloud (réglage, pas une donnée)
+];
 function doResetApp(){
-  // Balayage dynamique de toutes les clés préfixées "cf_" plutôt qu'une liste figée (voir
-  // doLogout() ci-dessus, qui elle doit rester une liste explicite pour la sauvegarde
-  // automatique) : une liste figée ici risquerait d'oublier une clé ajoutée dans une future
-  // version et de laisser des données orphelines après une "réinitialisation" censée tout
-  // effacer — même philosophie que les autres filets de sécurité de ce fichier (ne jamais
-  // dépendre d'une énumération manuelle pour une garantie de complétude).
   try{
+    // Si la synchro cloud Firebase est active, un prochain login rapatrierait automatiquement
+    // (loadFromCloud, appelée après chaque doLogin) l'ancienne sauvegarde Firestore et annulerait
+    // silencieusement cette réinitialisation locale. On efface donc d'abord les données locales,
+    // puis on repousse cet état vidé vers le cloud (syncToCloud lit localStorage à cet instant),
+    // avant de recharger la page.
+    var hadCloud = !!localStorage.getItem('cf_fbcfg');
     Object.keys(localStorage).slice().forEach(function(k){
-      if(k.indexOf('cf_')===0) localStorage.removeItem(k);
+      if(k.indexOf('cf_')===0 && KEEP_ON_RESET.indexOf(k)===-1) localStorage.removeItem(k);
     });
-    sessionStorage.clear();
-  }catch(ex){ console.error('[doResetApp] échec de la suppression :', ex); }
-  location.reload();
+    var finish = function(){ sessionStorage.clear(); location.reload(); };
+    if(hadCloud && typeof syncToCloud==='function'){
+      syncToCloud();
+      setTimeout(finish, 900); // laisse partir la requête PATCH avant de recharger
+    } else {
+      finish();
+    }
+  }catch(ex){ console.error('[doResetApp] échec de la suppression :', ex); location.reload(); }
 }
 
 try{ S.lastChatOpen = parseInt(localStorage.getItem('cf_chatOpen')||'0')||0; }catch(e){}
