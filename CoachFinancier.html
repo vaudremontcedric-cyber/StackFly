@@ -1333,7 +1333,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.184';
+window.APP_VERSION = '5.185';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -2228,6 +2228,14 @@ window.APP_VERSION = '5.184';
       </div>
       <span class="s-row-arr">&#8250;</span>
       <input type="file" accept=".json" onchange="importBackup(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%"/>
+    </div>
+    <div class="profil-sect">&#9888;&#65039; Zone sensible</div>
+    <div class="setting-row" onclick="confirmResetApp()">
+      <div class="s-row-left">
+        <span class="s-row-ico">&#128465;&#65039;</span>
+        <div><div class="s-row-lbl" style="color:var(--red)">R&#233;initialiser l'application</div><div class="s-row-sub">Supprime toutes tes donn&#233;es de cet appareil et repart de z&#233;ro</div></div>
+      </div>
+      <span class="s-row-arr">&#8250;</span>
     </div>
     <div class="profil-sect">&#9729;&#65039; Sync cloud (multi-appareils)</div>
     <div id="fbStatusRow" class="setting-row" style="pointer-events:none">
@@ -3773,6 +3781,41 @@ function doLogout(){
     sessionStorage.removeItem('cf_sess');
     location.reload();
   }, 'Déconnecter');
+}
+
+// v5.185 : demande explicite de l'utilisateur ("rajoute une fonction réinitialiser dans
+// paramètres, permettant de repartir du début en supprimant toutes les données"). Distincte de
+// doLogout() ci-dessus (qui conserve les données pour une reconnexion ultérieure et en télécharge
+// même une sauvegarde automatique) : ici, l'intention explicite est l'effacement définitif.
+// Double confirmation (deux showConfirm() imbriqués) car l'action est irréversible et plus grave
+// qu'une déconnexion classique — pas de nouvelle modale HTML nécessaire, on réutilise l'existante.
+function confirmResetApp(){
+  showConfirm(
+    'Réinitialiser l\'application ? Tout ton budget, tes dépenses, tes revenus, tes objectifs et ton historique de chat avec Léo seront supprimés de cet appareil. Pense à exporter une sauvegarde avant si tu veux la conserver (section Sauvegarde des données ci-dessus).',
+    function(){
+      showConfirm(
+        'Dernière vérification : cette suppression est définitive et ne peut pas être annulée. Tout sera perdu.',
+        function(){ doResetApp(); },
+        'Oui, tout supprimer'
+      );
+    },
+    'Continuer'
+  );
+}
+function doResetApp(){
+  // Balayage dynamique de toutes les clés préfixées "cf_" plutôt qu'une liste figée (voir
+  // doLogout() ci-dessus, qui elle doit rester une liste explicite pour la sauvegarde
+  // automatique) : une liste figée ici risquerait d'oublier une clé ajoutée dans une future
+  // version et de laisser des données orphelines après une "réinitialisation" censée tout
+  // effacer — même philosophie que les autres filets de sécurité de ce fichier (ne jamais
+  // dépendre d'une énumération manuelle pour une garantie de complétude).
+  try{
+    Object.keys(localStorage).slice().forEach(function(k){
+      if(k.indexOf('cf_')===0) localStorage.removeItem(k);
+    });
+    sessionStorage.clear();
+  }catch(ex){ console.error('[doResetApp] échec de la suppression :', ex); }
+  location.reload();
 }
 
 try{ S.lastChatOpen = parseInt(localStorage.getItem('cf_chatOpen')||'0')||0; }catch(e){}
