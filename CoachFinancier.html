@@ -1007,6 +1007,9 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 .stat-v{font-variant-numeric:tabular-nums}
 .setting-row{transition:background .18s ease,border-color .18s ease}
 .setting-row:active{background:var(--card2)}
+/* v5.189 : visible au clavier (voir enhanceSettingRowsA11y()) — sans ça, une ligne peut recevoir
+   le focus mais sans aucun repère visuel pour savoir laquelle. */
+.setting-row:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 /* Scroll smooth */
 #pg-budget,#pg-obj,#pg-profil{scroll-behavior:smooth}
@@ -1333,7 +1336,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.188';
+window.APP_VERSION = '5.189';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -3749,6 +3752,7 @@ function applyTheme(light){
   var toggle=document.getElementById('themeToggle');
   var thumb=document.getElementById('themeThumb');
   var row=document.getElementById('themeRow');
+  if(row) row.setAttribute('aria-checked', light?'false':'true'); // v5.189 : voir enhanceSettingRowsA11y()
   if(light){
     if(ico) ico.textContent='☀️';
     if(lbl) lbl.textContent='Mode clair';
@@ -4042,6 +4046,32 @@ window.addEventListener('DOMContentLoaded', function(){
     if(card) card.classList.add('collapsed');
   }
 });
+
+// v5.189 : accessibilité clavier des lignes de réglages (Profil > Paramètres) — trouvé lors d'un
+// test de l'app : ce sont des blocs div munis d'un onclick, sans rôle ni tabindex, donc invisibles
+// au clavier et aux lecteurs d'écran (absentes de l'arbre d'accessibilité). Plutôt que de dupliquer
+// role/tabindex/onkeydown sur chacune des ~18 lignes, un seul passage au chargement les rend
+// toutes focusables et actionnables au clavier (Entrée/Espace). Exclut volontairement les lignes
+// sans onclick propre : "Importer une sauvegarde" (déjà accessible via son input file natif
+// superposé) et #fbStatusRow (pointer-events:none, purement informative, pas un bouton).
+function enhanceSettingRowsA11y(){
+  document.querySelectorAll('.setting-row[onclick]').forEach(function(row){
+    row.tabIndex = 0;
+    row.setAttribute('role', row.id==='themeRow' ? 'switch' : 'button');
+    row.addEventListener('keydown', function(e){
+      if(e.key==='Enter' || e.key===' ' || e.key==='Spacebar'){
+        e.preventDefault();
+        row.click();
+      }
+    });
+  });
+  // "Mode sombre" est un vrai switch — reflète son état initial (voir aussi applyTheme(), qui
+  // maintient cet attribut à jour à chaque bascule) pour que les lecteurs d'écran annoncent
+  // Activé/Désactivé plutôt qu'un simple bouton.
+  var themeRow=document.getElementById('themeRow');
+  if(themeRow) themeRow.setAttribute('aria-checked', document.body.classList.contains('light')?'false':'true');
+}
+window.addEventListener('DOMContentLoaded', enhanceSettingRowsA11y);
 
 // ══════════════════════════════════════════════
 // TABLEAUX BESOINS / ENVIES / ÉPARGNE (50/30/20)
@@ -8164,6 +8194,11 @@ function saveCycleDay(){
   S.fin.jourDebutMois=v; save();
   rolloverEnveloppes();
   if(typeof renderEnveloppes==='function') renderEnveloppes();
+  // v5.189 : bug trouvé en testant le réglage — renderEnveloppes() rafraîchit bien la liste des
+  // enveloppes, mais pas les widgets "Mes enveloppes (restant à dépenser)" / "Reste à vivre
+  // théorique" de la page Budget (rendus par renderBudget(), jamais appelée ici) : ils restaient
+  // figés sur l'ancien cycle jusqu'au prochain rendu naturel (changement de période, navigation).
+  if(typeof renderBudget==='function') renderBudget();
   closeCycleModal();
   toast('Cycle budgétaire mis à jour ✅','#10b981');
 }
