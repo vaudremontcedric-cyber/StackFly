@@ -1333,7 +1333,7 @@ body.light .modal-drag{background:rgba(0,0,0,.15)}
 // l'écran "À propos" (voir renderProfil/openSettings). Ne JAMAIS hardcoder
 // le numéro de version ailleurs : ça se désynchronise à chaque release
 // (vu en v5.12, v5.20, v5.23 → toujours corrigé après coup).
-window.APP_VERSION = '5.187';
+window.APP_VERSION = '5.188';
 </script>
 <script>
 // ══ SERVICE WORKER OFFLINE ══
@@ -2190,6 +2190,13 @@ window.APP_VERSION = '5.187';
       </div>
       <span class="s-row-arr">&#8250;</span>
     </div>
+    <div class="setting-row" onclick="openCycleModal()">
+      <div class="s-row-left">
+        <span class="s-row-ico">&#128197;</span>
+        <div><div class="s-row-lbl">Cycle budg&#233;taire</div><div class="s-row-sub">Jour de d&#233;but de mois pour les enveloppes</div></div>
+      </div>
+      <span class="s-row-arr">&#8250;</span>
+    </div>
     <div class="setting-row" onclick="openTutoModal()">
       <div class="s-row-left">
         <span class="s-row-ico">📖</span>
@@ -2670,6 +2677,23 @@ window.APP_VERSION = '5.187';
     <div class="m-btns">
       <button class="mb s" onclick="closeKeyModal()">Annuler</button>
       <button class="mb p" onclick="updateKey()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Cycle budgétaire (v5.188) -->
+<div class="ov" id="ovCycle" onclick="if(event.target===this)closeCycleModal()">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <div class="modal-title">Cycle budg&#233;taire</div>
+    <div style="font-size:13px;color:var(--text2);margin:0 0 12px;line-height:1.5">
+      Jour du mois o&#249; tes enveloppes se remettent &#224; z&#233;ro (ex: 24 si ton
+      mois va du 24 au 24, plut&#244;t que du 1er au 1er).
+    </div>
+    <input class="m-in" id="cycleEdit" type="number" min="1" max="28" placeholder="1"/>
+    <div class="m-btns">
+      <button class="mb s" onclick="closeCycleModal()">Annuler</button>
+      <button class="mb p" onclick="saveCycleDay()">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -3852,6 +3876,7 @@ function doResetApp(){
 try{ S.lastChatOpen = parseInt(localStorage.getItem('cf_chatOpen')||'0')||0; }catch(e){}
 try{ S.hist       = JSON.parse(localStorage.getItem('cf_hist')  ||'[]'); }catch(e){}
 try{ S.fin        = JSON.parse(localStorage.getItem('cf_fin')   ||'{}'); }catch(e){}
+S.fin.jourDebutMois = S.fin.jourDebutMois || 1; // v5.188 : cycle budgétaire personnalisé (1-28, défaut 1 = mois calendaire)
 try{ S.goals      = JSON.parse(localStorage.getItem('cf_goals') ||'[]'); }catch(e){}
 try{ S.dailySnaps = JSON.parse(localStorage.getItem('cf_snaps') ||'[]'); }catch(e){}
 try{ S.monthRates = JSON.parse(localStorage.getItem('cf_monthRates') ||'{}'); }catch(e){ S.monthRates={}; }
@@ -6043,10 +6068,20 @@ function uniqueEnvId(nom){
   while(existing[base+'-'+n]) n++;
   return base+'-'+n;
 }
-function curMonthKey(){
-  var d=new Date();
-  return d.getFullYear()+'-'+(d.getMonth()<9?'0':'')+(d.getMonth()+1);
+// v5.188 : cycle budgétaire personnalisable (S.fin.jourDebutMois, 1-28, défaut 1) — une date
+// appartient au mois qui a commencé à ce jour-là plutôt qu'au 1er calendaire strict. Utilisée à la
+// fois pour la clé du mois courant (curMonthKey) et pour rattacher une dépense à son mois
+// (getEnvSpentInMonth) : les deux DOIVENT passer par cette même fonction, sinon le réglage n'a
+// aucun effet sur les montants "dépensé ce mois-ci".
+function dateToMonthKey(dateStr){
+  var jourDebut=(S.fin && S.fin.jourDebutMois) || 1;
+  var parts=String(dateStr||'').split('-');
+  var y=parseInt(parts[0],10), m=parseInt(parts[1],10), d=parseInt(parts[2],10);
+  if(isNaN(y)||isNaN(m)||isNaN(d)){ var n=new Date(); y=n.getFullYear(); m=n.getMonth()+1; d=n.getDate(); }
+  if(d<jourDebut){ m--; if(m<1){ m=12; y--; } }
+  return y+'-'+(m<10?'0':'')+m;
 }
+function curMonthKey(){ return dateToMonthKey(today()); }
 function nextMonthKey(key){
   var parts=String(key||'').split('-');
   var y=parseInt(parts[0],10), m=parseInt(parts[1],10);
@@ -6282,7 +6317,7 @@ function getEnvSpentInMonth(envId, monthKey){
   return getEnvEligibleRows().filter(function(r){
     if(r.env!==envId) return false;
     var d=r.d||today(); // pas de date connue -> comptée sur le mois en cours par convention
-    return d.slice(0,7)===monthKey;
+    return dateToMonthKey(d)===monthKey;
   }).reduce(function(s,r){ return s+r.v; },0);
 }
 // Disponible ce mois-ci pour une enveloppe = budget cible + solde reporté des mois précédents
@@ -6302,6 +6337,10 @@ function rolloverEnveloppes(){
   list.forEach(function(env){
     if(!env.moisRef){ env.moisRef=cur; return; }
     if(env.report==null) env.report=0;
+    // Cycle redéfini en arrière (ex: jour de début de mois modifié) : moisRef peut se retrouver
+    // après cur. nextMonthKey() n'avance que vers l'avant, donc on resynchronise directement plutôt
+    // que de laisser la boucle tourner jusqu'au garde-fou sans jamais atteindre cur.
+    if(env.moisRef>cur){ env.moisRef=cur; changed=true; return; }
     var guard=0;
     while(env.moisRef!==cur && guard<36){
       var spentThatMonth=getEnvSpentInMonth(env.id, env.moisRef);
@@ -8110,6 +8149,23 @@ function openKeyModal(){
 }
 function closeKeyModal(){
   document.getElementById('ovKey').classList.remove('open');
+}
+// v5.188 : cycle budgétaire personnalisé — voir dateToMonthKey()/curMonthKey() plus haut.
+function openCycleModal(){
+  document.getElementById('cycleEdit').value=(S.fin&&S.fin.jourDebutMois)||1;
+  document.getElementById('ovCycle').classList.add('open');
+}
+function closeCycleModal(){
+  document.getElementById('ovCycle').classList.remove('open');
+}
+function saveCycleDay(){
+  var v=parseInt(document.getElementById('cycleEdit').value,10);
+  if(isNaN(v)||v<1||v>28){ toast('Choisis un jour entre 1 et 28','#ef4444'); return; }
+  S.fin.jourDebutMois=v; save();
+  rolloverEnveloppes();
+  if(typeof renderEnveloppes==='function') renderEnveloppes();
+  closeCycleModal();
+  toast('Cycle budgétaire mis à jour ✅','#10b981');
 }
 function updateKey(){
   var v=(document.getElementById('keyEdit').value||'').trim();
